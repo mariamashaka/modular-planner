@@ -18,10 +18,9 @@
             padding: 20px;
         }
 
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .navigation {
@@ -49,9 +48,10 @@
             background: #5f4fcf;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
         }
 
         .week-status {
@@ -242,23 +242,34 @@
             font-size: 0.9em;
             margin-top: 10px;
         }
+
+        .weekly-plan {
+            background: #fff5f5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #f56565;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            color: #2d3748;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🔄 REPEAT FLOW</h1>
-            <p>Недельные пулы задач</p>
-        </div>
-
         <div class="navigation">
             <a href="../modules/urgent-flow.html" class="nav-btn">⚡ Срочные</a>
             <a href="../modules/project-manager.html" class="nav-btn">📋 Проекты</a>
             <a href="../modules/archive-viewer.html" class="nav-btn">📊 Архив</a>
         </div>
 
+        <div class="header">
+            <h1>🔄 REPEAT FLOW</h1>
+            <p>Недельные пулы задач</p>
+        </div>
+
         <div class="week-status">
-            <h3>Неделя <span id="currentWeek">37</span> - 2024</h3>
+            <h3>Неделя <span id="currentWeek">37</span> - <span id="currentYear">2025</span></h3>
             <div class="reset-timer">Сброс счетчиков: <span id="resetTimer">понедельник</span></div>
             <div class="stats">
                 <div>Выполнено сегодня: <span id="completedToday">0</span></div>
@@ -275,7 +286,7 @@
             <div class="form-group">
                 <label class="form-label">Проект:</label>
                 <select id="poolProject" class="form-select">
-                    <option value="">Выберите проект</option>
+                    <option value="">Без проекта</option>
                 </select>
             </div>
             <button onclick="addPool()" class="btn btn-complete">Создать пул</button>
@@ -290,46 +301,73 @@
         Задача выполнена!
     </div>
 
-    <script src="../shared/projects.js"></script>
-    <script src="../shared/archive.js"></script>
     <script>
         // Данные
         let repeatPools = JSON.parse(localStorage.getItem('repeatPools') || '[]');
-        let weeklyStats = JSON.parse(localStorage.getItem('weeklyStats') || '{}');
+        let archiveData = JSON.parse(localStorage.getItem('archive') || '[]');
+        
+        // Встроенная система проектов (если нет shared/projects.js)
+        function getProjects() {
+            const projects = JSON.parse(localStorage.getItem('projects') || '[]');
+            // Если нет проектов, создаём несколько базовых
+            if (projects.length === 0) {
+                const defaultProjects = [
+                    {name: 'MSc', color: '#48bb78'},
+                    {name: 'Health', color: '#f56565'},
+                    {name: 'Поликлиника', color: '#4299e1'},
+                    {name: 'Семья', color: '#ed8936'}
+                ];
+                localStorage.setItem('projects', JSON.stringify(defaultProjects));
+                return defaultProjects;
+            }
+            return projects;
+        }
+        
+        // Встроенная система архива (если нет shared/archive.js)
+        function addToArchive(task) {
+            archiveData.push(task);
+            localStorage.setItem('archive', JSON.stringify(archiveData));
+        }
+        
+        function getArchive() {
+            return archiveData;
+        }
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            // Проверяем что необходимые функции загружены
-            if (typeof getProjects !== 'function') {
-                console.error('getProjects не загружена! Проверьте shared/projects.js');
-                // Создаём заглушку
-                window.getProjects = () => [];
-            }
-            
-            if (typeof addToArchive !== 'function') {
-                console.error('addToArchive не загружена! Проверьте shared/archive.js');
-                // Создаём заглушку
-                window.addToArchive = () => console.log('Архив недоступен');
-            }
-            
-            if (typeof getArchive !== 'function') {
-                console.error('getArchive не загружена! Проверьте shared/archive.js');
-                // Создаём заглушку  
-                window.getArchive = () => [];
-            }
-            
             loadProjects();
             updateWeekStatus();
             renderPools();
             updateStats();
         });
 
-        // Получение текущей недели
+        // Получение текущей недели (по ISO стандарту)
         function getCurrentWeek() {
             const now = new Date();
-            const start = new Date(now.getFullYear(), 0, 1);
-            const week = Math.ceil((((now - start) / 86400000) + start.getDay() + 1) / 7);
-            return week;
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const date = now.getDate();
+            
+            // Первый четверг года определяет первую неделю
+            const jan1 = new Date(year, 0, 1);
+            const jan1Day = jan1.getDay() || 7; // Понедельник = 1, Воскресенье = 7
+            
+            // Найти первый четверг года
+            const firstThursday = new Date(year, 0, 1 + (4 - jan1Day + 7) % 7);
+            
+            // Текущая дата
+            const current = new Date(year, month, date);
+            
+            // Разница в днях
+            const diffDays = Math.floor((current - firstThursday) / (24 * 60 * 60 * 1000));
+            
+            // Номер недели
+            return Math.floor(diffDays / 7) + 1;
+        }
+
+        // Получение текущего года
+        function getCurrentYear() {
+            return new Date().getFullYear();
         }
 
         // Получение дней до понедельника
@@ -343,9 +381,11 @@
         // Обновление статуса недели
         function updateWeekStatus() {
             const currentWeek = getCurrentWeek();
+            const currentYear = getCurrentYear();
             const daysUntil = getDaysUntilMonday();
             
             document.getElementById('currentWeek').textContent = currentWeek;
+            document.getElementById('currentYear').textContent = currentYear;
             
             if (daysUntil === 1) {
                 document.getElementById('resetTimer').textContent = 'завтра';
@@ -381,7 +421,7 @@
             const pool = {
                 id: Date.now(),
                 name: name,
-                project: project,
+                project: project || '',
                 tasks: [],
                 color: project ? getProjectColor(project) : '#6c5ce7'
             };
@@ -400,10 +440,17 @@
         // Добавление задачи в пул
         function addTaskToPool(poolId) {
             const name = prompt('Название задачи:');
-            const target = parseInt(prompt('Сколько раз в неделю?'));
+            if (!name) return;
             
-            if (!name || !target || target < 1) {
-                return;
+            const target = parseInt(prompt('Сколько раз в неделю?'));
+            if (!target || target < 1) return;
+            
+            // Выбор типа задачи
+            const isDetailed = confirm('Детализированная задача?\n\nОК = Да (с планом на неделю)\nОтмена = Нет (простая галочка)');
+            
+            let weeklyPlan = '';
+            if (isDetailed) {
+                weeklyPlan = prompt('План на эту неделю:\n(например: "Раздел 17 Food" или "Prepositions")') || '';
             }
             
             const pool = repeatPools.find(p => p.id === poolId);
@@ -414,12 +461,15 @@
                 name: name,
                 target: target,
                 completed: 0,
-                weekNumber: getCurrentWeek()
+                type: isDetailed ? 'detailed' : 'simple',
+                weeklyPlan: weeklyPlan,
+                weekKey: `${getCurrentYear()}-W${getCurrentWeek()}`
             };
             
             pool.tasks.push(task);
             saveData();
             renderPools();
+            showNotification('Задача добавлена!');
         }
 
         // Выполнение задачи
@@ -439,6 +489,8 @@
                 project: pool.project,
                 pool: pool.name,
                 progress: `${task.completed}/${task.target}`,
+                taskType: task.type,
+                weeklyPlan: task.type === 'detailed' ? task.weeklyPlan : null,
                 date: new Date().toISOString().split('T')[0]
             };
             addToArchive(archiveTask);
@@ -446,7 +498,42 @@
             saveData();
             renderPools();
             updateStats();
-            showNotification('Задача выполнена!');
+            
+            // Разные сообщения для разных типов задач
+            if (task.type === 'detailed' && task.weeklyPlan) {
+                showNotification(`Выполнено: ${task.weeklyPlan}!`);
+            } else {
+                showNotification('Задача выполнена!');
+            }
+        }
+
+        // Редактирование плана недели
+        function editWeeklyPlan(poolId, taskId) {
+            const pool = repeatPools.find(p => p.id === poolId);
+            const task = pool.tasks.find(t => t.id === taskId);
+            
+            if (!task || task.type !== 'detailed') return;
+            
+            const newPlan = prompt('План на эту неделю:', task.weeklyPlan);
+            if (newPlan !== null) {
+                task.weeklyPlan = newPlan;
+                saveData();
+                renderPools();
+                showNotification('План обновлён!');
+            }
+        }
+
+        // Удаление задачи
+        function deleteTask(poolId, taskId) {
+            if (!confirm('Удалить эту задачу?')) return;
+            
+            const pool = repeatPools.find(p => p.id === poolId);
+            if (!pool) return;
+            
+            pool.tasks = pool.tasks.filter(t => t.id !== taskId);
+            saveData();
+            renderPools();
+            showNotification('Задача удалена!');
         }
 
         // Удаление пула
@@ -523,12 +610,20 @@
             const progress = Math.min((task.completed / task.target) * 100, 100);
             const isCompleted = task.completed >= task.target;
             
+            // Детализированная задача показывает план недели
+            const weeklyPlanHtml = task.type === 'detailed' && task.weeklyPlan ? 
+                `<div class="weekly-plan">📝 План: ${task.weeklyPlan}</div>` : '';
+            
             return `
                 <div class="task-item">
                     <div class="task-header">
-                        <div class="task-name">${task.name}</div>
+                        <div class="task-name">
+                            ${task.name}
+                            ${task.type === 'detailed' ? '📋' : '✅'}
+                        </div>
                         <div class="progress-text">${task.completed}/${task.target}</div>
                     </div>
+                    ${weeklyPlanHtml}
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: ${progress}%"></div>
                     </div>
@@ -538,6 +633,9 @@
                                 ${isCompleted ? 'disabled' : ''}>
                             ${isCompleted ? '✅ Выполнено' : '✅ Готово'}
                         </button>
+                        ${task.type === 'detailed' && !isCompleted ? 
+                            `<button onclick="editWeeklyPlan(${poolId}, ${task.id})" class="btn" style="background: #4299e1; color: white;">📝 Изменить план</button>` : ''}
+                        <button onclick="deleteTask(${poolId}, ${task.id})" class="btn btn-delete">❌</button>
                     </div>
                 </div>
             `;
