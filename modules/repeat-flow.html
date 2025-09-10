@@ -299,6 +299,25 @@
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
+            // Проверяем что необходимые функции загружены
+            if (typeof getProjects !== 'function') {
+                console.error('getProjects не загружена! Проверьте shared/projects.js');
+                // Создаём заглушку
+                window.getProjects = () => [];
+            }
+            
+            if (typeof addToArchive !== 'function') {
+                console.error('addToArchive не загружена! Проверьте shared/archive.js');
+                // Создаём заглушку
+                window.addToArchive = () => console.log('Архив недоступен');
+            }
+            
+            if (typeof getArchive !== 'function') {
+                console.error('getArchive не загружена! Проверьте shared/archive.js');
+                // Создаём заглушку  
+                window.getArchive = () => [];
+            }
+            
             loadProjects();
             updateWeekStatus();
             renderPools();
