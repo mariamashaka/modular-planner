@@ -441,13 +441,18 @@
 
         // Сброс недельных счетчиков (автоматически по понедельникам)
         function resetWeeklyCounters() {
-            const currentWeek = getCurrentWeek();
+            const currentWeekKey = `${getCurrentYear()}-W${getCurrentWeek()}`;
             
             repeatPools.forEach(pool => {
                 pool.tasks.forEach(task => {
-                    if (task.weekNumber !== currentWeek) {
+                    if (task.weekKey !== currentWeekKey) {
                         task.completed = 0;
-                        task.weekNumber = currentWeek;
+                        task.weekKey = currentWeekKey;
+                        
+                        // Для детализированных задач очищаем план недели
+                        if (task.type === 'detailed') {
+                            task.weeklyPlan = '';
+                        }
                     }
                 });
             });
