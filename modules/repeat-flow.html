@@ -673,8 +673,8 @@
                 const today = new Date().toISOString().split('T')[0];
                 console.log('📅 Сегодняшняя дата:', today);
                 
-                if (typeof getArchive === 'function') {
-                    const archive = getArchive();
+                if (typeof window.ArchiveManager !== 'undefined' && typeof window.ArchiveManager.getAll === 'function') {
+                    const archive = window.ArchiveManager.getAll();
                     console.log('📦 Получили архив, записей:', archive.length);
                     
                     // Показываем несколько последних записей для отладки
@@ -682,28 +682,32 @@
                         console.log('🔍 Последние 3 записи в архиве:');
                         const lastRecords = archive.slice(-3);
                         lastRecords.forEach((record, i) => {
-                            console.log(`  ${i + 1}. ${record.name} (${record.type}) - ${record.date}`);
+                            console.log(`  ${i + 1}. ${record.text} (${record.moduleType}) - ${record.completedAt}`);
                         });
                     }
                     
-                    const todayTasks = archive.filter(task => 
-                        task.date === today && task.type === 'repeat'
-                    );
-                    console.log('📋 Задач repeat на сегодня:', todayTasks.length, todayTasks);
-                    
-                    const thisWeek = archive.filter(task => {
-                        const taskDate = new Date(task.date);
-                        const weekStart = getWeekStart(new Date());
-                        return taskDate >= weekStart && task.type === 'repeat';
+                    // Считаем repeat-flow задачи на сегодня
+                    const todayTasks = archive.filter(task => {
+                        const taskDate = task.completedAt ? task.completedAt.split('T')[0] : '';
+                        return taskDate === today && task.moduleType === 'repeat-flow';
                     });
-                    console.log('📅 Задач repeat на этой неделе:', thisWeek.length);
+                    console.log('📋 Задач repeat-flow на сегодня:', todayTasks.length, todayTasks);
+                    
+                    // Считаем repeat-flow задачи на этой неделе
+                    const weekStart = getWeekStart(new Date());
+                    const thisWeek = archive.filter(task => {
+                        if (!task.completedAt || task.moduleType !== 'repeat-flow') return false;
+                        const taskDate = new Date(task.completedAt);
+                        return taskDate >= weekStart;
+                    });
+                    console.log('📅 Задач repeat-flow на этой неделе:', thisWeek.length);
                     
                     document.getElementById('completedToday').textContent = todayTasks.length;
                     document.getElementById('completedWeek').textContent = thisWeek.length;
                     
                     console.log('✅ Статистика успешно обновлена');
                 } else {
-                    console.error('❌ Функция getArchive не найдена! Статистика НЕ работает');
+                    console.error('❌ ArchiveManager не найден! Статистика НЕ работает');
                     document.getElementById('completedToday').textContent = '?';
                     document.getElementById('completedWeek').textContent = '?';
                 }
