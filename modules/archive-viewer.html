@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Архив задач</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .title {
+            color: #333;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .filters-section {
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .filters-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .filter-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .filter-input, .filter-select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .filter-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .filter-btn:hover {
+            background: #218838;
+        }
+        
+        .clear-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+        
+        .archive-section {
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            color: #495057;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .task-item {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .task-item:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .task-text {
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .task-time {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .task-meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        
+        .task-project {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .project-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .task-module {
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-restore {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-restore:hover {
+            background: #218838;
+        }
+        
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background: #c82333;
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 50px;
+        }
+        
+        .navigation {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .nav-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0 10px;
+            transition: background 0.3s ease;
+        }
+        
+        .nav-button:hover {
+            background: #5a6fd8;
+        }
+        
+        .version-info {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+    MODULE: Archive Viewer
+    VERSION: 1.0
+    STATUS: WORKING
+    FEATURES: 
+    - Просмотр архива всех задач
+    - Фильтрация по дате, проекту, модулю
+    - Статистика выполнения
+    - Восстановление задач
+    - Удаление из архива
+    BUGS: none known
+    -->
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="title">📊 Архив задач</h1>
+            <p class="subtitle">История выполненных задач и аналитика</p>
+        </div>
+        
+        <!-- Статистика -->
+        <div class="stats-grid" id="statsGrid"></div>
+        
+        <!-- Фильтры -->
+        <div class="filters-section">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label class="filter-label">Период:</label>
+                    <select class="filter-select" id="periodFilter">
+                        <option value="today">Сегодня</option>
+                        <option value="week">За неделю</option>
+                        <option value="month" selected>За месяц</option>
+                        <option value="all">Все время</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Проект:</label>
+                    <select class="filter-select" id="projectFilter">
+                        <option value="">Все проекты</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Модуль:</label>
+                    <select class="filter-select" id="moduleFilter">
+                        <option value="">Все модули</option>
+                        <option value="urgent-flow">Срочные задачи</option>
+                        <option value="repeat-flow">Повторяющиеся</option>
+                        <option value="calendar-flow">Календарные</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Поиск:</label>
+                    <input type="text" class="filter-input" id="searchFilter" placeholder="Текст задачи...">
+                </div>
+                <button class="filter-btn" onclick="applyFilters()">Фильтровать</button>
+                <button class="clear-btn" onclick="clearFilters()">Сбросить</button>
+            </div>
+        </div>
+        
+        <!-- Список архивных задач -->
+        <div class="archive-section">
+            <h2 class="section-title" id="sectionTitle">Выполненные задачи</h2>
+            <div id="archiveList"></div>
+        </div>
+        
+        <!-- Навигация -->
+        <div class="navigation">
+            <button class="nav-button" onclick="goToMain()">← Главная</button>
+            <button class="nav-button" onclick="goToUrgent()">Срочные задачи</button>
+            <button class="nav-button" onclick="exportData()">📥 Экспорт</button>
+        </div>
+    </div>
+    
+    <div class="version-info">
+        Archive Viewer v1.0 - Рабочая версия
+    </div>
+    
+    <!-- Подключаем системы -->
+    <script src="../shared/projects.js"></script>
+    <script src="../shared/archive.js"></script>
+    
+    <script>
+        let currentFilters = {};
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            ProjectsManager.init();
+            ArchiveManager.init();
+            
+            loadProjectsToFilter();
+            loadArchive();
+            updateStats();
+        });
+        
+        // Загрузка проектов в фильтр
+        function loadProjectsToFilter() {
+            const projects = ProjectsManager.getActive();
+            const select = document.getElementById('projectFilter');
+            
+            select.innerHTML = `
+                <option value="">Все проекты</option>
+                ${projects.map(p => 
+                    `<option value="${p.id}">${p.name}</option>`
+                ).join('')}
+            `;
+        }
+        
+        // Применение фильтров
+        function applyFilters() {
+            const period = document.getElementById('periodFilter').value;
+            const projectId = document.getElementById('projectFilter').value;
+            const moduleType = document.getElementById('moduleFilter').value;
+            const searchText = document.getElementById('searchFilter').value;
+            
+            currentFilters = {
+                period: period,
+                projectId: projectId || undefined,
+                moduleType: moduleType || undefined,
+                searchText: searchText || undefined
+            };
+            
+            loadArchive();
+            updateStats();
+        }
+        
+        // Сброс фильтров
+        function clearFilters() {
+            document.getElementById('periodFilter').value = 'month';
+            document.getElementById('projectFilter').value = '';
+            document.getElementById('moduleFilter').value = '';
+            document.getElementById('searchFilter').value = '';
+            
+            currentFilters = {};
+            loadArchive();
+            updateStats();
+        }
+        
+        // Загрузка архива
+        function loadArchive() {
+            let tasks;
+            
+            // Получаем задачи по периоду
+            switch(currentFilters.period) {
+                case 'today':
+                    tasks = ArchiveManager.getToday();
+                    break;
+                case 'week':
+                    tasks = ArchiveManager.getWeek();
+                    break;
+                case 'month':
+                    tasks = ArchiveManager.getMonth();
+                    break;
+                default:
+                    tasks = ArchiveManager.getAll();
+            }
+            
+            // Применяем дополнительные фильтры
+            if (currentFilters.projectId || currentFilters.moduleType || currentFilters.searchText) {
+                tasks = ArchiveManager.getFiltered({
+                    projectId: currentFilters.projectId,
+                    moduleType: currentFilters.moduleType,
+                    searchText: currentFilters.searchText
+                }).filter(task => {
+                    // Дополнительная фильтрация по периоду
+                    if (currentFilters.period === 'today') {
+                        const today = new Date().toISOString().split('T')[0];
+                        return task.completedAt.startsWith(today);
+                    }
+                    if (currentFilters.period === 'week') {
+                        const weekAgo = new Date();
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        return new Date(task.completedAt) >= weekAgo;
+                    }
+                    if (currentFilters.period === 'month') {
+                        const monthAgo = new Date();
+                        monthAgo.setMonth(monthAgo.getMonth() - 1);
+                        return new Date(task.completedAt) >= monthAgo;
+                    }
+                    return true;
+                });
+            }
+            
+            renderArchive(tasks);
+        }
+        
+        // Отрисовка архива
+        function renderArchive(tasks) {
+            const container = document.getElementById('archiveList');
+            const title = document.getElementById('sectionTitle');
+            
+            title.textContent = `Выполненные задачи (${tasks.length})`;
+            
+            if (tasks.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет выполненных задач за выбранный период</div>';
+                return;
+            }
+            
+            container.innerHTML = tasks.map(task => {
+                const projectInfo = getProjectInfo(task.projectId);
+                const completedTime = formatDateTime(task.completedAt);
+                
+                return `
+                    <div class="task-item">
+                        <div class="task-header">
+                            <div class="task-text">${task.text}</div>
+                            <div class="task-time">${completedTime}</div>
+                        </div>
+                        <div class="task-meta">
+                            <div class="task-project">
+                                <span class="project-dot" style="background-color: ${projectInfo.color}"></span>
+                                <span>${projectInfo.name}</span>
+                            </div>
+                            <div class="task-module">${getModuleName(task.moduleType)}</div>
+                            ${task.originalDate ? `<span>Планировалось: ${formatDate(task.originalDate)}</span>` : ''}
+                        </div>
+                        ${task.notes ? `<div style="color: #6c757d; font-size: 0.9rem; margin-bottom: 8px;">${task.notes}</div>` : ''}
+                        <div class="task-actions">
+                            <button class="action-btn btn-restore" onclick="restoreTask('${task.id}')">🔄 Восстановить</button>
+                            <button class="action-btn btn-delete" onclick="deleteTask('${task.id}')">🗑️ Удалить</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Обновление статистики
+        function updateStats() {
+            const period = currentFilters.period || 'month';
+            const stats = ArchiveManager.getStats(period);
+            
+            const statsContainer = document.getElementById('statsGrid');
+            
+            // Статистика по проектам
+            const projectStats = Object.entries(stats.projectStats)
+                .map(([projectId, count]) => {
+                    const projectInfo = getProjectInfo(projectId === 'no-project' ? null : projectId);
+                    return { name: projectInfo.name, count: count };
+                })
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 3); // Топ 3 проекта
+            
+            statsContainer.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${stats.totalTasks}</div>
+                    <div class="stat-label">Всего задач</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${Math.round(stats.averagePerDay * 10) / 10}</div>
+                    <div class="stat-label">В среднем в день</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.moduleStats['urgent-flow'] || 0}</div>
+                    <div class="stat-label">Срочных</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${projectStats[0]?.name || '-'}</div>
+                    <div class="stat-label">Топ проект (${projectStats[0]?.count || 0})</div>
+                </div>
+            `;
+        }
+        
+        // Получение информации о проекте
+        function getProjectInfo(projectId) {
+            if (!projectId) return { name: 'Без проекта', color: '#6c757d' };
+            const project = ProjectsManager.getById(projectId);
+            return project ? { name: project.name, color: project.color } : { name: 'Удаленный проект', color: '#dc3545' };
+        }
+        
+        // Название модуля
+        function getModuleName(moduleType) {
+            const names = {
+                'urgent-flow': 'Срочные',
+                'repeat-flow': 'Повторяющиеся',
+                'calendar-flow': 'Календарные'
+            };
+            return names[moduleType] || moduleType;
+        }
+        
+        // Форматирование даты и времени
+        function formatDateTime(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Форматирование даты
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU');
+        }
+        
+        // Восстановление задачи
+        function restoreTask(archiveId) {
+            if (!confirm('Восстановить задачу из архива?')) return;
+            
+            try {
+                const restoredTask = ArchiveManager.restore(archiveId);
+                alert(`Задача восстановлена! Вернитесь в модуль "${getModuleName(restoredTask.moduleType)}" чтобы её увидеть.`);
+                loadArchive();
+                updateStats();
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        }
+        
+        // Удаление из архива навсегда
+        function deleteTask(archiveId) {
+            if (!confirm('Удалить задачу из архива НАВСЕГДА?')) return;
+            
+            try {
+                ArchiveManager.delete(archiveId);
+                loadArchive();
+                updateStats();
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        }
+        
+        // Экспорт данных
+        function exportData() {
+            try {
+                const exportData = ArchiveManager.export(currentFilters);
+                const blob = new Blob([exportData], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `archive_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                alert('Ошибка экспорта: ' + error.message);
+            }
+        }
+        
+        // Навигация
+        function goToMain() {
+            alert('Переход на главную страницу');
+        }
+        
+        function goToUrgent() {
+            window.location.href = 'urgent-flow.html';
+        }
+    </script>
+</body>
+</html>
