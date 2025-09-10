@@ -670,9 +670,14 @@
 
         // Получение цвета проекта
         function getProjectColor(projectName) {
-            const projects = getProjects();
-            const project = projects.find(p => p.name === projectName);
-            return project ? project.color : '#6c5ce7';
+            try {
+                const projects = getProjects(); // Из shared/projects.js
+                const project = projects.find(p => p.name === projectName);
+                return project ? project.color : '#6c5ce7';
+            } catch (error) {
+                console.error('Ошибка получения цвета проекта:', error);
+                return '#6c5ce7';
+            }
         }
 
         // Сохранение данных
