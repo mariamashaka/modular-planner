@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tag Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .navigation {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover {
+            background: #5f4fcf;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .filters {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2d3748;
+            font-size: 0.9em;
+        }
+
+        .form-input, .form-select {
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #6c5ce7;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5f4fcf;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .stats-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            color: #4a5568;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .tags-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .tasks-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .tag-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            border-left: 4px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tag-item:hover {
+            background: #e6f3ff;
+            border-left-color: #6c5ce7;
+            transform: translateX(5px);
+        }
+
+        .tag-item.active {
+            background: #e6f3ff;
+            border-left-color: #6c5ce7;
+            transform: translateX(5px);
+        }
+
+        .tag-name {
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 3px;
+        }
+
+        .tag-meta {
+            font-size: 0.8em;
+            color: #718096;
+        }
+
+        .tag-count {
+            background: #6c5ce7;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .task-item {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e0e6ff;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .task-title {
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .task-module {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .module-urgent {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .module-repeat {
+            background: #c6f6d5;
+            color: #2d7738;
+        }
+
+        .module-projects {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .task-project {
+            background: #e0e6ff;
+            color: #6c5ce7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+
+        .task-priority {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .priority-high {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .priority-medium {
+            background: #fef5e7;
+            color: #dd6b20;
+        }
+
+        .priority-low {
+            background: #f0fff4;
+            color: #38a169;
+        }
+
+        .task-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .task-tag {
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75em;
+        }
+
+        .task-tag.highlighted {
+            background: #ffd700;
+            color: #2d3748;
+            font-weight: bold;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2d3748;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navigation">
+            <a href="../modules/urgent-flow.html" class="nav-btn">⚡ Срочные</a>
+            <a href="../modules/repeat-flow.html" class="nav-btn">🔄 Повторяющиеся</a>
+            <a href="../modules/project-manager.html" class="nav-btn">📋 Проекты</a>
+            <a href="../modules/archive-viewer.html" class="nav-btn">📊 Архив</a>
+        </div>
+
+        <div class="header">
+            <h1>🏷️ ПРОСМОТР ПО ТЕГАМ</h1>
+            <p>Все задачи по контекстным меткам</p>
+        </div>
+
+        <div class="filters">
+            <div class="filter-row">
+                <div class="form-group">
+                    <label class="form-label">🔍 Поиск по тегу:</label>
+                    <input type="text" id="searchInput" class="form-input" placeholder="Введите название тега...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">📱 Модуль:</label>
+                    <select id="moduleFilter" class="form-select">
+                        <option value="">Все модули</option>
+                        <option value="urgent-flow">⚡ Срочные</option>
+                        <option value="repeat-flow">🔄 Повторяющиеся</option>
+                        <option value="projects-flow">📋 Проекты</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">📁 Проект:</label>
+                    <select id="projectFilter" class="form-select">
+                        <option value="">Все проекты</option>
+                    </select>
+                </div>
+                <button onclick="clearFilters()" class="btn btn-secondary">Очистить</button>
+            </div>
+        </div>
+
+        <div class="stats-bar">
+            <span id="statsText">Загружается статистика...</span>
+        </div>
+
+        <div class="main-content">
+            <div class="tags-panel">
+                <div class="section-title">Теги</div>
+                <div id="tagsList">
+                    <div class="empty-state">Теги загружаются...</div>
+                </div>
+            </div>
+
+            <div class="tasks-panel">
+                <div class="section-title">Задачи</div>
+                <div id="tasksList">
+                    <div class="empty-state">Выберите тег слева для просмотра задач</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем системы -->
+    <script src="../shared/projects.js"></script>
+    <script src="../shared/tags.js"></script>
+    <script>
+        let currentTag = null;
+        let allTags = [];
+        let currentFilters = {};
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== TAG VIEWER ЗАГРУЖАЕТСЯ ===');
+            
+            // Проверяем доступность TagManager
+            if (typeof window.TagManager !== 'undefined') {
+                console.log('✅ TagManager найден');
+                initializeTagViewer();
+            } else {
+                console.error('❌ TagManager не найден! Проверьте shared/tags.js');
+                document.getElementById('statsText').textContent = 'Ошибка: TagManager недоступен';
+            }
+
+            // Обработчики событий
+            document.getElementById('searchInput').addEventListener('input', handleSearch);
+            document.getElementById('moduleFilter').addEventListener('change', handleFilterChange);
+            document.getElementById('projectFilter').addEventListener('change', handleFilterChange);
+        });
+
+        // Инициализация просмотрщика тегов
+        function initializeTagViewer() {
+            console.log('🏷️ Инициализируем Tag Viewer...');
+            
+            loadProjects();
+            loadTags();
+            updateStats();
+        }
+
+        // Загрузка проектов для фильтра
+        function loadProjects() {
+            try {
+                if (typeof getProjects === 'function') {
+                    const projects = getProjects();
+                    const select = document.getElementById('projectFilter');
+                    
+                    // Очищаем и добавляем опцию "Все проекты"
+                    select.innerHTML = '<option value="">Все проекты</option>';
+                    
+                    projects.forEach(project => {
+                        const option = document.createElement('option');
+                        option.value = project.name;
+                        option.textContent = project.name;
+                        select.appendChild(option);
+                    });
+                    
+                    console.log('✅ Проекты загружены для фильтра');
+                } else {
+                    console.warn('⚠️ Функция getProjects недоступна');
+                }
+            } catch (error) {
+                console.error('💥 Ошибка загрузки проектов:', error);
+            }
+        }
+
+        // Загрузка и отображение тегов
+        function loadTags() {
+            try {
+                const tagStats = window.TagManager.getStats();
+                allTags = tagStats;
+                console.log('✅ Загружено тегов:', tagStats.length);
+                
+                renderTags(tagStats);
+            } catch (error) {
+                console.error('💥 Ошибка загрузки тегов:', error);
+                document.getElementById('tagsList').innerHTML = 
+                    '<div class="empty-state">Ошибка загрузки тегов</div>';
+            }
+        }
+
+        // Отрисовка списка тегов
+        function renderTags(tagStats) {
+            const container = document.getElementById('tagsList');
+            
+            if (!tagStats || tagStats.length === 0) {
+                container.innerHTML = '<div class="empty-state">Теги не найдены</div>';
+                return;
+            }
+
+            const html = tagStats.map(tagStat => `
+                <div class="tag-item ${currentTag === tagStat.tag ? 'active' : ''}" 
+                     onclick="selectTag('${tagStat.tag.replace(/'/g, "\\'")}')">
+                    <div>
+                        <div class="tag-name">🏷️ ${tagStat.tag}</div>
+                        <div class="tag-meta">
+                            📱 ${tagStat.modules.join(', ')} 
+                            ${tagStat.projects.length > 0 ? '| 📁 ' + tagStat.projects.join(', ') : ''}
+                        </div>
+                    </div>
+                    <div class="tag-count">${tagStat.count}</div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Выбор тега
+        function selectTag(tagName) {
+            currentTag = tagName;
+            console.log('🏷️ Выбран тег:', tagName);
+            
+            // Обновляем активный элемент
+            document.querySelectorAll('.tag-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Загружаем задачи для этого тега
+            loadTasksForTag(tagName);
+        }
+
+        // Загрузка задач для выбранного тега
+        function loadTasksForTag(tagName) {
+            try {
+                const filters = {
+                    tag: tagName,
+                    ...currentFilters
+                };
+                
+                const tasks = window.TagManager.getFiltered(filters);
+                console.log(`✅ Найдено задач с тегом "${tagName}":`, tasks.length);
+                
+                renderTasks(tasks, tagName);
+            } catch (error) {
+                console.error('💥 Ошибка загрузки задач:', error);
+                document.getElementById('tasksList').innerHTML = 
+                    '<div class="empty-state">Ошибка загрузки задач</div>';
+            }
+        }
+
+        // Отрисовка списка задач
+        function renderTasks(tasks, highlightTag = null) {
+            const container = document.getElementById('tasksList');
+            
+            if (!tasks || tasks.length === 0) {
+                container.innerHTML = currentTag ? 
+                    `<div class="empty-state">Задач с тегом "${currentTag}" не найдено</div>` :
+                    '<div class="empty-state">Выберите тег слева для просмотра задач</div>';
+                return;
+            }
+
+            const html = tasks.map(task => `
+                <div class="task-item">
+                    <div class="task-header">
+                        <div>
+                            <div class="task-title">${task.name}</div>
+                            <div class="task-meta">
+                                <span class="task-module module-${task.module.replace('-', '')}">${task.moduleIcon} ${getModuleName(task.module)}</span>
+                                ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
+                                ${task.priority ? `<span class="task-priority priority-${task.priority}">🔥 ${task.priority}</span>` : ''}
+                                ${task.pool ? `<span class="task-project">🗂️ ${task.pool}</span>` : ''}
+                                ${task.progress ? `<span class="task-project">📊 ${task.progress}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    ${task.tags && task.tags.length > 0 ? `
+                        <div class="task-tags">
+                            ${task.tags.map(tag => `
+                                <span class="task-tag ${highlightTag && tag.toLowerCase() === highlightTag.toLowerCase() ? 'highlighted' : ''}">${tag}</span>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Получение читаемого названия модуля
+        function getModuleName(moduleId) {
+            const names = {
+                'urgent-flow': 'Срочные',
+                'repeat-flow': 'Повторяющиеся', 
+                'projects-flow': 'Проекты',
+                'calendar-flow': 'Календарь',
+                'onetime-flow': 'Разовые'
+            };
+            return names[moduleId] || moduleId;
+        }
+
+        // Обработка поиска
+        function handleSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (!searchTerm) {
+                renderTags(allTags);
+                return;
+            }
+
+            const filtered = allTags.filter(tagStat => 
+                tagStat.tag.toLowerCase().includes(searchTerm)
+            );
+            
+            renderTags(filtered);
+            console.log(`🔍 Найдено тегов по поиску "${searchTerm}":`, filtered.length);
+        }
+
+        // Обработка изменения фильтров
+        function handleFilterChange() {
+            const moduleFilter = document.getElementById('moduleFilter').value;
+            const projectFilter = document.getElementById('projectFilter').value;
+            
+            currentFilters = {};
+            if (moduleFilter) currentFilters.module = moduleFilter;
+            if (projectFilter) currentFilters.project = projectFilter;
+            
+            console.log('🔄 Фильтры изменены:', currentFilters);
+            
+            // Если выбран тег, перезагружаем его задачи с новыми фильтрами
+            if (currentTag) {
+                loadTasksForTag(currentTag);
+            }
+            
+            // Обновляем статистику
+            updateStats();
+        }
+
+        // Очистка всех фильтров
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('moduleFilter').value = '';
+            document.getElementById('projectFilter').value = '';
+            
+            currentFilters = {};
+            currentTag = null;
+            
+            renderTags(allTags);
+            document.getElementById('tasksList').innerHTML = 
+                '<div class="empty-state">Выберите тег слева для просмотра задач</div>';
+            
+            updateStats();
+            
+            console.log('🧹 Фильтры очищены');
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            try {
+                const allActiveTasks = window.TagManager.getAllTasks();
+                const filteredTasks = window.TagManager.getFiltered(currentFilters);
+                const totalTags = window.TagManager.getAllTags().length;
+                
+                let statsText = `📊 Всего задач с тегами: ${allActiveTasks.length} | 🏷️ Уникальных тегов: ${totalTags}`;
+                
+                if (Object.keys(currentFilters).length > 0) {
+                    statsText += ` | 🔍 После фильтрации: ${filteredTasks.length} задач`;
+                }
+                
+                document.getElementById('statsText').textContent = statsText;
+            } catch (error) {
+                console.error('💥 Ошибка обновления статистики:', error);
+                document.getElementById('statsText').textContent = 'Ошибка загрузки статистики';
+            }
+        }
+    </script>
+</body>
+</html>
