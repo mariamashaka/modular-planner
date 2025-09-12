@@ -1,905 +1,790 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Срочные задачи - Urgent Flow</title>
+    <title>Urgent Flow with Tags</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
+        }
+
+        .navigation {
             background: white;
             border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .title {
-            color: #333;
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            color: #666;
-            font-size: 1.1rem;
-        }
-        
-        .add-section {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 25px;
-            border: 2px dashed #dee2e6;
-        }
-        
-        .add-form {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: end;
-        }
-        
-        .input-group {
-            flex: 1;
-            min-width: 200px;
-        }
-        
-        .input-label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #495057;
-        }
-        
-        .task-input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-        
-        .task-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .date-input, .project-select {
-            padding: 10px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 1rem;
-            min-width: 150px;
-        }
-        
-        .add-btn {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: background 0.3s ease;
-        }
-        
-        .add-btn:hover {
-            background: #218838;
-        }
-        
-        .filter-section {
-            background: #e9ecef;
-            border-radius: 8px;
             padding: 15px;
             margin-bottom: 20px;
-            display: flex;
-            align-items: center;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover {
+            background: #5f4fcf;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .add-task {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
             gap: 15px;
-        }
-        
-        .filter-label {
-            font-weight: 500;
-            color: #495057;
-        }
-        
-        .tasks-section {
-            margin-bottom: 25px;
-        }
-        
-        .section-title {
-            color: #495057;
-            font-size: 1.4rem;
             margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #e9ecef;
         }
-        
-        .task-item {
-            background: #fff;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
+
+        .form-group {
+            margin-bottom: 15px;
         }
-        
-        .task-item.urgent {
-            border-left: 5px solid #dc3545;
-            background: #fff5f5;
-        }
-        
-        .task-item.today {
-            border-left: 5px solid #fd7e14;
-            background: #fff8f0;
-        }
-        
-        .task-item.scheduled {
-            border-left: 5px solid #20c997;
-            background: #f0fff8;
-        }
-        
-        .task-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .task-main {
-            flex: 1;
-        }
-        
-        .task-text {
-            font-size: 1.1rem;
-            color: #333;
+
+        .form-label {
+            display: block;
             margin-bottom: 5px;
+            font-weight: bold;
+            color: #2d3748;
         }
-        
-        .task-meta {
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+        }
+
+        .tags-container {
+            margin-bottom: 15px;
+        }
+
+        .tags-input-group {
+            position: relative;
+        }
+
+        .tags-display {
             display: flex;
-            align-items: center;
-            gap: 15px;
-            font-size: 0.9rem;
-            color: #6c757d;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+            min-height: 20px;
         }
-        
-        .task-project {
+
+        .tag-item {
+            background: #6c5ce7;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
             display: flex;
             align-items: center;
             gap: 5px;
         }
-        
-        .project-dot {
-            width: 12px;
-            height: 12px;
+
+        .tag-remove {
+            background: rgba(255,255,255,0.3);
+            border: none;
             border-radius: 50%;
-            display: inline-block;
-        }
-        
-        .task-date {
-            font-weight: 500;
-        }
-        
-        .task-actions {
+            width: 18px;
+            height: 18px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8em;
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-today {
-            background: #fd7e14;
-            color: white;
-        }
-        
-        .btn-today:hover {
-            background: #e8650d;
-        }
-        
-        .btn-schedule {
-            background: #20c997;
-            color: white;
-        }
-        
-        .btn-schedule:hover {
-            background: #1aa085;
-        }
-        
-        .btn-done {
-            background: #28a745;
-            color: white;
-        }
-        
-        .btn-done:hover {
-            background: #218838;
-        }
-        
-        .btn-delete {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .btn-delete:hover {
-            background: #c82333;
-        }
-        
-        .btn-return {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-return:hover {
-            background: #545b62;
-        }
-        
-        .empty-state {
-            text-align: center;
-            color: #6c757d;
-            font-style: italic;
-            padding: 30px;
-        }
-        
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .stat-item {
-            text-align: center;
-        }
-        
-        .stat-number {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #495057;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
-        
-        .navigation {
-            text-align: center;
-            margin-top: 30px;
-        }
-        
-        .nav-button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            margin: 0 10px;
-            transition: background 0.3s ease;
-        }
-        
-        .nav-button:hover {
-            background: #5a6fd8;
-        }
-        
-        .version-info {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.8rem;
+            align-items: center;
+            justify-content: center;
         }
 
-        .date-picker-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
+        .tag-remove:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .tag-input {
             width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .tag-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 100;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .tag-suggestion {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f7fafc;
+        }
+
+        .tag-suggestion:hover {
+            background: #f7fafc;
+        }
+
+        .tag-suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #38a169;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #6c5ce7;
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .btn-secondary:hover {
+            background: #5f4fcf;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .tasks-container {
+            display: grid;
+            gap: 15px;
+        }
+
+        .task-item {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+            transition: transform 0.3s ease;
+        }
+
+        .task-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .task-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .task-project {
+            background: #e0e6ff;
+            color: #6c5ce7;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .task-priority {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .priority-high {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .priority-medium {
+            background: #fef5e7;
+            color: #dd6b20;
+        }
+
+        .priority-low {
+            background: #f0fff4;
+            color: #38a169;
+        }
+
+        .task-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        .task-tag {
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stats {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            color: #4a5568;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #48bb78;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: none;
             z-index: 1000;
         }
 
-        .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 40px;
+            font-style: italic;
         }
 
-        .modal-title {
-            margin-bottom: 20px;
-            color: #333;
-            font-size: 1.3rem;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .modal-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .modal-btn.primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .modal-btn.secondary {
-            background: #6c757d;
-            color: white;
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .task-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .task-actions {
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- 
-    MODULE: Urgent Flow
-    VERSION: 2.1
-    STATUS: WORKING
-    LAST_TEST: 2025-09-09
-    FEATURES: 
-    - Пул срочных задач с гибкими датами
-    - Привязка к проектам
-    - Фильтрация по проектам
-    - Планирование на конкретные дни  
-    - Автовозврат в пул если не сделано
-    - Перенос дат
-    - НОВОЕ: Интеграция с архивом задач
-    - НОВОЕ: Выполненные задачи сохраняются навсегда
-    - НОВОЕ: Красивые уведомления о выполнении
-    BUGS: none known
-    -->
-    
     <div class="container">
+        <div class="navigation">
+            <a href="../modules/repeat-flow.html" class="nav-btn">🔄 Повторяющиеся</a>
+            <a href="../modules/project-manager.html" class="nav-btn">📋 Проекты</a>
+            <a href="../modules/archive-viewer.html" class="nav-btn">📊 Архив</a>
+            <a href="../modules/tag-viewer.html" class="nav-btn">🏷️ Теги</a>
+        </div>
+
         <div class="header">
-            <h1 class="title">⚡ Срочные задачи</h1>
-            <p class="subtitle">Пул срочных дел с гибким планированием и проектами</p>
+            <h1>⚡ URGENT FLOW</h1>
+            <p>Срочные задачи с тегами</p>
         </div>
-        
-        <!-- Статистика -->
-        <div class="stats">
-            <div class="stat-item">
-                <div class="stat-number" id="totalUrgent">0</div>
-                <div class="stat-label">Всего срочных</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="todayCount">0</div>
-                <div class="stat-label">На сегодня</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="scheduledCount">0</div>
-                <div class="stat-label">Запланировано</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="poolCount">0</div>
-                <div class="stat-label">В пуле</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="completedToday">0</div>
-                <div class="stat-label">Выполнено сегодня</div>
-            </div>
-        </div>
-        
-        <!-- Фильтр по проектам -->
-        <div class="filter-section">
-            <span class="filter-label">📋 Фильтр по проекту:</span>
-            <select class="project-select" id="projectFilter" onchange="filterByProject()">
-                <option value="">Все проекты</option>
-            </select>
-            <button class="add-btn" onclick="goToProjects()" style="background: #6c757d;">Управление проектами</button>
-        </div>
-        
-        <!-- Добавление новой задачи -->
-        <div class="add-section">
-            <div class="add-form">
-                <div class="input-group">
-                    <label class="input-label">Срочная задача:</label>
-                    <input type="text" class="task-input" id="newTaskText" placeholder="Описание задачи...">
+
+        <div class="add-task">
+            <h3>➕ Добавить срочную задачу</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Название задачи:</label>
+                    <input type="text" id="taskName" class="form-input" placeholder="Что нужно сделать?">
                 </div>
-                <div class="input-group">
-                    <label class="input-label">Проект:</label>
-                    <select class="project-select" id="newTaskProject">
-                        <option value="">-- Без проекта --</option>
+                <div class="form-group">
+                    <label class="form-label">Проект:</label>
+                    <select id="taskProject" class="form-select">
+                        <option value="">Без проекта</option>
                     </select>
                 </div>
-                <div class="input-group">
-                    <label class="input-label">Дата (необязательно):</label>
-                    <input type="date" class="date-input" id="newTaskDate">
+                <div class="form-group">
+                    <label class="form-label">Приоритет:</label>
+                    <select id="taskPriority" class="form-select">
+                        <option value="">Обычный</option>
+                        <option value="high">🔥 Высокий</option>
+                        <option value="medium">🟡 Средний</option>
+                        <option value="low">🟢 Низкий</option>
+                    </select>
                 </div>
-                <button class="add-btn" onclick="addUrgentTask()">+ Добавить</button>
             </div>
-        </div>
-        
-        <!-- Задачи на сегодня -->
-        <div class="tasks-section">
-            <h2 class="section-title">📅 На сегодня</h2>
-            <div id="todayTasks"></div>
-        </div>
-        
-        <!-- Запланированные задачи -->
-        <div class="tasks-section">
-            <h2 class="section-title">📋 Запланированные</h2>
-            <div id="scheduledTasks"></div>
-        </div>
-        
-        <!-- Пул задач (без даты) -->
-        <div class="tasks-section">
-            <h2 class="section-title">💭 В пуле (когда успею)</h2>
-            <div id="poolTasks"></div>
-        </div>
-        
-        <!-- Навигация -->
-        <div class="navigation">
-            <button class="nav-button" onclick="goToMain()">← Главная</button>
-            <button class="nav-button" onclick="goToProjects()">Проекты</button>
-            <button class="nav-button" onclick="goToArchive()">📊 Архив</button>
-            <button class="nav-button" onclick="goToDaily()">Сегодняшние задачи →</button>
-        </div>
-    </div>
-    
-    <!-- Модальное окно для выбора даты -->
-    <div class="date-picker-modal" id="dateModal">
-        <div class="modal-content">
-            <h3 class="modal-title">Выберите дату</h3>
-            <input type="date" class="date-input" id="modalDateInput">
-            <div class="modal-buttons">
-                <button class="modal-btn primary" onclick="confirmDateChange()">Сохранить</button>
-                <button class="modal-btn secondary" onclick="closeModal()">Отмена</button>
+
+            <div class="tags-container">
+                <label class="form-label">Теги:</label>
+                <div class="tags-display" id="tagsDisplay">
+                    <!-- Теги будут добавляться сюда -->
+                </div>
+                <div class="tags-input-group">
+                    <input type="text" id="tagInput" class="tag-input" placeholder="Добавить тег (например: в городе, онлайн, дома...)">
+                    <div class="tag-suggestions" id="tagSuggestions">
+                        <!-- Предложения тегов -->
+                    </div>
+                </div>
             </div>
+
+            <button onclick="addTask()" class="btn btn-primary">Создать задачу</button>
+        </div>
+
+        <div class="stats">
+            <span id="statsText">Загружается статистика...</span>
+        </div>
+
+        <div id="tasksContainer" class="tasks-container">
+            <div class="empty-state">Срочных задач пока нет</div>
         </div>
     </div>
-    
-    <div class="version-info">
-        Urgent Flow v2.1 - С архивом задач
+
+    <div id="notification" class="notification">
+        Задача выполнена!
     </div>
-    
+
     <!-- Подключаем системы -->
     <script src="../shared/projects.js"></script>
     <script src="../shared/archive.js"></script>
-    
+    <script src="../shared/tags.js"></script>
     <script>
-        // Глобальные переменные
-        let urgentTasks = [];
-        let currentEditingId = null;
-        let currentFilter = '';
-        
+        let urgentTasks = JSON.parse(localStorage.getItem('urgentTasks') || '[]');
+        let currentTags = []; // Теги для новой задачи
+        let allExistingTags = []; // Все существующие теги для автокомплита
+
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            // Инициализируем системы
-            ProjectsManager.init();
-            ArchiveManager.init();
+            console.log('=== URGENT FLOW WITH TAGS ЗАГРУЖАЕТСЯ ===');
             
-            // Загружаем проекты в селекты
-            loadProjectsToSelects();
-            
-            // Загружаем задачи
-            loadTasks();
+            loadProjects();
+            loadExistingTags();
             renderTasks();
             updateStats();
             
-            // Проверяем просроченные задачи при загрузке
-            checkOverdueTasks();
+            // Обработчики событий для тегов
+            setupTagHandlers();
+        });
+
+        // Настройка обработчиков для тегов
+        function setupTagHandlers() {
+            const tagInput = document.getElementById('tagInput');
+            const suggestions = document.getElementById('tagSuggestions');
             
-            // Enter для добавления задачи
-            document.getElementById('newTaskText').addEventListener('keypress', function(e) {
+            // Добавление тега по Enter
+            tagInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
-                    addUrgentTask();
+                    e.preventDefault();
+                    addTagFromInput();
+                }
+                if (e.key === 'Escape') {
+                    hideSuggestions();
                 }
             });
-        });
-        
-        // Загрузка проектов в селекты
-        function loadProjectsToSelects() {
-            const projects = ProjectsManager.getForSelect();
-            
-            // Селект для новой задачи
-            const newTaskSelect = document.getElementById('newTaskProject');
-            newTaskSelect.innerHTML = projects.map(p => 
-                `<option value="${p.id || ''}">${p.name}</option>`
-            ).join('');
-            
-            // Селект для фильтра
-            const filterSelect = document.getElementById('projectFilter');
-            filterSelect.innerHTML = `
-                <option value="">Все проекты</option>
-                ${projects.slice(1).map(p => 
-                    `<option value="${p.id}">${p.name}</option>`
-                ).join('')}
-            `;
+
+            // Показ предложений при вводе
+            tagInput.addEventListener('input', function() {
+                const value = this.value.trim();
+                if (value.length > 0) {
+                    showTagSuggestions(value);
+                } else {
+                    hideSuggestions();
+                }
+            });
+
+            // Скрытие предложений при клике вне
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.tags-input-group')) {
+                    hideSuggestions();
+                }
+            });
         }
-        
-        // Загрузка задач из localStorage
-        function loadTasks() {
-            const saved = localStorage.getItem('urgentTasks');
-            urgentTasks = saved ? JSON.parse(saved) : [];
+
+        // Загрузка существующих тегов для автокомплита
+        function loadExistingTags() {
+            try {
+                if (typeof window.TagManager !== 'undefined') {
+                    allExistingTags = window.TagManager.getAllTags();
+                    console.log('✅ Загружено тегов для автокомплита:', allExistingTags.length);
+                } else {
+                    console.warn('⚠️ TagManager недоступен');
+                }
+            } catch (error) {
+                console.error('💥 Ошибка загрузки тегов:', error);
+            }
         }
-        
-        // Сохранение задач в localStorage
-        function saveTasks() {
-            localStorage.setItem('urgentTasks', JSON.stringify(urgentTasks));
+
+        // Загрузка проектов
+        function loadProjects() {
+            try {
+                if (typeof getProjects === 'function') {
+                    const projects = getProjects();
+                    const select = document.getElementById('taskProject');
+                    select.innerHTML = '<option value="">Без проекта</option>';
+                    
+                    projects.forEach(project => {
+                        const option = document.createElement('option');
+                        option.value = project.name;
+                        option.textContent = project.name;
+                        select.appendChild(option);
+                    });
+                    
+                    console.log('✅ Проекты загружены');
+                } else {
+                    console.warn('⚠️ getProjects недоступна');
+                }
+            } catch (error) {
+                console.error('💥 Ошибка загрузки проектов:', error);
+            }
         }
-        
-        // Добавление новой срочной задачи
-        function addUrgentTask() {
-            const text = document.getElementById('newTaskText').value.trim();
-            const date = document.getElementById('newTaskDate').value;
-            const projectId = document.getElementById('newTaskProject').value;
+
+        // Добавление тега из поля ввода
+        function addTagFromInput() {
+            const input = document.getElementById('tagInput');
+            const tagText = input.value.trim().toLowerCase();
             
-            if (!text) {
-                alert('Введите текст задачи');
+            if (tagText && !currentTags.includes(tagText)) {
+                currentTags.push(tagText);
+                input.value = '';
+                renderCurrentTags();
+                hideSuggestions();
+                console.log('➕ Добавлен тег:', tagText);
+            }
+        }
+
+        // Удаление тега
+        function removeTag(tagText) {
+            currentTags = currentTags.filter(tag => tag !== tagText);
+            renderCurrentTags();
+            console.log('➖ Удален тег:', tagText);
+        }
+
+        // Отрисовка текущих тегов
+        function renderCurrentTags() {
+            const container = document.getElementById('tagsDisplay');
+            
+            if (currentTags.length === 0) {
+                container.innerHTML = '';
                 return;
             }
+
+            const html = currentTags.map(tag => `
+                <div class="tag-item">
+                    🏷️ ${tag}
+                    <button onclick="removeTag('${tag.replace(/'/g, "\\'"}')" class="tag-remove">×</button>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Показ предложений тегов
+        function showTagSuggestions(input) {
+            if (!window.TagManager) return;
             
+            try {
+                const suggestions = window.TagManager.suggest(input, 5);
+                const container = document.getElementById('tagSuggestions');
+                
+                if (suggestions.length === 0) {
+                    hideSuggestions();
+                    return;
+                }
+
+                const html = suggestions
+                    .filter(tag => !currentTags.includes(tag))
+                    .map(tag => `
+                        <div class="tag-suggestion" onclick="selectSuggestion('${tag.replace(/'/g, "\\'")}')">
+                            🏷️ ${tag}
+                        </div>
+                    `).join('');
+
+                if (html) {
+                    container.innerHTML = html;
+                    container.style.display = 'block';
+                } else {
+                    hideSuggestions();
+                }
+            } catch (error) {
+                console.error('💥 Ошибка получения предложений:', error);
+            }
+        }
+
+        // Выбор предложенного тега
+        function selectSuggestion(tag) {
+            if (!currentTags.includes(tag)) {
+                currentTags.push(tag);
+                document.getElementById('tagInput').value = '';
+                renderCurrentTags();
+                hideSuggestions();
+                console.log('✅ Выбран тег из предложений:', tag);
+            }
+        }
+
+        // Скрытие предложений
+        function hideSuggestions() {
+            document.getElementById('tagSuggestions').style.display = 'none';
+        }
+
+        // Добавление новой задачи
+        function addTask() {
+            const name = document.getElementById('taskName').value.trim();
+            const project = document.getElementById('taskProject').value;
+            const priority = document.getElementById('taskPriority').value;
+            
+            if (!name) {
+                alert('Введите название задачи');
+                return;
+            }
+
             const task = {
                 id: Date.now(),
-                text: text,
-                date: date || null,
-                projectId: projectId || null,
-                status: 'pending',
-                createdAt: new Date().toISOString()
+                name: name,
+                project: project || null,
+                priority: priority || null,
+                tags: [...currentTags], // Копируем массив тегов
+                date: new Date().toISOString().split('T')[0],
+                created: new Date().toISOString()
             };
-            
+
             urgentTasks.push(task);
-            saveTasks();
-            
-            // Очищаем форму
-            document.getElementById('newTaskText').value = '';
-            document.getElementById('newTaskDate').value = '';
-            document.getElementById('newTaskProject').value = '';
-            
+            saveData();
             renderTasks();
             updateStats();
-        }
-        
-        // Фильтрация по проектам
-        function filterByProject() {
-            currentFilter = document.getElementById('projectFilter').value;
-            renderTasks();
-        }
-        
-        // Получение отфильтрованных задач
-        function getFilteredTasks(tasks) {
-            if (!currentFilter) return tasks;
-            return tasks.filter(task => task.projectId === currentFilter);
-        }
-        
-        // Получение информации о проекте
-        function getProjectInfo(projectId) {
-            if (!projectId) return { name: 'Без проекта', color: '#6c757d' };
-            const project = ProjectsManager.getById(projectId);
-            return project ? { name: project.name, color: project.color } : { name: 'Удален проект', color: '#dc3545' };
-        }
-        
-        // Проверка просроченных задач
-        function checkOverdueTasks() {
-            const today = new Date().toISOString().split('T')[0];
-            let hasOverdue = false;
+            clearForm();
             
-            urgentTasks.forEach(task => {
-                if (task.date && task.date < today && task.status === 'pending') {
-                    // Возвращаем просроченную задачу в пул
-                    task.date = null;
-                    hasOverdue = true;
-                }
-            });
-            
-            if (hasOverdue) {
-                saveTasks();
-                alert('Некоторые просроченные задачи возвращены в пул');
-            }
+            showNotification('Задача создана!');
+            console.log('✅ Создана задача с тегами:', task);
         }
-        
-        // Отрисовка всех задач
-        function renderTasks() {
-            const today = new Date().toISOString().split('T')[0];
-            
-            const pendingTasks = urgentTasks.filter(t => t.status === 'pending');
-            
-            const todayTasks = getFilteredTasks(pendingTasks.filter(task => task.date === today));
-            const scheduledTasks = getFilteredTasks(pendingTasks.filter(task => task.date && task.date !== today));
-            const poolTasks = getFilteredTasks(pendingTasks.filter(task => !task.date));
-            
-            renderTaskList('todayTasks', todayTasks, 'today');
-            renderTaskList('scheduledTasks', scheduledTasks, 'scheduled');
-            renderTaskList('poolTasks', poolTasks, 'pool');
+
+        // Очистка формы
+        function clearForm() {
+            document.getElementById('taskName').value = '';
+            document.getElementById('taskProject').value = '';
+            document.getElementById('taskPriority').value = '';
+            currentTags = [];
+            renderCurrentTags();
+            hideSuggestions();
         }
-        
-        // Отрисовка списка задач
-        function renderTaskList(containerId, tasks, type) {
-            const container = document.getElementById(containerId);
-            
-            if (tasks.length === 0) {
-                container.innerHTML = '<div class="empty-state">Нет задач</div>';
-                return;
-            }
-            
-            container.innerHTML = tasks.map(task => {
-                const projectInfo = getProjectInfo(task.projectId);
-                
-                return `
-                <div class="task-item ${type === 'today' ? 'today' : type === 'scheduled' ? 'scheduled' : 'urgent'}">
-                    <div class="task-content">
-                        <div class="task-main">
-                            <div class="task-text">${task.text}</div>
-                            <div class="task-meta">
-                                <div class="task-project">
-                                    <span class="project-dot" style="background-color: ${projectInfo.color}"></span>
-                                    <span>${projectInfo.name}</span>
-                                </div>
-                                <div class="task-date">
-                                    ${task.date ? formatDate(task.date) : 'Когда успею'}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="task-actions">
-                            ${type === 'pool' ? `
-                                <button class="action-btn btn-today" onclick="scheduleForToday(${task.id})">На сегодня</button>
-                                <button class="action-btn btn-schedule" onclick="scheduleTask(${task.id})">Запланировать</button>
-                            ` : type === 'scheduled' ? `
-                                <button class="action-btn btn-today" onclick="scheduleForToday(${task.id})">На сегодня</button>
-                                <button class="action-btn btn-schedule" onclick="scheduleTask(${task.id})">Перенести</button>
-                                <button class="action-btn btn-return" onclick="returnToPool(${task.id})">В пул</button>
-                            ` : `
-                                <button class="action-btn btn-return" onclick="returnToPool(${task.id})">В пул</button>
-                                <button class="action-btn btn-schedule" onclick="scheduleTask(${task.id})">Перенести</button>
-                            `}
-                            <button class="action-btn btn-done" onclick="completeTask(${task.id})">✅ Готово</button>
-                            <button class="action-btn btn-delete" onclick="deleteTask(${task.id})">Удалить</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            }).join('');
-        }
-        
-        // Форматирование даты
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const today = new Date();
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            
-            if (dateString === today.toISOString().split('T')[0]) {
-                return 'Сегодня';
-            } else if (dateString === tomorrow.toISOString().split('T')[0]) {
-                return 'Завтра';
-            } else {
-                return date.toLocaleDateString('ru-RU');
-            }
-        }
-        
-        // Запланировать на сегодня
-        function scheduleForToday(taskId) {
-            const today = new Date().toISOString().split('T')[0];
-            const task = urgentTasks.find(t => t.id === taskId);
-            if (task) {
-                task.date = today;
-                saveTasks();
-                renderTasks();
-                updateStats();
-            }
-        }
-        
-        // Запланировать на дату
-        function scheduleTask(taskId) {
-            currentEditingId = taskId;
-            const task = urgentTasks.find(t => t.id === taskId);
-            if (task) {
-                document.getElementById('modalDateInput').value = task.date || '';
-                document.getElementById('dateModal').style.display = 'block';
-            }
-        }
-        
-        // Подтверждение изменения даты
-        function confirmDateChange() {
-            const newDate = document.getElementById('modalDateInput').value;
-            const task = urgentTasks.find(t => t.id === currentEditingId);
-            if (task) {
-                task.date = newDate || null;
-                saveTasks();
-                renderTasks();
-                updateStats();
-            }
-            closeModal();
-        }
-        
-        // Закрытие модального окна
-        function closeModal() {
-            document.getElementById('dateModal').style.display = 'none';
-            currentEditingId = null;
-        }
-        
-        // Вернуть в пул
-        function returnToPool(taskId) {
-            const task = urgentTasks.find(t => t.id === taskId);
-            if (task) {
-                task.date = null;
-                saveTasks();
-                renderTasks();
-                updateStats();
-            }
-        }
-        
-        // Завершить задачу (отправить в архив)
+
+        // Выполнение задачи
         function completeTask(taskId) {
             const task = urgentTasks.find(t => t.id === taskId);
             if (!task) return;
-            
+
             try {
-                // Отправляем в архив
-                ArchiveManager.archive({
-                    id: task.id,
-                    text: task.text,
-                    projectId: task.projectId,
-                    moduleType: 'urgent-flow',
-                    date: task.date,
-                    createdAt: task.createdAt,
-                    priority: task.priority,
-                    tags: task.tags || [],
-                    notes: task.notes || ''
-                });
-                
-                // Удаляем из активных задач
-                urgentTasks = urgentTasks.filter(t => t.id !== taskId);
-                saveTasks();
-                renderTasks();
-                updateStats();
-                
-                // Показываем уведомление
-                showCompletionNotification(task.text);
-                
+                // Добавляем в архив через ArchiveManager
+                if (typeof window.ArchiveManager !== 'undefined') {
+                    const archiveData = {
+                        id: task.id,
+                        text: task.name,
+                        moduleType: 'urgent-flow',
+                        projectId: task.project,
+                        tags: task.tags || [],
+                        priority: task.priority,
+                        date: task.date
+                    };
+                    
+                    window.ArchiveManager.archive(archiveData);
+                    console.log('✅ Задача добавлена в архив:', archiveData);
+                }
             } catch (error) {
-                alert('Ошибка при сохранении в архив: ' + error.message);
-                console.error('Archive error:', error);
+                console.error('💥 Ошибка архивирования:', error);
             }
+
+            // Удаляем из активных задач
+            urgentTasks = urgentTasks.filter(t => t.id !== taskId);
+            saveData();
+            renderTasks();
+            updateStats();
+            
+            showNotification('Задача выполнена!');
+            console.log('✅ Задача выполнена:', task.name);
         }
-        
-        // Удалить задачу
+
+        // Удаление задачи
         function deleteTask(taskId) {
-            if (confirm('Удалить задачу?')) {
-                urgentTasks = urgentTasks.filter(t => t.id !== taskId);
-                saveTasks();
-                renderTasks();
-                updateStats();
-            }
+            if (!confirm('Удалить задачу?')) return;
+            
+            urgentTasks = urgentTasks.filter(t => t.id !== taskId);
+            saveData();
+            renderTasks();
+            updateStats();
+            
+            showNotification('Задача удалена');
         }
-        
+
+        // Отрисовка списка задач
+        function renderTasks() {
+            const container = document.getElementById('tasksContainer');
+            
+            if (urgentTasks.length === 0) {
+                container.innerHTML = '<div class="empty-state">Срочных задач пока нет</div>';
+                return;
+            }
+
+            // Сортируем по приоритету и дате
+            const sortedTasks = [...urgentTasks].sort((a, b) => {
+                const priorityOrder = {high: 3, medium: 2, low: 1, '': 0, null: 0};
+                const aPriority = priorityOrder[a.priority] || 0;
+                const bPriority = priorityOrder[b.priority] || 0;
+                
+                if (aPriority !== bPriority) {
+                    return bPriority - aPriority;
+                }
+                return new Date(b.created) - new Date(a.created);
+            });
+
+            const html = sortedTasks.map(task => {
+                const priorityClass = task.priority ? `priority-${task.priority}` : '';
+                const priorityText = {
+                    high: '🔥 Высокий',
+                    medium: '🟡 Средний', 
+                    low: '🟢 Низкий'
+                }[task.priority] || '';
+                
+                const borderColor = task.priority === 'high' ? '#f56565' : 
+                                   task.priority === 'medium' ? '#ed8936' :
+                                   task.priority === 'low' ? '#48bb78' : '#6c5ce7';
+
+                return `
+                    <div class="task-item" style="border-left-color: ${borderColor}">
+                        <div class="task-header">
+                            <div>
+                                <div class="task-title">${task.name}</div>
+                                <div class="task-meta">
+                                    ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
+                                    ${task.priority ? `<span class="task-priority ${priorityClass}">${priorityText}</span>` : ''}
+                                </div>
+                                ${task.tags && task.tags.length > 0 ? `
+                                    <div class="task-tags">
+                                        ${task.tags.map(tag => `<span class="task-tag">🏷️ ${tag}</span>`).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button onclick="completeTask(${task.id})" class="btn btn-primary">✅ Готово</button>
+                            <button onclick="deleteTask(${task.id})" class="btn btn-danger">❌ Удалить</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
         // Обновление статистики
         function updateStats() {
-            const today = new Date().toISOString().split('T')[0];
+            const totalTasks = urgentTasks.length;
+            const highPriority = urgentTasks.filter(t => t.priority === 'high').length;
+            const withTags = urgentTasks.filter(t => t.tags && t.tags.length > 0).length;
             
-            const pending = urgentTasks.filter(t => t.status === 'pending');
-            const filtered = getFilteredTasks(pending);
+            let statsText = `📊 Всего задач: ${totalTasks}`;
+            if (highPriority > 0) statsText += ` | 🔥 Высокий приоритет: ${highPriority}`;
+            if (withTags > 0) statsText += ` | 🏷️ С тегами: ${withTags}`;
             
-            const todayTasks = filtered.filter(t => t.date === today);
-            const scheduledTasks = filtered.filter(t => t.date && t.date !== today);
-            const poolTasks = filtered.filter(t => !t.date);
-            
-            // Получаем количество выполненных сегодня из архива
-            const completedToday = ArchiveManager.getToday().filter(t => t.moduleType === 'urgent-flow').length;
-            
-            document.getElementById('totalUrgent').textContent = filtered.length;
-            document.getElementById('todayCount').textContent = todayTasks.length;
-            document.getElementById('scheduledCount').textContent = scheduledTasks.length;
-            document.getElementById('poolCount').textContent = poolTasks.length;
-            document.getElementById('completedToday').textContent = completedToday;
+            document.getElementById('statsText').textContent = statsText;
         }
-        
-        // Показать уведомление о выполнении
-        function showCompletionNotification(taskText) {
-            // Создаем временное уведомление
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #28a745;
-                color: white;
-                padding: 15px 20px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                z-index: 1000;
-                max-width: 300px;
-                animation: slideIn 0.3s ease-out;
-            `;
-            
-            notification.innerHTML = `
-                <div style="font-weight: 500; margin-bottom: 5px;">✅ Задача выполнена!</div>
-                <div style="font-size: 0.9rem; opacity: 0.9;">${taskText}</div>
-            `;
-            
-            // Добавляем стили анимации
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-            `;
-            document.head.appendChild(style);
-            
-            document.body.appendChild(notification);
-            
-            // Убираем через 3 секунды
+
+        // Сохранение данных
+        function saveData() {
+            localStorage.setItem('urgentTasks', JSON.stringify(urgentTasks));
+            // Обновляем теги для автокомплита
+            loadExistingTags();
+        }
+
+        // Показ уведомления
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
             setTimeout(() => {
-                notification.style.animation = 'slideIn 0.3s ease-out reverse';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
+                notification.style.display = 'none';
             }, 3000);
         }
-        
-        // Навигация
-        function goToMain() {
-            alert('Переход на главную страницу');
-        }
-        
-        function goToProjects() {
-            window.location.href = 'project-manager.html';
-        }
-        
-        function goToArchive() {
-            window.location.href = 'archive-viewer.html';
-        }
-        
-        function goToDaily() {
-            alert('Переход к ежедневным задачам');
-        }
-        
-        // Закрытие модального окна по клику вне его
-        document.getElementById('dateModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
     </script>
 </body>
 </html>
