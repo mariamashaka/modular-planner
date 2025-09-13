@@ -654,4 +654,100 @@
 
             // Остальные пока 0
             document.getElementById('fixedCount').textContent = '0';
-            docu
+            document.getElementById('projectsHighCount').textContent = '0';
+            document.getElementById('smallTasksCount').textContent = '0';
+            document.getElementById('projectsLowCount').textContent = '0';
+        }
+
+        // Обновление общей статистики
+        function updateStats() {
+            const totalUrgent = weekData.urgent.length;
+            const totalRepeatPools = weekData.repeat.length;
+            const totalRepeatTasks = weekData.repeat.reduce((sum, pool) => 
+                sum + (pool.tasks ? pool.tasks.length : 0), 0);
+
+            let statsText = `📊 Всего: ${totalUrgent} срочных`;
+            if (totalRepeatPools > 0) {
+                statsText += ` | 🔄 ${totalRepeatPools} пулов (${totalRepeatTasks} задач)`;
+            }
+
+            document.getElementById('totalStats').textContent = statsText;
+        }
+
+        // Выполнение задачи
+        function completeTask(source, taskId) {
+            console.log(`Выполняем задачу из ${source}:`, taskId);
+            
+            if (source === 'urgent') {
+                // Для urgent задач - отправляем в архив и удаляем из списка
+                const task = weekData.urgent.find(t => t.id === taskId);
+                if (task) {
+                    try {
+                        if (typeof window.ArchiveManager !== 'undefined') {
+                            const archiveData = {
+                                id: task.id,
+                                text: task.name,
+                                moduleType: 'urgent-flow',
+                                projectId: task.project,
+                                tags: task.tags || [],
+                                priority: task.priority,
+                                date: task.scheduledDate,
+                                createdAt: task.created || new Date().toISOString()
+                            };
+                            
+                            window.ArchiveManager.archive(archiveData);
+                        }
+                    } catch (error) {
+                        console.error('Ошибка архивирования:', error);
+                    }
+
+                    // Удаляем из urgent задач
+                    weekData.urgent = weekData.urgent.filter(t => t.id !== taskId);
+                    
+                    // Обновляем localStorage urgent-flow
+                    localStorage.setItem('urgentTasks', JSON.stringify(weekData.urgent));
+                    
+                    renderUrgentTasks();
+                    updateAllCounts();
+                    updateStats();
+                    
+                    alert('Задача выполнена и добавлена в архив!');
+                }
+            }
+        }
+
+        // Редактирование задачи
+        function editTask(source, taskId) {
+            alert(`Редактирование задачи ${taskId} из ${source} будет добавлено в следующей версии`);
+        }
+
+        // Перенос задачи
+        function postponeTask(source, taskId) {
+            alert(`Перенос задачи ${taskId} из ${source} будет добавлен в следующей версии`);
+        }
+
+        // Вспомогательные функции
+        function getWeekNumber(date) {
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+        }
+
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'short'
+            });
+        }
+    </script>
+</body>
+</html>
