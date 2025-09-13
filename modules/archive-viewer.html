@@ -534,12 +534,23 @@
             `;
         }
         
-        // Получение информации о проекте
-        function getProjectInfo(projectId) {
-            if (!projectId) return { name: 'Без проекта', color: '#6c757d' };
-            const project = ProjectsManager.getById(projectId);
-            return project ? { name: project.name, color: project.color } : { name: 'Удаленный проект', color: '#dc3545' };
-        }
+       // Получение информации о проекте
+function getProjectInfo(projectId) {
+    if (!projectId) return { name: 'Без проекта', color: '#6c757d' };
+    
+    // Сначала пробуем найти по ID
+    let project = ProjectsManager.getById(projectId);
+    
+    // Если не нашли по ID, ищем по названию (для обратной совместимости)
+    if (!project) {
+        const allProjects = ProjectsManager.getActive();
+        project = allProjects.find(p => p.name === projectId);
+    }
+    
+    return project ? 
+        { name: project.name, color: project.color } : 
+        { name: 'Удаленный проект', color: '#dc3545' };
+}
         
         // Название модуля
         function getModuleName(moduleType) {
