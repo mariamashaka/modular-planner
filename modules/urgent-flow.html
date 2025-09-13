@@ -568,15 +568,15 @@
                         id: task.id,
                         text: task.name,
                         moduleType: 'urgent-flow',
-                        projectId: task.project,
+                        projectId: task.project, // название проекта как ID
                         tags: task.tags || [],
                         priority: task.priority,
-                        scheduledDate: task.scheduledDate,
-                        completedDate: new Date().toISOString().split('T')[0]
+                        date: task.scheduledDate, // архив ожидает поле 'date'
+                        createdAt: task.created || new Date().toISOString()
                     };
                     
                     window.ArchiveManager.archive(archiveData);
-                    console.log('Задача добавлена в архив');
+                    console.log('Задача добавлена в архив:', archiveData);
                 }
             } catch (error) {
                 console.error('Ошибка архивирования:', error);
