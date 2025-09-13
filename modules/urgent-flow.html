@@ -64,7 +64,7 @@
 
         .form-row {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
             gap: 15px;
             margin-bottom: 15px;
         }
@@ -171,19 +171,53 @@
             gap: 15px;
         }
 
-        .task-item {
+        .task-group {
             background: white;
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-left: 5px solid #6c5ce7;
+        }
+
+        .group-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #edf2f7;
+        }
+
+        .group-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .group-count {
+            background: #6c5ce7;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #6c5ce7;
+        }
+
+        .task-item:last-child {
+            margin-bottom: 0;
         }
 
         .task-title {
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: bold;
             color: #2d3748;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .task-meta {
@@ -191,7 +225,7 @@
             gap: 10px;
             align-items: center;
             flex-wrap: wrap;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .task-project {
@@ -207,6 +241,14 @@
             border-radius: 12px;
             font-size: 0.8em;
             font-weight: bold;
+        }
+
+        .task-date {
+            background: #fff5f5;
+            color: #e53e3e;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
         }
 
         .priority-high {
@@ -228,7 +270,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .task-tag {
@@ -242,7 +284,7 @@
         .task-actions {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 10px;
         }
 
         .stats {
@@ -274,6 +316,13 @@
             padding: 40px;
             font-style: italic;
         }
+
+        .empty-group {
+            text-align: center;
+            color: #a0aec0;
+            padding: 20px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -287,7 +336,7 @@
 
         <div class="header">
             <h1>⚡ URGENT FLOW</h1>
-            <p>Срочные задачи с тегами</p>
+            <p>Срочные задачи с календарем</p>
         </div>
 
         <div class="add-task">
@@ -312,6 +361,10 @@
                         <option value="medium">🟡 Средний</option>
                         <option value="low">🟢 Низкий</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Дата (необязательно):</label>
+                    <input type="date" id="taskDate" class="form-input">
                 </div>
             </div>
 
@@ -438,11 +491,35 @@
             container.innerHTML = html;
         }
 
+        // Получение сегодняшней даты
+        function getTodayDate() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        // Форматирование даты для отображения
+        function formatDisplayDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const dateStr = date.toISOString().split('T')[0];
+            const todayStr = today.toISOString().split('T')[0];
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+            
+            if (dateStr === todayStr) return 'Сегодня';
+            if (dateStr === tomorrowStr) return 'Завтра';
+            
+            return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+        }
+
         // Добавление новой задачи
         function addTask() {
             const name = document.getElementById('taskName').value.trim();
             const project = document.getElementById('taskProject').value;
             const priority = document.getElementById('taskPriority').value;
+            const taskDate = document.getElementById('taskDate').value;
             
             if (!name) {
                 alert('Введите название задачи');
@@ -455,7 +532,7 @@
                 project: project || null,
                 priority: priority || null,
                 tags: [...currentTags],
-                date: new Date().toISOString().split('T')[0],
+                scheduledDate: taskDate || null,
                 created: new Date().toISOString()
             };
 
@@ -474,6 +551,7 @@
             document.getElementById('taskName').value = '';
             document.getElementById('taskProject').value = '';
             document.getElementById('taskPriority').value = '';
+            document.getElementById('taskDate').value = '';
             currentTags = [];
             renderCurrentTags();
         }
@@ -493,7 +571,8 @@
                         projectId: task.project,
                         tags: task.tags || [],
                         priority: task.priority,
-                        date: task.date
+                        scheduledDate: task.scheduledDate,
+                        completedDate: new Date().toISOString().split('T')[0]
                     };
                     
                     window.ArchiveManager.archive(archiveData);
@@ -524,6 +603,58 @@
             showNotification('Задача удалена');
         }
 
+        // Группировка задач по времени
+        function groupTasksByTime(tasks) {
+            const today = getTodayDate();
+            const groups = {
+                today: [],
+                scheduled: [],
+                someday: []
+            };
+
+            tasks.forEach(task => {
+                if (!task.scheduledDate) {
+                    groups.someday.push(task);
+                } else if (task.scheduledDate <= today) {
+                    groups.today.push(task);
+                } else {
+                    groups.scheduled.push(task);
+                }
+            });
+
+            return groups;
+        }
+
+        // Отрисовка задачи
+        function renderTaskItem(task) {
+            const priorityClass = task.priority ? `priority-${task.priority}` : '';
+            const priorityText = {
+                high: '🔥 Высокий',
+                medium: '🟡 Средний', 
+                low: '🟢 Низкий'
+            }[task.priority] || '';
+
+            return `
+                <div class="task-item">
+                    <div class="task-title">${task.name}</div>
+                    <div class="task-meta">
+                        ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
+                        ${task.priority ? `<span class="task-priority ${priorityClass}">${priorityText}</span>` : ''}
+                        ${task.scheduledDate ? `<span class="task-date">📅 ${formatDisplayDate(task.scheduledDate)}</span>` : ''}
+                    </div>
+                    ${task.tags && task.tags.length > 0 ? `
+                        <div class="task-tags">
+                            ${task.tags.map(tag => `<span class="task-tag">🏷️ ${tag}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    <div class="task-actions">
+                        <button onclick="completeTask(${task.id})" class="btn btn-primary">✅ Готово</button>
+                        <button onclick="deleteTask(${task.id})" class="btn btn-danger">❌ Удалить</button>
+                    </div>
+                </div>
+            `;
+        }
+
         // Отрисовка списка задач
         function renderTasks() {
             const container = document.getElementById('tasksContainer');
@@ -533,33 +664,47 @@
                 return;
             }
 
-            const html = urgentTasks.map(task => {
-                const priorityClass = task.priority ? `priority-${task.priority}` : '';
-                const priorityText = {
-                    high: '🔥 Высокий',
-                    medium: '🟡 Средний', 
-                    low: '🟢 Низкий'
-                }[task.priority] || '';
+            const groups = groupTasksByTime(urgentTasks);
+            let html = '';
 
-                return `
-                    <div class="task-item">
-                        <div class="task-title">${task.name}</div>
-                        <div class="task-meta">
-                            ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
-                            ${task.priority ? `<span class="task-priority ${priorityClass}">${priorityText}</span>` : ''}
+            // На сегодня
+            if (groups.today.length > 0) {
+                html += `
+                    <div class="task-group">
+                        <div class="group-header">
+                            <div class="group-title">📅 На сегодня</div>
+                            <div class="group-count">${groups.today.length}</div>
                         </div>
-                        ${task.tags && task.tags.length > 0 ? `
-                            <div class="task-tags">
-                                ${task.tags.map(tag => `<span class="task-tag">🏷️ ${tag}</span>`).join('')}
-                            </div>
-                        ` : ''}
-                        <div class="task-actions">
-                            <button onclick="completeTask(${task.id})" class="btn btn-primary">✅ Готово</button>
-                            <button onclick="deleteTask(${task.id})" class="btn btn-danger">❌ Удалить</button>
-                        </div>
+                        ${groups.today.map(task => renderTaskItem(task)).join('')}
                     </div>
                 `;
-            }).join('');
+            }
+
+            // Запланированные
+            if (groups.scheduled.length > 0) {
+                html += `
+                    <div class="task-group">
+                        <div class="group-header">
+                            <div class="group-title">📋 Запланированные</div>
+                            <div class="group-count">${groups.scheduled.length}</div>
+                        </div>
+                        ${groups.scheduled.map(task => renderTaskItem(task)).join('')}
+                    </div>
+                `;
+            }
+
+            // В пуле (когда успею)
+            if (groups.someday.length > 0) {
+                html += `
+                    <div class="task-group">
+                        <div class="group-header">
+                            <div class="group-title">💭 В пуле (когда успею)</div>
+                            <div class="group-count">${groups.someday.length}</div>
+                        </div>
+                        ${groups.someday.map(task => renderTaskItem(task)).join('')}
+                    </div>
+                `;
+            }
 
             container.innerHTML = html;
         }
@@ -567,12 +712,12 @@
         // Обновление статистики
         function updateStats() {
             const totalTasks = urgentTasks.length;
-            const highPriority = urgentTasks.filter(t => t.priority === 'high').length;
-            const withTags = urgentTasks.filter(t => t.tags && t.tags.length > 0).length;
+            const groups = groupTasksByTime(urgentTasks);
             
             let statsText = `📊 Всего задач: ${totalTasks}`;
-            if (highPriority > 0) statsText += ` | 🔥 Высокий приоритет: ${highPriority}`;
-            if (withTags > 0) statsText += ` | 🏷️ С тегами: ${withTags}`;
+            if (groups.today.length > 0) statsText += ` | 📅 На сегодня: ${groups.today.length}`;
+            if (groups.scheduled.length > 0) statsText += ` | 📋 Запланировано: ${groups.scheduled.length}`;
+            if (groups.someday.length > 0) statsText += ` | 💭 В пуле: ${groups.someday.length}`;
             
             document.getElementById('statsText').textContent = statsText;
         }
