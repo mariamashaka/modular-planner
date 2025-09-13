@@ -76,7 +76,17 @@
             color: #4a5568;
         }
 
-        .priority-section {
+        .stats {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            color: #4a5568;
+        }
+
+        .section {
             background: white;
             border-radius: 15px;
             padding: 25px;
@@ -84,7 +94,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .priority-header {
+        .section-header {
             display: flex;
             align-items: center;
             gap: 15px;
@@ -93,13 +103,13 @@
             border-bottom: 2px solid #edf2f7;
         }
 
-        .priority-title {
+        .section-title {
             font-size: 1.4em;
             font-weight: bold;
             color: #2d3748;
         }
 
-        .priority-count {
+        .section-count {
             background: #6c5ce7;
             color: white;
             padding: 6px 12px;
@@ -107,16 +117,28 @@
             font-size: 0.9em;
         }
 
-        .priority-high .priority-title {
+        .calendar-section .section-title {
+            color: #3182ce;
+        }
+
+        .calendar-section .section-count {
+            background: #3182ce;
+        }
+
+        .priority-section .section-title {
             color: #c53030;
         }
 
-        .priority-high .priority-count {
+        .priority-section .section-count {
             background: #c53030;
         }
 
-        .priority-medium .priority-count {
-            background: #dd6b20;
+        .regular-section .section-title {
+            color: #38a169;
+        }
+
+        .regular-section .section-count {
+            background: #38a169;
         }
 
         .task-group {
@@ -214,6 +236,14 @@
             font-size: 0.8em;
         }
 
+        .task-date {
+            background: #fff5f5;
+            color: #e53e3e;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
         .task-actions {
             display: flex;
             gap: 8px;
@@ -254,29 +284,6 @@
 
         .btn-danger:hover {
             background: #e53e3e;
-        }
-
-        .repeat-section {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .repeat-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #edf2f7;
-        }
-
-        .repeat-title {
-            font-size: 1.4em;
-            font-weight: bold;
-            color: #2d3748;
         }
 
         .repeat-pool {
@@ -370,14 +377,26 @@
             font-style: italic;
         }
 
-        .stats {
-            background: white;
-            border-radius: 15px;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center;
-            color: #4a5568;
+        .priority-group {
+            margin-bottom: 15px;
+            border: 1px solid #edf2f7;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .priority-group.high {
+            border-color: #fed7d7;
+            background: #fffafa;
+        }
+
+        .priority-group.medium {
+            border-color: #fef5e7;
+            background: #fffef7;
+        }
+
+        .priority-group.low {
+            border-color: #f0fff4;
+            background: #f7fffa;
         }
     </style>
 </head>
@@ -406,79 +425,76 @@
             <span id="totalStats">Загружается статистика...</span>
         </div>
 
-        <!-- Приоритет 1 - Обязательно -->
-        <div class="priority-section priority-high">
-            <div class="priority-header">
-                <div class="priority-title">🔥 ПРИОРИТЕТ 1 - ОБЯЗАТЕЛЬНО</div>
-                <div class="priority-count" id="priority1Count">0</div>
+        <!-- 1. Календарные единоразовые -->
+        <div class="section calendar-section">
+            <div class="section-header">
+                <div class="section-title">📅 КАЛЕНДАРНЫЕ ЕДИНОРАЗОВЫЕ</div>
+                <div class="section-count" id="calendarOneTimeCount">0</div>
+            </div>
+            <div id="calendarOneTimeTasks">
+                <div class="empty-state">Единоразовых календарных событий пока нет</div>
+            </div>
+        </div>
+
+        <!-- 2. Календарные повторяющиеся -->
+        <div class="section calendar-section">
+            <div class="section-header">
+                <div class="section-title">🔄 КАЛЕНДАРНЫЕ ПОВТОРЯЮЩИЕСЯ</div>
+                <div class="section-count" id="calendarRecurringCount">0</div>
+            </div>
+            <div id="calendarRecurringTasks">
+                <div class="empty-state">Повторяющихся календарных событий пока нет</div>
+            </div>
+        </div>
+
+        <!-- 3. Дела по приоритетам -->
+        <div class="section priority-section">
+            <div class="section-header">
+                <div class="section-title">🎯 ДЕЛА ПО ПРИОРИТЕТАМ</div>
+                <div class="section-count" id="priorityTasksCount">0</div>
             </div>
             
-            <div class="task-group">
+            <!-- Высокий приоритет -->
+            <div class="priority-group high">
                 <div class="group-header">
-                    <div class="group-title">📅 Фиксированные дела</div>
-                    <div class="group-count" id="fixedCount">0</div>
+                    <div class="group-title">🔥 Высокий приоритет</div>
+                    <div class="group-count" id="highPriorityCount">0</div>
                 </div>
-                <div id="fixedTasks">
-                    <div class="empty-state">Фиксированных дел пока нет</div>
+                <div id="highPriorityTasks">
+                    <div class="empty-state">Задач высокого приоритета пока нет</div>
                 </div>
             </div>
 
-            <div class="task-group">
+            <!-- Средний приоритет -->
+            <div class="priority-group medium">
                 <div class="group-header">
-                    <div class="group-title">⚡ Горящие административные</div>
-                    <div class="group-count" id="urgentCount">0</div>
+                    <div class="group-title">🟡 Средний приоритет</div>
+                    <div class="group-count" id="mediumPriorityCount">0</div>
                 </div>
-                <div id="urgentTasks">
-                    <div class="empty-state">Горящих задач пока нет</div>
+                <div id="mediumPriorityTasks">
+                    <div class="empty-state">Задач среднего приоритета пока нет</div>
                 </div>
             </div>
 
-            <div class="task-group">
+            <!-- Низкий приоритет -->
+            <div class="priority-group low">
                 <div class="group-header">
-                    <div class="group-title">🎯 Проекты обязательные</div>
-                    <div class="group-count" id="projectsHighCount">0</div>
+                    <div class="group-title">🟢 Низкий приоритет</div>
+                    <div class="group-count" id="lowPriorityCount">0</div>
                 </div>
-                <div id="projectsHighTasks">
-                    <div class="empty-state">Обязательных проектов пока нет</div>
+                <div id="lowPriorityTasks">
+                    <div class="empty-state">Задач низкого приоритета пока нет</div>
                 </div>
             </div>
         </div>
 
-        <!-- Приоритет 2 - Дополнительно -->
-        <div class="priority-section priority-medium">
-            <div class="priority-header">
-                <div class="priority-title">📋 ПРИОРИТЕТ 2 - ДОПОЛНИТЕЛЬНО</div>
-                <div class="priority-count" id="priority2Count">0</div>
+        <!-- 4. Регулярные недельные -->
+        <div class="section regular-section">
+            <div class="section-header">
+                <div class="section-title">📚 РЕГУЛЯРНЫЕ НЕДЕЛЬНЫЕ</div>
+                <div class="section-count" id="regularTasksCount">0 задач</div>
             </div>
-            
-            <div class="task-group">
-                <div class="group-header">
-                    <div class="group-title">🔧 Мелкие организационные</div>
-                    <div class="group-count" id="smallTasksCount">0</div>
-                </div>
-                <div id="smallTasks">
-                    <div class="empty-state">Мелких задач пока нет</div>
-                </div>
-            </div>
-
-            <div class="task-group">
-                <div class="group-header">
-                    <div class="group-title">➕ Проекты дополнительные</div>
-                    <div class="group-count" id="projectsLowCount">0</div>
-                </div>
-                <div id="projectsLowTasks">
-                    <div class="empty-state">Дополнительных проектов пока нет</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Регулярные недельные -->
-        <div class="repeat-section">
-            <div class="repeat-header">
-                <div class="repeat-title">🔄 РЕГУЛЯРНЫЕ НЕДЕЛЬНЫЕ</div>
-                <div class="priority-count" id="repeatTotalCount">0 задач</div>
-            </div>
-            <div id="repeatPools">
+            <div id="regularPools">
                 <div class="empty-state">Регулярных задач пока нет</div>
             </div>
         </div>
@@ -550,35 +566,62 @@
 
         // Отрисовка всех секций
         function renderAllSections() {
-            renderUrgentTasks();
-            renderRepeatPools();
+            renderCalendarSections();
+            renderPriorityTasks();
+            renderRegularTasks();
             updateAllCounts();
         }
 
-        // Отрисовка срочных задач
-        function renderUrgentTasks() {
-            const urgentContainer = document.getElementById('urgentTasks');
+        // Календарные секции (пока заглушки)
+        function renderCalendarSections() {
+            // Единоразовые - пока пусто
+            document.getElementById('calendarOneTimeTasks').innerHTML = 
+                '<div class="empty-state">Единоразовых календарных событий пока нет</div>';
             
-            if (weekData.urgent.length === 0) {
-                urgentContainer.innerHTML = '<div class="empty-state">Горящих задач пока нет</div>';
+            // Повторяющиеся - пока пусто
+            document.getElementById('calendarRecurringTasks').innerHTML = 
+                '<div class="empty-state">Повторяющихся календарных событий пока нет</div>';
+        }
+
+        // Отрисовка дел по приоритетам (urgent + проекты)
+        function renderPriorityTasks() {
+            // Группируем urgent задачи по приоритетам
+            const highTasks = weekData.urgent.filter(t => t.priority === 'high');
+            const mediumTasks = weekData.urgent.filter(t => t.priority === 'medium');
+            const lowTasks = weekData.urgent.filter(t => t.priority === 'low' || !t.priority);
+
+            renderTaskGroup('highPriorityTasks', highTasks);
+            renderTaskGroup('mediumPriorityTasks', mediumTasks);
+            renderTaskGroup('lowPriorityTasks', lowTasks);
+        }
+
+        // Отрисовка группы задач
+        function renderTaskGroup(containerId, tasks) {
+            const container = document.getElementById(containerId);
+            
+            if (tasks.length === 0) {
+                const priorityName = containerId.includes('high') ? 'высокого' : 
+                                   containerId.includes('medium') ? 'среднего' : 'низкого';
+                container.innerHTML = `<div class="empty-state">Задач ${priorityName} приоритета пока нет</div>`;
                 return;
             }
 
-            const html = weekData.urgent.map(task => {
+            const html = tasks.map(task => {
                 const priorityClass = task.priority ? `priority-${task.priority}-task` : '';
                 const priorityText = {
                     high: '🔥 Высокий',
                     medium: '🟡 Средний', 
                     low: '🟢 Низкий'
-                }[task.priority] || '';
+                }[task.priority] || '⚪ Обычный';
 
                 return `
                     <div class="task-item">
                         <div class="task-title">${task.name}</div>
                         <div class="task-meta">
                             ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
-                            ${task.priority ? `<span class="task-priority ${priorityClass}">${priorityText}</span>` : ''}
+                            <span class="task-priority ${priorityClass}">${priorityText}</span>
                             <span class="task-source">⚡ Urgent</span>
+                            ${task.scheduledDate ? `<span class="task-date">📅 ${formatDisplayDate(task.scheduledDate)}</span>` : ''}
                         </div>
                         <div class="task-actions">
                             <button onclick="completeTask('urgent', ${task.id})" class="btn btn-primary">✅ Готово</button>
@@ -589,15 +632,15 @@
                 `;
             }).join('');
 
-            urgentContainer.innerHTML = html;
+            container.innerHTML = html;
         }
 
-        // Отрисовка повторяющихся задач
-        function renderRepeatPools() {
-            const repeatContainer = document.getElementById('repeatPools');
+        // Отрисовка регулярных задач
+        function renderRegularTasks() {
+            const container = document.getElementById('regularPools');
             
             if (weekData.repeat.length === 0) {
-                repeatContainer.innerHTML = '<div class="empty-state">Регулярных задач пока нет</div>';
+                container.innerHTML = '<div class="empty-state">Регулярных задач пока нет</div>';
                 return;
             }
 
@@ -634,29 +677,51 @@
                 `;
             }).join('');
 
-            repeatContainer.innerHTML = html;
+            container.innerHTML = html;
         }
 
-        // Обновление счетчиков
+        // Обновление всех счетчиков
         function updateAllCounts() {
-            // Urgent задачи
-            const urgentCount = weekData.urgent.length;
-            document.getElementById('urgentCount').textContent = urgentCount;
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Календарные (пока 0)
+            document.getElementById('calendarOneTimeCount').textContent = '0';
+            document.getElementById('calendarRecurringCount').textContent = '0';
 
-            // Repeat задачи
-            const repeatTasksTotal = weekData.repeat.reduce((sum, pool) => 
+            // Временные группы задач
+            const todayTasks = weekData.urgent.filter(t => t.scheduledDate === today).length;
+            const thisWeekTasks = weekData.urgent.filter(t => 
+                t.scheduledDate && t.scheduledDate !== today && isThisWeek(t.scheduledDate)
+            ).length;
+            const poolTasks = weekData.urgent.filter(t => 
+                !t.scheduledDate || !isThisWeek(t.scheduledDate)
+            ).length;
+            
+            const totalPriority = todayTasks + thisWeekTasks + poolTasks;
+
+            document.getElementById('highPriorityCount').textContent = todayTasks;
+            document.getElementById('mediumPriorityCount').textContent = thisWeekTasks;
+            document.getElementById('lowPriorityCount').textContent = poolTasks;
+            document.getElementById('priorityTasksCount').textContent = totalPriority;
+
+            // Регулярные
+            const totalRegularTasks = weekData.repeat.reduce((sum, pool) => 
                 sum + (pool.tasks ? pool.tasks.length : 0), 0);
-            document.getElementById('repeatTotalCount').textContent = `${repeatTasksTotal} задач`;
+            document.getElementById('regularTasksCount').textContent = `${totalRegularTasks} задач`;
+        }
 
-            // Приоритеты (пока только urgent)
-            document.getElementById('priority1Count').textContent = urgentCount;
-            document.getElementById('priority2Count').textContent = '0';
-
-            // Остальные пока 0
-            document.getElementById('fixedCount').textContent = '0';
-            document.getElementById('projectsHighCount').textContent = '0';
-            document.getElementById('smallTasksCount').textContent = '0';
-            document.getElementById('projectsLowCount').textContent = '0';
+        // Проверка принадлежности даты к текущей неделе
+        function isThisWeek(dateString) {
+            if (!dateString) return false;
+            
+            const date = new Date(dateString);
+            const today = new Date();
+            const weekStart = getWeekStart(today);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            weekEnd.setHours(23, 59, 59, 999);
+            
+            return date >= weekStart && date <= weekEnd;
         }
 
         // Обновление общей статистики
@@ -670,6 +735,7 @@
             if (totalRepeatPools > 0) {
                 statsText += ` | 🔄 ${totalRepeatPools} пулов (${totalRepeatTasks} задач)`;
             }
+            statsText += ' | 📅 0 календарных';
 
             document.getElementById('totalStats').textContent = statsText;
         }
@@ -679,7 +745,6 @@
             console.log(`Выполняем задачу из ${source}:`, taskId);
             
             if (source === 'urgent') {
-                // Для urgent задач - отправляем в архив и удаляем из списка
                 const task = weekData.urgent.find(t => t.id === taskId);
                 if (task) {
                     try {
@@ -707,7 +772,7 @@
                     // Обновляем localStorage urgent-flow
                     localStorage.setItem('urgentTasks', JSON.stringify(weekData.urgent));
                     
-                    renderUrgentTasks();
+                    renderPriorityTasks();
                     updateAllCounts();
                     updateStats();
                     
@@ -724,6 +789,24 @@
         // Перенос задачи
         function postponeTask(source, taskId) {
             alert(`Перенос задачи ${taskId} из ${source} будет добавлен в следующей версии`);
+        }
+
+        // Форматирование даты для отображения
+        function formatDisplayDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const dateStr = date.toISOString().split('T')[0];
+            const todayStr = today.toISOString().split('T')[0];
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+            
+            if (dateStr === todayStr) return 'Сегодня';
+            if (dateStr === tomorrowStr) return 'Завтра';
+            
+            return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
         }
 
         // Вспомогательные функции
