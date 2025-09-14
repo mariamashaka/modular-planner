@@ -649,12 +649,14 @@
                 const completedTasks = pool.tasks ? pool.tasks.filter(t => t.completed >= t.targetPerWeek).length : 0;
                 const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-                const tasksHtml = pool.tasks ? pool.tasks.map(task => {
+                const tasksHtml = pool.tasks ? pool.tasks.map((task, taskIndex) => {
                     const isCompleted = task.completed >= task.targetPerWeek;
+                    const taskId = `${poolIndex}-${taskIndex}`;
                     return `
                         <div class="pool-task ${isCompleted ? 'completed' : ''}">
                             <div class="pool-task-name">${task.name}</div>
-                            <div class="pool-task-count">${task.completed}/${task.targetPerWeek}</div>
+                            <div class="pool-task-count">${task.completed || 0}/${task.targetPerWeek}</div>
+                            ${!isCompleted ? `<button onclick="completeTask('repeat', '${taskId}')" class="btn btn-primary" style="padding: 4px 8px; font-size: 0.8em; margin-left: 8px;">+</button>` : ''}
                         </div>
                     `;
                 }).join('') : '';
