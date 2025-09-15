@@ -500,8 +500,12 @@
         // Загрузка проектов
         function loadProjects() {
             try {
-                if (typeof window.ProjectManager !== 'undefined') {
-                    const projects = window.ProjectManager.getProjects();
+                // Инициализируем проекты если нужно
+                if (typeof window.ProjectsManager !== 'undefined') {
+                    window.ProjectsManager.init();
+                    const projects = window.ProjectsManager.getActive();
+                    console.log('Загружены проекты:', projects);
+                    
                     const eventSelect = document.getElementById('eventProject');
                     const filterSelect = document.getElementById('projectFilter');
                     
@@ -522,6 +526,8 @@
                         option.textContent = project.name;
                         filterSelect.appendChild(option);
                     });
+                } else {
+                    console.error('ProjectsManager не найден');
                 }
             } catch (error) {
                 console.error('Ошибка загрузки проектов:', error);
