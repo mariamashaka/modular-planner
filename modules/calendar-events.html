@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Календарные события</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .navigation {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover {
+            background: #5f4fcf;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .working-version {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #edf2f7;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .section-count {
+            background: #3182ce;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3182ce;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #3182ce;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #3182ce;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2c5282;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .btn-secondary {
+            background: #6c5ce7;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5f4fcf;
+        }
+
+        .event-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3182ce;
+            transition: all 0.3s ease;
+        }
+
+        .event-item:hover {
+            background: #f0f8ff;
+            border-left-color: #2c5282;
+        }
+
+        .event-item.today {
+            border-left-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .event-item.overdue {
+            border-left-color: #e53e3e;
+            background: #fef5f5;
+        }
+
+        .event-item.upcoming {
+            border-left-color: #ed8936;
+            background: #fffaf0;
+        }
+
+        .event-title {
+            font-size: 1.1em;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .event-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .event-date {
+            background: #e6fffa;
+            color: #38a169;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .event-date.today {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .event-date.overdue {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .event-date.upcoming {
+            background: #fef5e7;
+            color: #dd6b20;
+        }
+
+        .event-project {
+            background: #e0e6ff;
+            color: #6c5ce7;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .event-status {
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .stats {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #4a5568;
+            font-size: 0.9em;
+        }
+
+        .filter-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navigation">
+            <a href="urgent-flow.html" class="nav-btn">⚡ Срочные</a>
+            <a href="repeat-flow.html" class="nav-btn">🔄 Повторяющиеся</a>
+            <a href="week-collector.html" class="nav-btn">📅 План недели</a>
+            <a href="day-planner.html" class="nav-btn">📱 План дня</a>
+            <a href="archive-viewer.html" class="nav-btn">📊 Архив</a>
+        </div>
+
+        <div class="header">
+            <h1>📅 КАЛЕНДАРНЫЕ СОБЫТИЯ</h1>
+            <p>Единичные задачи с конкретными датами</p>
+        </div>
+
+        <div class="working-version">
+            🔧 WORKING: calendar-events v1.0
+        </div>
+
+        <!-- Статистика -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalEvents">0</div>
+                    <div class="stat-label">Всего событий</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="todayEvents">0</div>
+                    <div class="stat-label">На сегодня</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="overdueEvents">0</div>
+                    <div class="stat-label">Просрочено</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="upcomingEvents">0</div>
+                    <div class="stat-label">Предстоящих</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Добавление нового события -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">➕ ДОБАВИТЬ СОБЫТИЕ</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Название события:</label>
+                <input type="text" id="eventName" class="form-input" placeholder="Например: Встреча с врачом">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Дата:</label>
+                    <input type="date" id="eventDate" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Время (опционально):</label>
+                    <input type="time" id="eventTime" class="form-input">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Проект:</label>
+                <select id="eventProject" class="form-select">
+                    <option value="">Без проекта</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Описание (опционально):</label>
+                <input type="text" id="eventDescription" class="form-input" placeholder="Дополнительная информация">
+            </div>
+
+            <button onclick="addEvent()" class="btn btn-primary">📅 Добавить событие</button>
+        </div>
+
+        <!-- Фильтры -->
+        <div class="filter-bar">
+            <div class="filter-row">
+                <div class="form-group">
+                    <label class="form-label">Фильтр по статусу:</label>
+                    <select id="statusFilter" class="form-select" onchange="filterEvents()">
+                        <option value="all">Все события</option>
+                        <option value="overdue">Просроченные</option>
+                        <option value="today">На сегодня</option>
+                        <option value="upcoming">Предстоящие</option>
+                        <option value="completed">Выполненные</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Фильтр по проекту:</label>
+                    <select id="projectFilter" class="form-select" onchange="filterEvents()">
+                        <option value="all">Все проекты</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">&nbsp;</label>
+                    <button onclick="clearFilters()" class="btn btn-secondary">Сбросить фильтры</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Список событий -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">📋 КАЛЕНДАРНЫЕ СОБЫТИЯ</div>
+                <div class="section-count" id="eventsCount">0</div>
+            </div>
+            <div id="eventsList">
+                <div class="empty-state">Календарных событий пока нет</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем системы -->
+    <script src="../shared/projects.js"></script>
+    <script src="../shared/archive.js"></script>
+    <script>
+        let calendarEvents = [];
+        let currentFilter = { status: 'all', project: 'all' };
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== КАЛЕНДАРНЫЕ СОБЫТИЯ ЗАГРУЖАЮТСЯ ===');
+            loadEvents();
+            loadProjects();
+            setDefaultDate();
+            renderEvents();
+            updateStats();
+        });
+
+        // Загрузка событий из localStorage
+        function loadEvents() {
+            try {
+                const stored = localStorage.getItem('calendarEvents');
+                calendarEvents = stored ? JSON.parse(stored) : [];
+                console.log('Загружено событий:', calendarEvents.length);
+            } catch (error) {
+                console.error('Ошибка загрузки событий:', error);
+                calendarEvents = [];
+            }
+        }
+
+        // Сохранение событий в localStorage
+        function saveEvents() {
+            try {
+                localStorage.setItem('calendarEvents', JSON.stringify(calendarEvents));
+                console.log('События сохранены');
+            } catch (error) {
+                console.error('Ошибка сохранения событий:', error);
+            }
+        }
+
+        // Загрузка проектов
+        function loadProjects() {
+            try {
+                if (typeof window.ProjectManager !== 'undefined') {
+                    const projects = window.ProjectManager.getProjects();
+                    const eventSelect = document.getElementById('eventProject');
+                    const filterSelect = document.getElementById('projectFilter');
+                    
+                    // Заполняем селект добавления
+                    eventSelect.innerHTML = '<option value="">Без проекта</option>';
+                    projects.forEach(project => {
+                        const option = document.createElement('option');
+                        option.value = project.name;
+                        option.textContent = project.name;
+                        eventSelect.appendChild(option);
+                    });
+
+                    // Заполняем фильтр
+                    filterSelect.innerHTML = '<option value="all">Все проекты</option>';
+                    projects.forEach(project => {
+                        const option = document.createElement('option');
+                        option.value = project.name;
+                        option.textContent = project.name;
+                        filterSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки проектов:', error);
+            }
+        }
+
+        // Установка сегодняшней даты по умолчанию
+        function setDefaultDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('eventDate').value = today;
+        }
+
+        // Добавление события
+        function addEvent() {
+            const name = document.getElementById('eventName').value.trim();
+            const date = document.getElementById('eventDate').value;
+            const time = document.getElementById('eventTime').value;
+            const project = document.getElementById('eventProject').value;
+            const description = document.getElementById('eventDescription').value.trim();
+
+            if (!name) {
+                alert('Введите название события!');
+                return;
+            }
+
+            if (!date) {
+                alert('Выберите дату события!');
+                return;
+            }
+
+            const newEvent = {
+                id: Date.now(),
+                name: name,
+                date: date,
+                time: time || null,
+                project: project || null,
+                description: description || null,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            calendarEvents.push(newEvent);
+            saveEvents();
+
+            // Очищаем форму
+            document.getElementById('eventName').value = '';
+            document.getElementById('eventTime').value = '';
+            document.getElementById('eventProject').value = '';
+            document.getElementById('eventDescription').value = '';
+            setDefaultDate();
+
+            renderEvents();
+            updateStats();
+            
+            alert('Событие добавлено!');
+        }
+
+        // Определение статуса события
+        function getEventStatus(event) {
+            const today = new Date().toISOString().split('T')[0];
+            const eventDate = event.date;
+
+            if (event.completed) return 'completed';
+            if (eventDate < today) return 'overdue';
+            if (eventDate === today) return 'today';
+            return 'upcoming';
+        }
+
+        // Форматирование даты для отображения
+        function formatEventDate(date, time) {
+            const eventDate = new Date(date);
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            const dateStr = eventDate.toISOString().split('T')[0];
+            const todayStr = today.toISOString().split('T')[0];
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+            let displayDate;
+            if (dateStr === todayStr) {
+                displayDate = 'Сегодня';
+            } else if (dateStr === tomorrowStr) {
+                displayDate = 'Завтра';
+            } else if (dateStr === yesterdayStr) {
+                displayDate = 'Вчера';
+            } else {
+                displayDate = eventDate.toLocaleDateString('ru-RU', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: eventDate.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+                });
+            }
+
+            if (time) {
+                displayDate += ` в ${time}`;
+            }
+
+            return displayDate;
+        }
+
+        // Отрисовка событий
+        function renderEvents() {
+            const container = document.getElementById('eventsList');
+            
+            // Применяем фильтры
+            let filteredEvents = calendarEvents.filter(event => {
+                const status = getEventStatus(event);
+                const statusMatch = currentFilter.status === 'all' || status === currentFilter.status;
+                const projectMatch = currentFilter.project === 'all' || event.project === currentFilter.project;
+                return statusMatch && projectMatch;
+            });
+
+            // Сортируем по дате
+            filteredEvents.sort((a, b) => {
+                if (a.date !== b.date) {
+                    return new Date(a.date) - new Date(b.date);
+                }
+                if (a.time && b.time) {
+                    return a.time.localeCompare(b.time);
+                }
+                return a.time ? -1 : (b.time ? 1 : 0);
+            });
+
+            if (filteredEvents.length === 0) {
+                container.innerHTML = '<div class="empty-state">Событий не найдено</div>';
+                document.getElementById('eventsCount').textContent = '0';
+                return;
+            }
+
+            const html = filteredEvents.map(event => {
+                const status = getEventStatus(event);
+                const statusTexts = {
+                    completed: '✅ Выполнено',
+                    overdue: '🚨 Просрочено',
+                    today: '📅 Сегодня',
+                    upcoming: '⏰ Предстоящее'
+                };
+
+                return `
+                    <div class="event-item ${status}">
+                        <div class="event-title">${event.name}</div>
+                        <div class="event-meta">
+                            <span class="event-date ${status}">${formatEventDate(event.date, event.time)}</span>
+                            ${event.project ? `<span class="event-project">📁 ${event.project}</span>` : ''}
+                            <span class="event-status">${statusTexts[status]}</span>
+                        </div>
+                        ${event.description ? `<div style="color: #4a5568; font-size: 0.9em; margin-bottom: 10px;">${event.description}</div>` : ''}
+                        <div class="event-actions">
+                            ${!event.completed ? `
+                                <button onclick="completeEvent(${event.id})" class="btn btn-success">✅ Выполнено</button>
+                                <button onclick="editEvent(${event.id})" class="btn btn-secondary">✏️ Редактировать</button>
+                            ` : ''}
+                            <button onclick="deleteEvent(${event.id})" class="btn btn-danger">🗑️ Удалить</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+            document.getElementById('eventsCount').textContent = filteredEvents.length;
+        }
+
+        // Выполнение события
+        function completeEvent(eventId) {
+            const event = calendarEvents.find(e => e.id === eventId);
+            if (!event) return;
+
+            event.completed = true;
+            event.completedAt = new Date().toISOString();
+
+            // Архивируем
+            try {
+                if (typeof window.ArchiveManager !== 'undefined') {
+                    const archiveData = {
+                        id: event.id,
+                        text: event.name,
+                        moduleType: 'calendar-events',
+                        projectId: event.project,
+                        date: event.date,
+                        createdAt: event.completedAt
+                    };
+                    window.ArchiveManager.archive(archiveData);
+                }
+            } catch (error) {
+                console.error('Ошибка архивирования:', error);
+            }
+
+            saveEvents();
+            renderEvents();
+            updateStats();
+            
+            alert('Событие выполнено!');
+        }
+
+        // Удаление события
+        function deleteEvent(eventId) {
+            if (!confirm('Удалить событие?')) return;
+
+            calendarEvents = calendarEvents.filter(e => e.id !== eventId);
+            saveEvents();
+            renderEvents();
+            updateStats();
+            
+            alert('Событие удалено!');
+        }
+
+        // Редактирование события (упрощенная версия)
+        function editEvent(eventId) {
+            const event = calendarEvents.find(e => e.id === eventId);
+            if (!event) return;
+
+            const newName = prompt('Новое название:', event.name);
+            if (newName === null) return;
+
+            const newDate = prompt('Новая дата (YYYY-MM-DD):', event.date);
+            if (newDate === null) return;
+
+            if (newName.trim()) {
+                event.name = newName.trim();
+            }
+            if (newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+                event.date = newDate;
+            }
+
+            saveEvents();
+            renderEvents();
+            updateStats();
+            
+            alert('Событие обновлено!');
+        }
+
+        // Фильтрация событий
+        function filterEvents() {
+            currentFilter.status = document.getElementById('statusFilter').value;
+            currentFilter.project = document.getElementById('projectFilter').value;
+            renderEvents();
+        }
+
+        // Сброс фильтров
+        function clearFilters() {
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('projectFilter').value = 'all';
+            currentFilter = { status: 'all', project: 'all' };
+            renderEvents();
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            const total = calendarEvents.length;
+            let today = 0;
+            let overdue = 0;
+            let upcoming = 0;
+
+            const todayDate = new Date().toISOString().split('T')[0];
+
+            calendarEvents.forEach(event => {
+                if (event.completed) return;
+
+                if (event.date === todayDate) {
+                    today++;
+                } else if (event.date < todayDate) {
+                    overdue++;
+                } else {
+                    upcoming++;
+                }
+            });
+
+            document.getElementById('totalEvents').textContent = total;
+            document.getElementById('todayEvents').textContent = today;
+            document.getElementById('overdueEvents').textContent = overdue;
+            document.getElementById('upcomingEvents').textContent = upcoming;
+        }
+    </script>
+</body>
+</html>
