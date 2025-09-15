@@ -114,6 +114,15 @@
             font-size: 0.9em;
         }
 
+        /* Стили для разных секций */
+        .overdue-section .section-title {
+            color: #dc2626;
+        }
+
+        .overdue-section .section-count {
+            background: #dc2626;
+        }
+
         .urgent-section .section-title {
             color: #c53030;
         }
@@ -158,6 +167,15 @@
         .task-item:hover {
             background: #f0f0ff;
             border-left-color: #5f4fcf;
+        }
+
+        .task-item.overdue {
+            border-left-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .task-item.overdue:hover {
+            background: #fee2e2;
         }
 
         .task-item:last-child {
@@ -225,10 +243,20 @@
             font-size: 0.8em;
         }
 
+        .task-overdue {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
         .task-actions {
             display: flex;
             gap: 8px;
             margin-top: 10px;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -256,6 +284,15 @@
 
         .btn-secondary:hover {
             background: #5f4fcf;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
         }
 
         .empty-state {
@@ -310,6 +347,75 @@
             color: #4a5568;
             font-size: 0.9em;
         }
+
+        /* Модальное окно для редактирования */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            font-size: 1.5em;
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn-close {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-close:hover {
+            background: #cbd5e0;
+        }
     </style>
 </head>
 <body>
@@ -343,6 +449,17 @@
         <div class="quick-add">
             <input type="text" class="quick-add-input" id="quickTaskInput" placeholder="Быстро добавить задачу на сегодня...">
             <button onclick="addQuickTask()" class="btn btn-primary">Добавить</button>
+        </div>
+
+        <!-- НОВАЯ СЕКЦИЯ: Просроченные задачи -->
+        <div class="section overdue-section" id="overdueSection" style="display: none;">
+            <div class="section-header">
+                <div class="section-title">🚨 ПРОСРОЧЕННЫЕ ЗАДАЧИ</div>
+                <div class="section-count" id="overdueCount">0</div>
+            </div>
+            <div id="overdueTasks">
+                <div class="empty-state good">Просроченных задач нет</div>
+            </div>
         </div>
 
         <!-- Календарные события -->
@@ -390,12 +507,52 @@
         </div>
     </div>
 
+    <!-- Модальное окно для редактирования -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">✏️ Редактировать задачу</div>
+            
+            <div class="form-group">
+                <label class="form-label">Название задачи</label>
+                <input type="text" class="form-input" id="editTaskName">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Дата</label>
+                <input type="date" class="form-input" id="editTaskDate">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Проект</label>
+                <select class="form-select" id="editTaskProject">
+                    <option value="">Без проекта</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Приоритет</label>
+                <select class="form-select" id="editTaskPriority">
+                    <option value="">Не выбран</option>
+                    <option value="high">🔥 Высокий</option>
+                    <option value="medium">🟡 Средний</option>
+                    <option value="low">🟢 Низкий</option>
+                </select>
+            </div>
+            
+            <div class="modal-actions">
+                <button onclick="saveTaskEdit()" class="btn btn-primary">💾 Сохранить</button>
+                <button onclick="closeEditModal()" class="btn btn-close">❌ Отмена</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Подключаем системы -->
     <script src="../shared/projects.js"></script>
     <script src="../shared/archive.js"></script>
     <script>
         let dayData = {
             urgent: [],
+            overdue: [],  // НОВОЕ: просроченные
             repeat: [],
             calendar: [],
             projects: [],
@@ -404,6 +561,7 @@
 
         let completedToday = 0;
         let totalToday = 0;
+        let currentEditingTask = null;
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
@@ -413,6 +571,7 @@
             renderAllSections();
             updateStats();
             setupQuickAdd();
+            loadProjectsForSelect();
         });
 
         // Загрузка данных на сегодня
@@ -420,21 +579,34 @@
             const today = new Date().toISOString().split('T')[0];
             console.log('Загружаем данные на:', today);
             
-            // Urgent задачи на сегодня
+            // Urgent задачи: разделяем на сегодняшние и просроченные
             try {
                 const allUrgent = JSON.parse(localStorage.getItem('urgentTasks') || '[]');
                 console.log('Все urgent задачи:', allUrgent);
                 
-                dayData.urgent = allUrgent.filter(task => {
-                    console.log('Проверяем задачу:', task.name, 'дата:', task.scheduledDate, 'сегодня:', today);
-                    return task.scheduledDate === today;
+                dayData.urgent = [];
+                dayData.overdue = [];
+                
+                allUrgent.forEach(task => {
+                    if (task.scheduledDate === today) {
+                        dayData.urgent.push(task);
+                    } else if (task.scheduledDate < today) {
+                        // Добавляем информацию о днях просрочки
+                        const overdueDays = Math.floor((new Date(today) - new Date(task.scheduledDate)) / (1000 * 60 * 60 * 24));
+                        task.overdueDays = overdueDays;
+                        dayData.overdue.push(task);
+                    }
                 });
+                
                 console.log('Urgent задач на сегодня:', dayData.urgent.length);
+                console.log('Просроченных задач:', dayData.overdue.length);
             } catch (error) {
                 console.error('Ошибка загрузки urgent:', error);
                 dayData.urgent = [];
+                dayData.overdue = [];
             }
 
+            // Остальное без изменений
             // Repeat задачи (все неполные)
             try {
                 const repeatPools = JSON.parse(localStorage.getItem('repeatPools') || '[]');
@@ -503,6 +675,7 @@
             // Итоговая диагностика
             console.log('=== ИТОГО ЗАГРУЖЕНО ===');
             console.log('Urgent:', dayData.urgent.length);
+            console.log('Overdue:', dayData.overdue.length);
             console.log('Repeat:', dayData.repeat.length);
             console.log('Quick:', dayData.quick.length);
         }
@@ -528,12 +701,57 @@
 
         // Отрисовка всех секций
         function renderAllSections() {
+            renderOverdueTasks();  // НОВОЕ!
             renderCalendarTasks();
             renderUrgentTasks();
             renderRegularTasks();
             renderProjectsTasks();
             updateAllCounts();
             updateProgress();
+        }
+
+        // НОВОЕ: Отрисовка просроченных задач
+        function renderOverdueTasks() {
+            const section = document.getElementById('overdueSection');
+            const container = document.getElementById('overdueTasks');
+            
+            if (dayData.overdue.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            
+            const html = dayData.overdue.map(task => {
+                const priorityClass = task.priority ? `priority-${task.priority}-task` : '';
+                const priorityText = {
+                    high: '🔥 Высокий',
+                    medium: '🟡 Средний', 
+                    low: '🟢 Низкий'
+                }[task.priority] || '';
+
+                const overdueDays = task.overdueDays;
+                const overdueText = overdueDays === 1 ? 'вчера' : `${overdueDays} дн. назад`;
+
+                return `
+                    <div class="task-item overdue">
+                        <div class="task-title">${task.name}</div>
+                        <div class="task-meta">
+                            ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
+                            ${priorityText ? `<span class="task-priority ${priorityClass}">${priorityText}</span>` : ''}
+                            <span class="task-overdue">⏰ ${overdueText}</span>
+                            <span class="task-source">⚡ Urgent</span>
+                        </div>
+                        <div class="task-actions">
+                            <button onclick="completeTask('overdue', ${task.id})" class="btn btn-primary">✅ Готово</button>
+                            <button onclick="rescheduleToToday(${task.id})" class="btn btn-warning">📅 На сегодня</button>
+                            <button onclick="editTask('urgent', ${task.id})" class="btn btn-secondary">✏️ Редактировать</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
         }
 
         // Календарные задачи (пока заглушка)
@@ -571,6 +789,7 @@
                         </div>
                         <div class="task-actions">
                             <button onclick="completeTask('${isQuickTask ? 'quick' : 'urgent'}', ${task.id})" class="btn btn-primary">✅ Готово</button>
+                            ${!isQuickTask ? `<button onclick="editTask('urgent', ${task.id})" class="btn btn-secondary">✏️ Редактировать</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -618,229 +837,13 @@
 
         // Обновление счетчиков
         function updateAllCounts() {
+            document.getElementById('overdueCount').textContent = dayData.overdue.length;
             document.getElementById('calendarCount').textContent = '0';
             document.getElementById('urgentCount').textContent = dayData.urgent.length + dayData.quick.length;
             document.getElementById('regularCount').textContent = dayData.repeat.length;
             document.getElementById('projectsCount').textContent = '0';
         }
 
-        // Обновление прогресса
+        // Обновление прогресса (ВКЛЮЧАЕМ ПРОСРОЧКИ!)
         function updateProgress() {
-            totalToday = dayData.urgent.length + dayData.quick.length + dayData.repeat.length;
-            
-            const progressPercent = totalToday > 0 ? (completedToday / totalToday) * 100 : 0;
-            
-            document.getElementById('progressFill').style.width = progressPercent + '%';
-            document.getElementById('progressText').textContent = 
-                `Выполнено: ${completedToday} из ${totalToday} задач`;
-        }
-
-        // Обновление общей статистики
-        function updateStats() {
-            const urgentTotal = dayData.urgent.length + dayData.quick.length;
-            const regularTotal = dayData.repeat.length;
-            
-            let statsText = `📊 На сегодня: ${urgentTotal} срочных`;
-            if (regularTotal > 0) {
-                statsText += ` | 🔄 ${regularTotal} регулярных`;
-            }
-            
-            document.getElementById('totalStats').textContent = statsText;
-        }
-
-        // Выполнение срочной задачи
-        function completeTask(source, taskId) {
-            if (source === 'urgent') {
-                const task = dayData.urgent.find(t => t.id === taskId);
-                if (task) {
-                    // Архивируем
-                    try {
-                        if (typeof window.ArchiveManager !== 'undefined') {
-                            const archiveData = {
-                                id: task.id,
-                                text: task.name,
-                                moduleType: 'urgent-flow',
-                                projectId: task.project,
-                                date: task.scheduledDate,
-                                createdAt: new Date().toISOString()
-                            };
-                            window.ArchiveManager.archive(archiveData);
-                        }
-                    } catch (error) {
-                        console.error('Ошибка архивирования:', error);
-                    }
-
-                    // Удаляем из urgent
-                    const allUrgent = JSON.parse(localStorage.getItem('urgentTasks') || '[]');
-                    const updatedUrgent = allUrgent.filter(t => t.id !== taskId);
-                    localStorage.setItem('urgentTasks', JSON.stringify(updatedUrgent));
-                    
-                    dayData.urgent = dayData.urgent.filter(t => t.id !== taskId);
-                    completedToday++;
-                    
-                    renderUrgentTasks();
-                    updateAllCounts();
-                    updateProgress();
-                    updateStats();
-                    
-                    alert('Задача выполнена!');
-                }
-            } else if (source === 'quick') {
-                const task = dayData.quick.find(t => t.id === taskId);
-                if (task) {
-                    // Архивируем
-                    try {
-                        if (typeof window.ArchiveManager !== 'undefined') {
-                            const archiveData = {
-                                id: task.id,
-                                text: task.name,
-                                moduleType: 'quick-task',
-                                date: task.date,
-                                createdAt: new Date().toISOString()
-                            };
-                            window.ArchiveManager.archive(archiveData);
-                        }
-                    } catch (error) {
-                        console.error('Ошибка архивирования:', error);
-                    }
-
-                    // Отмечаем как выполненную
-                    const allQuick = JSON.parse(localStorage.getItem('quickTasks') || '[]');
-                    const quickTask = allQuick.find(t => t.id === taskId);
-                    if (quickTask) {
-                        quickTask.completed = true;
-                        localStorage.setItem('quickTasks', JSON.stringify(allQuick));
-                    }
-                    
-                    dayData.quick = dayData.quick.filter(t => t.id !== taskId);
-                    completedToday++;
-                    
-                    renderUrgentTasks();
-                    updateAllCounts();
-                    updateProgress();
-                    updateStats();
-                    
-                    alert('Задача выполнена!');
-                }
-            }
-        }
-
-        // Выполнение регулярной задачи
-        function completeRepeatTask(poolIndex, taskIndex) {
-            const repeatPools = JSON.parse(localStorage.getItem('repeatPools') || '[]');
-            
-            if (repeatPools[poolIndex] && repeatPools[poolIndex].tasks[taskIndex]) {
-                const pool = repeatPools[poolIndex];
-                const task = pool.tasks[taskIndex];
-                
-                // Увеличиваем счетчик
-                task.completed = (task.completed || 0) + 1;
-                
-                // Архивируем
-                try {
-                    if (typeof window.ArchiveManager !== 'undefined') {
-                        const archiveData = {
-                            id: Date.now(),
-                            text: `${pool.name}: ${task.name}`,
-                            moduleType: 'repeat-flow',
-                            projectId: pool.project,
-                            date: null,
-                            createdAt: new Date().toISOString()
-                        };
-                        window.ArchiveManager.archive(archiveData);
-                    }
-                } catch (error) {
-                    console.error('Ошибка архивирования:', error);
-                }
-                
-                // Сохраняем
-                localStorage.setItem('repeatPools', JSON.stringify(repeatPools));
-                
-                // Обновляем dayData
-                const taskInDay = dayData.repeat.find(t => 
-                    t.poolIndex === poolIndex && t.taskIndex === taskIndex
-                );
-                if (taskInDay) {
-                    taskInDay.completed = task.completed;
-                    
-                    // Если задача выполнена, убираем из списка
-                    if (task.completed >= task.targetPerWeek) {
-                        dayData.repeat = dayData.repeat.filter(t => 
-                            !(t.poolIndex === poolIndex && t.taskIndex === taskIndex)
-                        );
-                        completedToday++;
-                    }
-                }
-                
-                renderRegularTasks();
-                updateAllCounts();
-                updateProgress();
-                updateStats();
-                
-                const remaining = task.targetPerWeek - task.completed;
-                if (remaining <= 0) {
-                    alert(`${task.name} выполнен на неделю! 🎉`);
-                } else {
-                    alert(`${task.name}: ${task.completed}/${task.targetPerWeek} (осталось ${remaining})`);
-                }
-            }
-        }
-
-        // Настройка быстрого добавления
-        function setupQuickAdd() {
-            const input = document.getElementById('quickTaskInput');
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    addQuickTask();
-                }
-            });
-        }
-
-        // Добавление быстрой задачи
-        function addQuickTask() {
-            const input = document.getElementById('quickTaskInput');
-            const taskName = input.value.trim();
-            
-            if (!taskName) return;
-            
-            const today = new Date().toISOString().split('T')[0];
-            const quickTask = {
-                id: Date.now(),
-                name: taskName,
-                date: today,
-                isQuick: true,
-                completed: false,
-                created: new Date().toISOString()
-            };
-            
-            // Сохраняем в localStorage
-            const quickTasks = JSON.parse(localStorage.getItem('quickTasks') || '[]');
-            quickTasks.push(quickTask);
-            localStorage.setItem('quickTasks', JSON.stringify(quickTasks));
-            
-            // Добавляем в dayData
-            dayData.quick.push(quickTask);
-            
-            // Очищаем поле ввода
-            input.value = '';
-            
-            // Обновляем отображение
-            renderUrgentTasks();
-            updateAllCounts();
-            updateProgress();
-            updateStats();
-            
-            alert('Быстрая задача добавлена!');
-        }
-
-        // Получение номера недели
-        function getWeekNumber(date) {
-            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-            const dayNum = d.getUTCDay() || 7;
-            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-            const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-            return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
-        }
-    </script>
-</body>
-</html>
+            totalToday = dayData.overdue.length + dayData.urgent.length +
