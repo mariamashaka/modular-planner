@@ -312,6 +312,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('=== REPEAT FLOW ЗАГРУЖАЕТСЯ ===');
             
+            // АВТОСБРОС В ПОНЕДЕЛЬНИК - проверяем сразу при загрузке
+            checkMondayReset();
+            
             // Проверяем архивные функции
             console.log('🗄️ Проверяем ArchiveManager...');
             if (typeof window.ArchiveManager !== 'undefined') {
@@ -326,6 +329,49 @@
             renderPools();
             updateStats();
         });
+
+        // АВТОСБРОС В ПОНЕДЕЛЬНИК
+        function checkMondayReset() {
+            const today = new Date();
+            const isMonday = today.getDay() === 1; // 1 = понедельник
+            
+            if (!isMonday) {
+                console.log('Сегодня не понедельник, сброс не нужен');
+                return;
+            }
+            
+            const lastReset = localStorage.getItem('lastMondayReset');
+            const currentWeek = getCurrentWeek();
+            
+            if (lastReset) {
+                const lastResetWeek = parseInt(lastReset);
+                if (lastResetWeek >= currentWeek) {
+                    console.log('Сброс уже был на этой неделе');
+                    return;
+                }
+            }
+            
+            console.log('🔄 Выполняем автосброс в понедельник');
+            
+            try {
+                repeatPools.forEach(pool => {
+                    pool.tasks.forEach(task => {
+                        task.completed = 0;
+                        if (task.type === 'detailed') {
+                            task.weeklyPlan = '';
+                        }
+                    });
+                });
+                
+                saveData();
+                localStorage.setItem('lastMondayReset', currentWeek.toString());
+                
+                console.log('✅ Автосброс выполнен успешно');
+                showNotification('Понедельник! Счетчики регулярных задач сброшены на новую неделю 🔄');
+            } catch (error) {
+                console.error('❌ Ошибка автосброса:', error);
+            }
+        }
 
         // Получение текущей недели (по ISO стандарту)
         function getCurrentWeek() {
@@ -462,6 +508,7 @@
             const task = {
                 id: Date.now(),
                 name: name,
+                targetPerWeek: target, // Изменено: добавил targetPerWeek для совместимости с day-planner
                 target: target,
                 completed: 0,
                 type: isDetailed ? 'detailed' : 'simple',
@@ -562,7 +609,7 @@
             renderPools();
         }
 
-        // Сброс недельных счетчиков
+        // Сброс недельных счетчиков (старая логика для совместимости)
         function resetWeeklyCounters() {
             const currentWeekKey = `${getCurrentYear()}-W${getCurrentWeek()}`;
             
