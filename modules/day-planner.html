@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>План дня</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .navigation {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover {
+            background: #5f4fcf;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .date-info {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .date-title {
+            font-size: 1.5em;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .date-subtitle {
+            color: #4a5568;
+        }
+
+        .stats {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            color: #4a5568;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #edf2f7;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .section-count {
+            background: #6c5ce7;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .urgent-section .section-title {
+            color: #c53030;
+        }
+
+        .urgent-section .section-count {
+            background: #c53030;
+        }
+
+        .calendar-section .section-title {
+            color: #3182ce;
+        }
+
+        .calendar-section .section-count {
+            background: #3182ce;
+        }
+
+        .regular-section .section-title {
+            color: #38a169;
+        }
+
+        .regular-section .section-count {
+            background: #38a169;
+        }
+
+        .projects-section .section-title {
+            color: #805ad5;
+        }
+
+        .projects-section .section-count {
+            background: #805ad5;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #6c5ce7;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            background: #f0f0ff;
+            border-left-color: #5f4fcf;
+        }
+
+        .task-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .task-title {
+            font-size: 1.1em;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .task-project {
+            background: #e0e6ff;
+            color: #6c5ce7;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .task-priority {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .priority-high-task {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .priority-medium-task {
+            background: #fef5e7;
+            color: #dd6b20;
+        }
+
+        .priority-low-task {
+            background: #f0fff4;
+            color: #38a169;
+        }
+
+        .task-source {
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .task-progress {
+            background: #e6fffa;
+            color: #38a169;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #38a169;
+        }
+
+        .btn-secondary {
+            background: #6c5ce7;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5f4fcf;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .empty-state.good {
+            color: #38a169;
+        }
+
+        .quick-add {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .quick-add-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        .quick-add-input:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+
+        .progress-indicator {
+            background: #edf2f7;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            background: #48bb78;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #4a5568;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navigation">
+            <a href="../modules/urgent-flow.html" class="nav-btn">⚡ Срочные</a>
+            <a href="../modules/repeat-flow.html" class="nav-btn">🔄 Повторяющиеся</a>
+            <a href="../modules/week-collector.html" class="nav-btn">📅 План недели</a>
+            <a href="../modules/archive-viewer.html" class="nav-btn">📊 Архив</a>
+        </div>
+
+        <div class="header">
+            <h1>📱 ПЛАН ДНЯ</h1>
+            <p>Все задачи на сегодня в одном месте</p>
+        </div>
+
+        <div class="date-info">
+            <div class="date-title" id="dateTitle">Понедельник, 16 сентября 2025</div>
+            <div class="date-subtitle" id="dateSubtitle">Неделя 37</div>
+        </div>
+
+        <div class="stats">
+            <span id="totalStats">Загружается статистика...</span>
+        </div>
+
+        <div class="progress-indicator">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="progress-text" id="progressText">Выполнено: 0 из 0 задач</div>
+
+        <div class="quick-add">
+            <input type="text" class="quick-add-input" id="quickTaskInput" placeholder="Быстро добавить задачу на сегодня...">
+            <button onclick="addQuickTask()" class="btn btn-primary">Добавить</button>
+        </div>
+
+        <!-- Календарные события -->
+        <div class="section calendar-section">
+            <div class="section-header">
+                <div class="section-title">📅 КАЛЕНДАРЬ НА СЕГОДНЯ</div>
+                <div class="section-count" id="calendarCount">0</div>
+            </div>
+            <div id="calendarTasks">
+                <div class="empty-state good">Календарных событий на сегодня нет</div>
+            </div>
+        </div>
+
+        <!-- Срочные задачи -->
+        <div class="section urgent-section">
+            <div class="section-header">
+                <div class="section-title">⚡ СРОЧНЫЕ НА СЕГОДНЯ</div>
+                <div class="section-count" id="urgentCount">0</div>
+            </div>
+            <div id="urgentTasks">
+                <div class="empty-state good">Срочных задач на сегодня нет</div>
+            </div>
+        </div>
+
+        <!-- Регулярные задачи -->
+        <div class="section regular-section">
+            <div class="section-header">
+                <div class="section-title">🔄 МОЖНО СДЕЛАТЬ СЕГОДНЯ</div>
+                <div class="section-count" id="regularCount">0</div>
+            </div>
+            <div id="regularTasks">
+                <div class="empty-state good">Регулярных задач пока нет</div>
+            </div>
+        </div>
+
+        <!-- Проектные задачи -->
+        <div class="section projects-section">
+            <div class="section-header">
+                <div class="section-title">🎯 ИЗ ПРОЕКТОВ</div>
+                <div class="section-count" id="projectsCount">0</div>
+            </div>
+            <div id="projectsTasks">
+                <div class="empty-state good">Проектных задач на сегодня нет</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем системы -->
+    <script src="../shared/projects.js"></script>
+    <script src="../shared/archive.js"></script>
+    <script>
+        let dayData = {
+            urgent: [],
+            repeat: [],
+            calendar: [],
+            projects: [],
+            quick: []
+        };
+
+        let completedToday = 0;
+        let totalToday = 0;
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== ПЛАН ДНЯ ЗАГРУЖАЕТСЯ ===');
+            loadDayData();
+            renderDateInfo();
+            renderAllSections();
+            updateStats();
+            setupQuickAdd();
+        });
+
+        // Загрузка данных на сегодня
+        function loadDayData() {
+            const today = new Date().toISOString().split('T')[0];
+            console.log('Загружаем данные на:', today);
+            
+            // Urgent задачи на сегодня
+            try {
+                const allUrgent = JSON.parse(localStorage.getItem('urgentTasks') || '[]');
+                dayData.urgent = allUrgent.filter(task => task.scheduledDate === today);
+                console.log('Urgent задач на сегодня:', dayData.urgent.length);
+            } catch (error) {
+                console.error('Ошибка загрузки urgent:', error);
+                dayData.urgent = [];
+            }
+
+            // Repeat задачи (все неполные)
+            try {
+                const repeatPools = JSON.parse(localStorage.getItem('repeatPools') || '[]');
+                dayData.repeat = [];
+                
+                repeatPools.forEach((pool, poolIndex) => {
+                    if (pool.tasks) {
+                        pool.tasks.forEach((task, taskIndex) => {
+                            const completed = task.completed || 0;
+                            if (completed < task.targetPerWeek) {
+                                dayData.repeat.push({
+                                    ...task,
+                                    poolName: pool.name,
+                                    poolIndex: poolIndex,
+                                    taskIndex: taskIndex,
+                                    project: pool.project
+                                });
+                            }
+                        });
+                    }
+                });
+                console.log('Repeat задач доступно:', dayData.repeat.length);
+            } catch (error) {
+                console.error('Ошибка загрузки repeat:', error);
+                dayData.repeat = [];
+            }
+
+            // Быстрые задачи на сегодня
+            try {
+                const quickTasks = JSON.parse(localStorage.getItem('quickTasks') || '[]');
+                dayData.quick = quickTasks.filter(task => 
+                    task.date === today && !task.completed
+                );
+                console.log('Быстрых задач на сегодня:', dayData.quick.length);
+            } catch (error) {
+                console.error('Ошибка загрузки quick:', error);
+                dayData.quick = [];
+            }
+
+            // Пока заглушки
+            dayData.calendar = [];
+            dayData.projects = [];
+        }
+
+        // Отрисовка информации о дне
+        function renderDateInfo() {
+            const today = new Date();
+            
+            const dateOptions = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            
+            const weekNumber = getWeekNumber(today);
+            
+            document.getElementById('dateTitle').textContent = 
+                today.toLocaleDateString('ru-RU', dateOptions);
+            document.getElementById('dateSubtitle').textContent = 
+                `Неделя ${weekNumber}`;
+        }
+
+        // Отрисовка всех секций
+        function renderAllSections() {
+            renderCalendarTasks();
+            renderUrgentTasks();
+            renderRegularTasks();
+            renderProjectsTasks();
+            updateAllCounts();
+            updateProgress();
+        }
+
+        // Календарные задачи (пока заглушка)
+        function renderCalendarTasks() {
+            const container = document.getElementById('calendarTasks');
+            container.innerHTML = '<div class="empty-state good">Календарных событий на сегодня нет</div>';
+        }
+
+        // Срочные задачи
+        function renderUrgentTasks() {
+            const container = document.getElementById('urgentTasks');
+            const allUrgent = [...dayData.urgent, ...dayData.quick];
+            
+            if (allUrgent.length === 0) {
+                container.innerHTML = '<div class="empty-state good">Срочных задач на сегодня нет</div>';
+                return;
+            }
+
+            const html = allUrgent.map(task => {
+                const isQuickTask = task.isQuick;
+                const priorityClass = task.priority ? `priority-${task.priority}-task` : '';
+                const priorityText = {
+                    high: '🔥 Высокий',
+                    medium: '🟡 Средний', 
+                    low: '🟢 Низкий'
+                }[task.priority] || '';
+
+                return `
+                    <div class="task-item">
+                        <div class="task-title">${task.name}</div>
+                        <div class="task-meta">
+                            ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
+                            ${priorityText ? `<span class="task-priority ${priorityClass}">${priorityText}</span>` : ''}
+                            <span class="task-source">${isQuickTask ? '⚡ Быстрая' : '⚡ Urgent'}</span>
+                        </div>
+                        <div class="task-actions">
+                            <button onclick="completeTask('${isQuickTask ? 'quick' : 'urgent'}', ${task.id})" class="btn btn-primary">✅ Готово</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Регулярные задачи
+        function renderRegularTasks() {
+            const container = document.getElementById('regularTasks');
+            
+            if (dayData.repeat.length === 0) {
+                container.innerHTML = '<div class="empty-state good">Регулярных задач пока нет</div>';
+                return;
+            }
+
+            const html = dayData.repeat.map(task => {
+                const completed = task.completed || 0;
+                const target = task.targetPerWeek;
+                
+                return `
+                    <div class="task-item">
+                        <div class="task-title">${task.poolName}: ${task.name}</div>
+                        <div class="task-meta">
+                            ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
+                            <span class="task-progress">📊 ${completed}/${target} на неделю</span>
+                            <span class="task-source">🔄 Регулярная</span>
+                        </div>
+                        <div class="task-actions">
+                            <button onclick="completeRepeatTask(${task.poolIndex}, ${task.taskIndex})" class="btn btn-primary">✅ +1</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Проектные задачи (пока заглушка)
+        function renderProjectsTasks() {
+            const container = document.getElementById('projectsTasks');
+            container.innerHTML = '<div class="empty-state good">Проектных задач на сегодня нет</div>';
+        }
+
+        // Обновление счетчиков
+        function updateAllCounts() {
+            document.getElementById('calendarCount').textContent = '0';
+            document.getElementById('urgentCount').textContent = dayData.urgent.length + dayData.quick.length;
+            document.getElementById('regularCount').textContent = dayData.repeat.length;
+            document.getElementById('projectsCount').textContent = '0';
+        }
+
+        // Обновление прогресса
+        function updateProgress() {
+            totalToday = dayData.urgent.length + dayData.quick.length + dayData.repeat.length;
+            
+            const progressPercent = totalToday > 0 ? (completedToday / totalToday) * 100 : 0;
+            
+            document.getElementById('progressFill').style.width = progressPercent + '%';
+            document.getElementById('progressText').textContent = 
+                `Выполнено: ${completedToday} из ${totalToday} задач`;
+        }
+
+        // Обновление общей статистики
+        function updateStats() {
+            const urgentTotal = dayData.urgent.length + dayData.quick.length;
+            const regularTotal = dayData.repeat.length;
+            
+            let statsText = `📊 На сегодня: ${urgentTotal} срочных`;
+            if (regularTotal > 0) {
+                statsText += ` | 🔄 ${regularTotal} регулярных`;
+            }
+            
+            document.getElementById('totalStats').textContent = statsText;
+        }
+
+        // Выполнение срочной задачи
+        function completeTask(source, taskId) {
+            if (source === 'urgent') {
+                const task = dayData.urgent.find(t => t.id === taskId);
+                if (task) {
+                    // Архивируем
+                    try {
+                        if (typeof window.ArchiveManager !== 'undefined') {
+                            const archiveData = {
+                                id: task.id,
+                                text: task.name,
+                                moduleType: 'urgent-flow',
+                                projectId: task.project,
+                                date: task.scheduledDate,
+                                createdAt: new Date().toISOString()
+                            };
+                            window.ArchiveManager.archive(archiveData);
+                        }
+                    } catch (error) {
+                        console.error('Ошибка архивирования:', error);
+                    }
+
+                    // Удаляем из urgent
+                    const allUrgent = JSON.parse(localStorage.getItem('urgentTasks') || '[]');
+                    const updatedUrgent = allUrgent.filter(t => t.id !== taskId);
+                    localStorage.setItem('urgentTasks', JSON.stringify(updatedUrgent));
+                    
+                    dayData.urgent = dayData.urgent.filter(t => t.id !== taskId);
+                    completedToday++;
+                    
+                    renderUrgentTasks();
+                    updateAllCounts();
+                    updateProgress();
+                    updateStats();
+                    
+                    alert('Задача выполнена!');
+                }
+            } else if (source === 'quick') {
+                const task = dayData.quick.find(t => t.id === taskId);
+                if (task) {
+                    // Архивируем
+                    try {
+                        if (typeof window.ArchiveManager !== 'undefined') {
+                            const archiveData = {
+                                id: task.id,
+                                text: task.name,
+                                moduleType: 'quick-task',
+                                date: task.date,
+                                createdAt: new Date().toISOString()
+                            };
+                            window.ArchiveManager.archive(archiveData);
+                        }
+                    } catch (error) {
+                        console.error('Ошибка архивирования:', error);
+                    }
+
+                    // Отмечаем как выполненную
+                    const allQuick = JSON.parse(localStorage.getItem('quickTasks') || '[]');
+                    const quickTask = allQuick.find(t => t.id === taskId);
+                    if (quickTask) {
+                        quickTask.completed = true;
+                        localStorage.setItem('quickTasks', JSON.stringify(allQuick));
+                    }
+                    
+                    dayData.quick = dayData.quick.filter(t => t.id !== taskId);
+                    completedToday++;
+                    
+                    renderUrgentTasks();
+                    updateAllCounts();
+                    updateProgress();
+                    updateStats();
+                    
+                    alert('Задача выполнена!');
+                }
+            }
+        }
+
+        // Выполнение регулярной задачи
+        function completeRepeatTask(poolIndex, taskIndex) {
+            const repeatPools = JSON.parse(localStorage.getItem('repeatPools') || '[]');
+            
+            if (repeatPools[poolIndex] && repeatPools[poolIndex].tasks[taskIndex]) {
+                const pool = repeatPools[poolIndex];
+                const task = pool.tasks[taskIndex];
+                
+                // Увеличиваем счетчик
+                task.completed = (task.completed || 0) + 1;
+                
+                // Архивируем
+                try {
+                    if (typeof window.ArchiveManager !== 'undefined') {
+                        const archiveData = {
+                            id: Date.now(),
+                            text: `${pool.name}: ${task.name}`,
+                            moduleType: 'repeat-flow',
+                            projectId: pool.project,
+                            date: null,
+                            createdAt: new Date().toISOString()
+                        };
+                        window.ArchiveManager.archive(archiveData);
+                    }
+                } catch (error) {
+                    console.error('Ошибка архивирования:', error);
+                }
+                
+                // Сохраняем
+                localStorage.setItem('repeatPools', JSON.stringify(repeatPools));
+                
+                // Обновляем dayData
+                const taskInDay = dayData.repeat.find(t => 
+                    t.poolIndex === poolIndex && t.taskIndex === taskIndex
+                );
+                if (taskInDay) {
+                    taskInDay.completed = task.completed;
+                    
+                    // Если задача выполнена, убираем из списка
+                    if (task.completed >= task.targetPerWeek) {
+                        dayData.repeat = dayData.repeat.filter(t => 
+                            !(t.poolIndex === poolIndex && t.taskIndex === taskIndex)
+                        );
+                        completedToday++;
+                    }
+                }
+                
+                renderRegularTasks();
+                updateAllCounts();
+                updateProgress();
+                updateStats();
+                
+                const remaining = task.targetPerWeek - task.completed;
+                if (remaining <= 0) {
+                    alert(`${task.name} выполнен на неделю! 🎉`);
+                } else {
+                    alert(`${task.name}: ${task.completed}/${task.targetPerWeek} (осталось ${remaining})`);
+                }
+            }
+        }
+
+        // Настройка быстрого добавления
+        function setupQuickAdd() {
+            const input = document.getElementById('quickTaskInput');
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    addQuickTask();
+                }
+            });
+        }
+
+        // Добавление быстрой задачи
+        function addQuickTask() {
+            const input = document.getElementById('quickTaskInput');
+            const taskName = input.value.trim();
+            
+            if (!taskName) return;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const quickTask = {
+                id: Date.now(),
+                name: taskName,
+                date: today,
+                isQuick: true,
+                completed: false,
+                created: new Date().toISOString()
+            };
+            
+            // Сохраняем в localStorage
+            const quickTasks = JSON.parse(localStorage.getItem('quickTasks') || '[]');
+            quickTasks.push(quickTask);
+            localStorage.setItem('quickTasks', JSON.stringify(quickTasks));
+            
+            // Добавляем в dayData
+            dayData.quick.push(quickTask);
+            
+            // Очищаем поле ввода
+            input.value = '';
+            
+            // Обновляем отображение
+            renderUrgentTasks();
+            updateAllCounts();
+            updateProgress();
+            updateStats();
+            
+            alert('Быстрая задача добавлена!');
+        }
+
+        // Получение номера недели
+        function getWeekNumber(date) {
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+        }
+    </script>
+</body>
+</html>
