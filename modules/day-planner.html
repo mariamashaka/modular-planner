@@ -423,7 +423,12 @@
             // Urgent задачи на сегодня
             try {
                 const allUrgent = JSON.parse(localStorage.getItem('urgentTasks') || '[]');
-                dayData.urgent = allUrgent.filter(task => task.scheduledDate === today);
+                console.log('Все urgent задачи:', allUrgent);
+                
+                dayData.urgent = allUrgent.filter(task => {
+                    console.log('Проверяем задачу:', task.name, 'дата:', task.scheduledDate, 'сегодня:', today);
+                    return task.scheduledDate === today;
+                });
                 console.log('Urgent задач на сегодня:', dayData.urgent.length);
             } catch (error) {
                 console.error('Ошибка загрузки urgent:', error);
@@ -433,25 +438,45 @@
             // Repeat задачи (все неполные)
             try {
                 const repeatPools = JSON.parse(localStorage.getItem('repeatPools') || '[]');
+                console.log('Repeat пулы из localStorage:', repeatPools);
+                
                 dayData.repeat = [];
                 
-                repeatPools.forEach((pool, poolIndex) => {
-                    if (pool.tasks) {
-                        pool.tasks.forEach((task, taskIndex) => {
-                            const completed = task.completed || 0;
-                            if (completed < task.targetPerWeek) {
-                                dayData.repeat.push({
-                                    ...task,
-                                    poolName: pool.name,
-                                    poolIndex: poolIndex,
-                                    taskIndex: taskIndex,
-                                    project: pool.project
-                                });
-                            }
-                        });
-                    }
-                });
-                console.log('Repeat задач доступно:', dayData.repeat.length);
+                if (repeatPools.length === 0) {
+                    console.log('Repeat пулов не найдено в localStorage');
+                } else {
+                    repeatPools.forEach((pool, poolIndex) => {
+                        console.log(`Пул ${poolIndex}:`, pool);
+                        
+                        if (pool.tasks && Array.isArray(pool.tasks)) {
+                            pool.tasks.forEach((task, taskIndex) => {
+                                const completed = task.completed || 0;
+                                const target = task.targetPerWeek || task.target || 1;
+                                
+                                console.log(`  Задача: ${task.name}, completed: ${completed}, target: ${target}`);
+                                
+                                if (completed < target) {
+                                    dayData.repeat.push({
+                                        name: task.name,
+                                        completed: completed,
+                                        targetPerWeek: target,
+                                        poolName: pool.name,
+                                        poolIndex: poolIndex,
+                                        taskIndex: taskIndex,
+                                        project: pool.project
+                                    });
+                                    console.log(`    -> Добавлена в дневной план`);
+                                } else {
+                                    console.log(`    -> Пропущена (выполнена)`);
+                                }
+                            });
+                        } else {
+                            console.log(`  Пул ${pool.name} не содержит задач или задачи не массив`);
+                        }
+                    });
+                }
+                
+                console.log('Repeat задач для дневного плана:', dayData.repeat.length);
             } catch (error) {
                 console.error('Ошибка загрузки repeat:', error);
                 dayData.repeat = [];
@@ -460,6 +485,8 @@
             // Быстрые задачи на сегодня
             try {
                 const quickTasks = JSON.parse(localStorage.getItem('quickTasks') || '[]');
+                console.log('Быстрые задачи:', quickTasks);
+                
                 dayData.quick = quickTasks.filter(task => 
                     task.date === today && !task.completed
                 );
@@ -472,6 +499,12 @@
             // Пока заглушки
             dayData.calendar = [];
             dayData.projects = [];
+            
+            // Итоговая диагностика
+            console.log('=== ИТОГО ЗАГРУЖЕНО ===');
+            console.log('Urgent:', dayData.urgent.length);
+            console.log('Repeat:', dayData.repeat.length);
+            console.log('Quick:', dayData.quick.length);
         }
 
         // Отрисовка информации о дне
