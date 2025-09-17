@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проекты</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .navigation {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover {
+            background: #5f4fcf;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .working-version {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* ГЛАВНАЯ СТРАНИЦА - КАРТОЧКИ ПРОЕКТОВ */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 5px solid #805ad5;
+        }
+
+        .project-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .project-card.overdue {
+            border-left-color: #e53e3e;
+        }
+
+        .project-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .project-deadline {
+            background: #e6fffa;
+            color: #38a169;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .project-deadline.overdue {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .project-progress {
+            background: #e0e6ff;
+            color: #6c5ce7;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .project-description {
+            color: #4a5568;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            line-height: 1.4;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .new-project-card {
+            background: linear-gradient(45deg, #f0f8ff, #e6f3ff);
+            border: 2px dashed #6c5ce7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            color: #6c5ce7;
+            font-weight: 500;
+        }
+
+        /* ДЕТАЛИ ПРОЕКТА */
+        .project-details {
+            display: none;
+        }
+
+        .project-details.active {
+            display: block;
+        }
+
+        .back-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover {
+            background: #5f4fcf;
+        }
+
+        .project-header {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .project-header-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        .project-header-meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            background: #edf2f7;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .stages-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stage-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #6c5ce7;
+            transition: all 0.3s ease;
+        }
+
+        .stage-item:hover {
+            background: #f0f0ff;
+        }
+
+        .stage-item.completed {
+            border-left-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .stage-item.overdue {
+            border-left-color: #e53e3e;
+            background: #fef5f5;
+        }
+
+        .stage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .stage-title {
+            font-weight: 500;
+            color: #2d3748;
+            flex: 1;
+        }
+
+        .stage-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .stage-status.completed {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .stage-status.overdue {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .stage-status.pending {
+            background: #e6fffa;
+            color: #38a169;
+        }
+
+        .stage-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .stage-deadline {
+            background: #fef5e7;
+            color: #dd6b20;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .stage-quarter {
+            background: #e0e6ff;
+            color: #6c5ce7;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .stage-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .subtasks-list {
+            margin-top: 15px;
+            padding-left: 20px;
+            border-left: 2px solid #e2e8f0;
+        }
+
+        .subtask-item {
+            background: #fafafa;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 3px solid #a0aec0;
+            font-size: 0.9em;
+        }
+
+        .subtask-item.flexible {
+            border-left-color: #ed8936;
+        }
+
+        .subtask-item.fixed {
+            border-left-color: #e53e3e;
+        }
+
+        .subtask-type {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.7em;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .subtask-flexible {
+            background: #fef5e7;
+            color: #dd6b20;
+        }
+
+        .subtask-fixed {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #6c5ce7;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5f4fcf;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8em;
+        }
+
+        /* МОДАЛЬНЫЕ ОКНА */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #edf2f7;
+        }
+
+        .modal-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .close {
+            color: #718096;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #2d3748;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .project-header-meta {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .stage-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stage-actions {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navigation">
+            <a href="urgent-flow.html" class="nav-btn">⚡ Срочные</a>
+            <a href="repeat-flow.html" class="nav-btn">🔄 Повторяющиеся</a>
+            <a href="calendar-events.html" class="nav-btn">📅 События</a>
+            <a href="calendar-recurring.html" class="nav-btn">🔄 Календарные</a>
+            <a href="week-collector.html" class="nav-btn">📅 План недели</a>
+            <a href="day-planner.html" class="nav-btn">📱 План дня</a>
+            <a href="archive-viewer.html" class="nav-btn">📊 Архив</a>
+        </div>
+
+        <div class="header">
+            <h1>🎯 ПРОЕКТЫ</h1>
+            <p>Иерархическое планирование: этапы → задачи → дни</p>
+        </div>
+
+        <div class="working-version">
+            🔧 WORKING: projects-flow v1.0
+        </div>
+
+        <!-- ГЛАВНАЯ СТРАНИЦА - СПИСОК ПРОЕКТОВ -->
+        <div id="projectsList" class="projects-view">
+            <div class="projects-grid" id="projectsGrid">
+                <div class="project-card new-project-card" onclick="showCreateModal()">
+                    ➕ Новый проект
+                </div>
+            </div>
+        </div>
+
+        <!-- ДЕТАЛИ ПРОЕКТА -->
+        <div id="projectDetails" class="project-details">
+            <button class="back-btn" onclick="showProjectsList()">← Назад к проектам</button>
+            
+            <div class="project-header">
+                <div class="project-header-title" id="detailProjectTitle">Название проекта</div>
+                <div class="project-header-meta">
+                    <div class="project-deadline" id="detailProjectDeadline">до 31 дек 2025</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="detailProgressFill" style="width: 43%"></div>
+                    </div>
+                    <div class="project-progress" id="detailProjectProgress">3/7 этапов</div>
+                </div>
+                <div id="detailProjectDescription" style="color: #4a5568; line-height: 1.5;">
+                    Описание проекта
+                </div>
+                <div class="project-actions" style="margin-top: 15px;">
+                    <button class="btn btn-primary" onclick="editProject()">✏️ Редактировать проект</button>
+                    <button class="btn btn-danger" onclick="deleteProject()">🗑️ Удалить проект</button>
+                </div>
+            </div>
+
+            <div class="stages-section">
+                <div class="section-title">
+                    📋 ЭТАПЫ ПРОЕКТА
+                    <button class="btn btn-success btn-sm" onclick="showAddStageModal()" style="margin-left: auto;">➕ Добавить этап</button>
+                </div>
+                <div id="stagesList">
+                    <!-- Этапы будут загружены динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО - СОЗДАНИЕ ПРОЕКТА -->
+    <div id="createProjectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">➕ Новый проект</span>
+                <span class="close" onclick="closeCreateModal()">&times;</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Название проекта:</label>
+                <input type="text" id="newProjectName" class="form-input" placeholder="Например: Пыльцевая ловушка">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Описание:</label>
+                <textarea id="newProjectDescription" class="form-textarea" placeholder="Краткое описание целей и задач проекта"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Общий дедлайн:</label>
+                <input type="date" id="newProjectDeadline" class="form-input">
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="createProject()" class="btn btn-primary">Создать проект</button>
+                <button onclick="closeCreateModal()" class="btn btn-primary" style="background: #718096;">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО - ДОБАВЛЕНИЕ ЭТАПА -->
+    <div id="addStageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">➕ Новый этап</span>
+                <span class="close" onclick="closeAddStageModal()">&times;</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Название этапа:</label>
+                <input type="text" id="newStageName" class="form-input" placeholder="Например: Создание пробного экземпляра">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Описание:</label>
+                <textarea id="newStageDescription" class="form-textarea" placeholder="Детальное описание этапа"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Дедлайн:</label>
+                <input type="date" id="newStageDeadline" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Квартал:</label>
+                <select id="newStageQuarter" class="form-select">
+                    <option value="">Выберите квартал</option>
+                    <option value="Q1 2025">Q1 2025 (янв-мар)</option>
+                    <option value="Q2 2025">Q2 2025 (апр-июн)</option>
+                    <option value="Q3 2025">Q3 2025 (июл-сен)</option>
+                    <option value="Q4 2025">Q4 2025 (окт-дек)</option>
+                    <option value="Q1 2026">Q1 2026 (янв-мар)</option>
+                    <option value="Q2 2026">Q2 2026 (апр-июн)</option>
+                    <option value="Q3 2026">Q3 2026 (июл-сен)</option>
+                    <option value="Q4 2026">Q4 2026 (окт-дек)</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="addStage()" class="btn btn-primary">Добавить этап</button>
+                <button onclick="closeAddStageModal()" class="btn btn-primary" style="background: #718096;">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО - ДЕТАЛИЗАЦИЯ ЭТАПА -->
+    <div id="detailStageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">🔍 Детализировать этап</span>
+                <span class="close" onclick="closeDetailModal()">&times;</span>
+            </div>
+            
+            <div id="currentStageName" style="font-weight: bold; color: #2d3748; margin-bottom: 20px;"></div>
+
+            <div class="form-group">
+                <label class="form-label">Добавить подзадачу:</label>
+                <input type="text" id="newSubtaskName" class="form-input" placeholder="Например: Заказать материалы">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Тип задачи:</label>
+                <select id="subtaskType" class="form-select">
+                    <option value="flexible">Гибкая (назначается на дни вручную)</option>
+                    <option value="fixed">Жесткий дедлайн (конкретная дата)</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="subtaskDateGroup" style="display: none;">
+                <label class="form-label">Дедлайн:</label>
+                <input type="date" id="subtaskDeadline" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <button onclick="addSubtask()" class="btn btn-success">➕ Добавить подзадачу</button>
+            </div>
+
+            <div id="subtasksList" style="margin-top: 20px;">
+                <!-- Подзадачи будут загружены динамически -->
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="closeDetailModal()" class="btn btn-primary">Готово</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем системы -->
+    <script src="../shared/projects.js"></script>
+    <script src="../shared/archive.js"></script>
+    <script>
+        let projects = [];
+        let currentProject = null;
+        let currentStage = null;
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== ПРОЕКТЫ ЗАГРУЖАЮТСЯ ===');
+            loadProjects();
+            renderProjectsGrid();
+            setDefaultDates();
+        });
+
+        // Загрузка проектов
+        function loadProjects() {
+            try {
+                const stored = localStorage.getItem('projectsFlow');
+                projects = stored ? JSON.parse(stored) : [];
+                console.log('Загружено проектов:', projects.length);
+            } catch (error) {
+                console.error('Ошибка загрузки проектов:', error);
+                projects = [];
+            }
+        }
+
+        // Сохранение проектов
+        function saveProjects() {
+            try {
+                localStorage.setItem('projectsFlow', JSON.stringify(projects));
+                console.log('Проекты сохранены');
+            } catch (error) {
+                console.error('Ошибка сохранения проектов:', error);
+            }
+        }
+
+        // Установка дат по умолчанию
+        function setDefaultDates() {
+            const today = new Date();
+            const futureDate = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000); // +3 месяца
+            
+            document.getElementById('newProjectDeadline').value = futureDate.toISOString().split('T')[0];
+            document.getElementById('newStageDeadline').value = futureDate.toISOString().split('T')[0];
+        }
+
+        // Отрисовка сетки проектов
+        function renderProjectsGrid() {
+            const grid = document.getElementById('projectsGrid');
+            const newProjectCard = grid.querySelector('.new-project-card');
+            
+            // Очищаем кроме кнопки создания
+            grid.innerHTML = '';
+            grid.appendChild(newProjectCard);
+
+            if (projects.length === 0) {
+                return;
+            }
+
+            projects.forEach(project => {
+                const card = createProjectCard(project);
+                grid.appendChild(card);
+            });
+        }
+
+        // Создание карточки проекта
+        function createProjectCard(project) {
+            const card = document.createElement('div');
+            card.className = 'project-card';
+            card.onclick = () => showProjectDetails(project.id);
+
+            const isOverdue = new Date(project.deadline) < new Date();
+            if (isOverdue) {
+                card.classList.add('overdue');
+            }
+
+            const completedStages = project.stages ? project.stages.filter(s => s.completed).length : 0;
+            const totalStages = project.stages ? project.stages.length : 0;
+            const progress = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
+
+            card.innerHTML = `
+                <div class="project-title">${project.name}</div>
+                <div class="project-meta">
+                    <span class="project-deadline ${isOverdue ? 'overdue' : ''}">${formatDate(project.deadline)}</span>
+                    <span class="project-progress">${completedStages}/${totalStages} этапов</span>
+                </div>
+                <div class="project-description">${project.description || 'Без описания'}</div>
+                <div style="text-align: center; color: #6c5ce7; font-weight: bold;">${progress}% завершено</div>
+            `;
+
+            return card;
+        }
+
+        // Форматирование даты
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const today = new Date();
+            
+            if (date < today) {
+                return 'Просрочен';
+            }
+            
+            return date.toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'short',
+                year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+            });
+        }
+
+        // Показать модальное окно создания проекта
+        function showCreateModal() {
+            document.getElementById('createProjectModal').style.display = 'block';
+        }
+
+        // Закрыть модальное окно создания
+        function closeCreateModal() {
+            document.getElementById('createProjectModal').style.display = 'none';
+            clearCreateForm();
+        }
+
+        // Очистить форму создания
+        function clearCreateForm() {
+            document.getElementById('newProjectName').value = '';
+            document.getElementById('newProjectDescription').value = '';
+            setDefaultDates();
+        }
+
+        // Создать проект
+        function createProject() {
+            const name = document.getElementById('newProjectName').value.trim();
+            const description = document.getElementById('newProjectDescription').value.trim();
+            const deadline = document.getElementById('newProjectDeadline').value;
+
+            if (!name) {
+                alert('Введите название проекта!');
+                return;
+            }
+
+            if (!deadline) {
+                alert('Выберите дедлайн проекта!');
+                return;
+            }
+
+            const newProject = {
+                id: Date.now(),
+                name: name,
+                description: description,
+                deadline: deadline,
+                stages: [],
+                createdAt: new Date().toISOString()
+            };
+
+            projects.push(newProject);
+            saveProjects();
+
+            closeCreateModal();
+            renderProjectsGrid();
+            
+            alert('Проект создан!');
+        }
+
+        // Показать детали проекта
+        function showProjectDetails(projectId) {
+            currentProject = projects.find(p => p.id === projectId);
+            if (!currentProject) return;
+
+            document.getElementById('projectsList').style.display = 'none';
+            document.getElementById('projectDetails').classList.add('active');
+
+            renderProjectDetails();
+        }
+
+        // Показать список проектов
+        function showProjectsList() {
+            document.
