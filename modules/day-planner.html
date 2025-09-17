@@ -713,6 +713,30 @@
                     return event.date === today && !event.completed;
                 });
                 console.log('Календарных событий на сегодня:', dayData.calendar.length);
+                
+                // Добавляем повторяющиеся события на сегодня
+                try {
+                    if (typeof window.CalendarRecurring !== 'undefined') {
+                        const recurringToday = window.CalendarRecurring.getEventsForDate(today);
+                        console.log('Повторяющихся событий на сегодня:', recurringToday.length);
+                        
+                        // Добавляем к календарным событиям
+                        dayData.calendar = dayData.calendar.concat(recurringToday);
+                    } else {
+                        console.log('CalendarRecurring не загружен, пробуем напрямую');
+                        
+                        // Фолбэк - загружаем напрямую из localStorage
+                        const recurringEvents = JSON.parse(localStorage.getItem('recurringEvents') || '[]');
+                        const recurringToday = getRecurringEventsForDate(recurringEvents, today);
+                        console.log('Повторяющихся событий на сегодня (фолбэк):', recurringToday.length);
+                        
+                        dayData.calendar = dayData.calendar.concat(recurringToday);
+                    }
+                } catch (recurringError) {
+                    console.error('Ошибка загрузки повторяющихся событий:', recurringError);
+                }
+                
+                console.log('Итого календарных событий (с повторяющимися):', dayData.calendar.length);
             } catch (error) {
                 console.error('Ошибка загрузки календарных событий:', error);
                 dayData.calendar = [];
@@ -736,6 +760,54 @@
             const diffTime = today - task;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             return diffDays;
+        }
+
+        // Фолбэк функция для получения повторяющихся событий на дату
+        function getRecurringEventsForDate(recurringEvents, targetDateStr) {
+            const events = [];
+            const target = new Date(targetDateStr);
+            
+            recurringEvents.forEach(event => {
+                if (!event.active) return;
+                
+                const { recurrence } = event;
+                let matches = false;
+                
+                try {
+                    if (recurrence.type === 'monthly_date') {
+                        matches = target.getDate() === recurrence.date;
+                    } else if (recurrence.type === 'weekly') {
+                        matches = target.getDay() === recurrence.dayOfWeek;
+                    } else if (recurrence.type === 'interval_days') {
+                        const startDate = new Date(recurrence.startDate);
+                        const diffTime = target.getTime() - startDate.getTime();
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        matches = diffDays >= 0 && diffDays % recurrence.interval === 0;
+                    } else if (recurrence.type === 'yearly') {
+                        const recurDate = new Date(recurrence.date);
+                        matches = target.getDate() === recurDate.getDate() && 
+                                 target.getMonth() === recurDate.getMonth();
+                    }
+                    
+                    if (matches) {
+                        events.push({
+                            id: `recurring_${event.id}_${targetDateStr}`,
+                            name: event.name,
+                            date: targetDateStr,
+                            time: recurrence.time || null,
+                            project: event.project,
+                            description: event.description,
+                            source: 'recurring',
+                            originalId: event.id,
+                            recurrence: event.recurrence
+                        });
+                    }
+                } catch (error) {
+                    console.error('Ошибка проверки повторяющегося события:', event.name, error);
+                }
+            });
+            
+            return events;
         }
 
         // Отрисовка информации о дне
@@ -822,17 +894,22 @@
 
             const html = dayData.calendar.map(event => {
                 const timeDisplay = event.time ? ` в ${event.time}` : '';
+                const sourceIcon = event.source === 'recurring' ? '🔄' : '📅';
+                const sourceText = event.source === 'recurring' ? 'Регулярное' : 'Календарь';
                 
                 return `
                     <div class="task-item">
                         <div class="task-title">${event.name}${timeDisplay}</div>
                         <div class="task-meta">
                             ${event.project ? `<span class="task-project">📁 ${event.project}</span>` : ''}
-                            <span class="task-source">📅 Календарь</span>
+                            <span class="task-source">${sourceIcon} ${sourceText}</span>
                         </div>
                         ${event.description ? `<div style="color: #4a5568; font-size: 0.9em; margin-bottom: 10px;">${event.description}</div>` : ''}
                         <div class="task-actions">
-                            <button onclick="completeCalendarEvent(${event.id})" class="btn btn-primary">✅ Готово</button>
+                            ${event.source === 'recurring' ? 
+                                `<button onclick="completeRecurringEvent('${event.id}', ${event.originalId})" class="btn btn-primary">✅ Готово</button>` :
+                                `<button onclick="completeCalendarEvent(${event.id})" class="btn btn-primary">✅ Готово</button>`
+                            }
                         </div>
                     </div>
                 `;
