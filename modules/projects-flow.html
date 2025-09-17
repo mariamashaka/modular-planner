@@ -910,4 +910,527 @@
 
         // Показать список проектов
         function showProjectsList() {
-            document.
+            document.getElementById('projectDetails').classList.remove('active');
+            document.getElementById('projectsList').style.display = 'block';
+            currentProject = null;
+            currentStage = null;
+        }
+
+        // Отрисовка деталей проекта
+        function renderProjectDetails() {
+            if (!currentProject) return;
+
+            document.getElementById('detailProjectTitle').textContent = currentProject.name;
+            document.getElementById('detailProjectDescription').textContent = currentProject.description || 'Без описания';
+            
+            const isOverdue = new Date(currentProject.deadline) < new Date();
+            const deadlineEl = document.getElementById('detailProjectDeadline');
+            deadlineEl.textContent = formatDate(currentProject.deadline);
+            deadlineEl.className = `project-deadline ${isOverdue ? 'overdue' : ''}`;
+
+            const completedStages = currentProject.stages.filter(s => s.completed).length;
+            const totalStages = currentProject.stages.length;
+            const progress = totalStages > 0 ? (completedStages / totalStages) * 100 : 0;
+
+            document.getElementById('detailProgressFill').style.width = progress + '%';
+            document.getElementById('detailProjectProgress').textContent = `${completedStages}/${totalStages} этапов`;
+
+            renderStages();
+        }
+
+        // Отрисовка этапов
+        function renderStages() {
+            const container = document.getElementById('stagesList');
+            
+            if (!currentProject.stages || currentProject.stages.length === 0) {
+                container.innerHTML = '<div class="empty-state">Этапов пока нет. Добавьте первый этап!</div>';
+                return;
+            }
+
+            const html = currentProject.stages.map((stage, index) => {
+                const isOverdue = !stage.completed && new Date(stage.deadline) < new Date();
+                const statusClass = stage.completed ? 'completed' : (isOverdue ? 'overdue' : 'pending');
+                const statusText = stage.completed ? 'Завершен' : (isOverdue ? 'Просрочен' : 'В работе');
+
+                let subtasksHtml = '';
+                if (stage.subtasks && stage.subtasks.length > 0) {
+                    subtasksHtml = `
+                        <div class="subtasks-list">
+                            ${stage.subtasks.map(subtask => `
+                                <div class="subtask-item ${subtask.type}">
+                                    ${subtask.name}
+                                    <span class="subtask-type subtask-${subtask.type}">
+                                        ${subtask.type === 'flexible' ? 'Гибкая' : 'Жесткий дедлайн'}
+                                    </span>
+                                    ${subtask.deadline ? `<br><small>до ${formatDate(subtask.deadline)}</small>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="stage-item ${statusClass}">
+                        <div class="stage-header">
+                            <div class="stage-title">${stage.name}</div>
+                            <div class="stage-status ${statusClass}">${statusText}</div>
+                        </div>
+                        <div class="stage-meta">
+                            <span class="stage-deadline">до ${formatDate(stage.deadline)}</span>
+                            ${stage.quarter ? `<span class="stage-quarter">${stage.quarter}</span>` : ''}
+                        </div>
+                        ${stage.description ? `<div style="color: #4a5568; margin-bottom: 10px;">${stage.description}</div>` : ''}
+                        ${subtasksHtml}
+                        <div class="stage-actions">
+                            ${!stage.completed ? `
+                                <button onclick="completeStage(${index})" class="btn btn-success btn-sm">✅ Завершить</button>
+                                <button onclick="showDetailModal(${index})" class="btn btn-primary btn-sm">🔍 Детализировать</button>
+                            ` : ''}
+                            <button onclick="editStage(${index})" class="btn btn-warning btn-sm">✏️ Редактировать</button>
+                            <button onclick="deleteStage(${index})" class="btn btn-danger btn-sm">🗑️ Удалить</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Показать модальное окно добавления этапа
+        function showAddStageModal() {
+            document.getElementById('addStageModal').style.display = 'block';
+        }
+
+        // Закрыть модальное окно добавления этапа
+        function closeAddStageModal() {
+            document.getElementById('addStageModal').style.display = 'none';
+            clearStageForm();
+        }
+
+        // Очистить форму этапа
+        function clearStageForm() {
+            document.getElementById('newStageName').value = '';
+            document.getElementById('newStageDescription').value = '';
+            document.getElementById('newStageQuarter').value = '';
+            setDefaultDates();
+        }
+
+        // Добавить этап
+        function addStage() {
+            const name = document.getElementById('newStageName').value.trim();
+            const description = document.getElementById('newStageDescription').value.trim();
+            const deadline = document.getElementById('newStageDeadline').value;
+            const quarter = document.getElementById('newStageQuarter').value;
+
+            if (!name) {
+                alert('Введите название этапа!');
+                return;
+            }
+
+            if (!deadline) {
+                alert('Выберите дедлайн этапа!');
+                return;
+            }
+
+            const newStage = {
+                id: Date.now(),
+                name: name,
+                description: description,
+                deadline: deadline,
+                quarter: quarter,
+                completed: false,
+                subtasks: [],
+                createdAt: new Date().toISOString()
+            };
+
+            if (!currentProject.stages) {
+                currentProject.stages = [];
+            }
+
+            currentProject.stages.push(newStage);
+            saveProjects();
+
+            closeAddStageModal();
+            renderProjectDetails();
+            
+            alert('Этап добавлен!');
+        }
+
+        // Завершить этап
+        function completeStage(stageIndex) {
+            if (!confirm('Отметить этап как завершенный?')) return;
+
+            const stage = currentProject.stages[stageIndex];
+            stage.completed = true;
+            stage.completedAt = new Date().toISOString();
+
+            // Архивируем этап
+            try {
+                if (typeof window.ArchiveManager !== 'undefined') {
+                    const archiveData = {
+                        id: stage.id,
+                        text: `${currentProject.name}: ${stage.name}`,
+                        moduleType: 'projects-flow',
+                        projectId: currentProject.name,
+                        date: stage.deadline,
+                        createdAt: stage.completedAt
+                    };
+                    window.ArchiveManager.archive(archiveData);
+                }
+            } catch (error) {
+                console.error('Ошибка архивирования:', error);
+            }
+
+            saveProjects();
+            renderProjectDetails();
+            
+            alert('Этап завершен!');
+        }
+
+        // Удалить этап
+        function deleteStage(stageIndex) {
+            if (!confirm('Удалить этап?')) return;
+
+            currentProject.stages.splice(stageIndex, 1);
+            saveProjects();
+            renderProjectDetails();
+            
+            alert('Этап удален');
+        }
+
+        // Редактировать этап (упрощенная версия)
+        function editStage(stageIndex) {
+            const stage = currentProject.stages[stageIndex];
+            
+            const newName = prompt('Новое название:', stage.name);
+            if (newName === null) return;
+
+            const newDeadline = prompt('Новый дедлайн (YYYY-MM-DD):', stage.deadline);
+            if (newDeadline === null) return;
+
+            if (newName.trim()) {
+                stage.name = newName.trim();
+            }
+            if (newDeadline && /^\d{4}-\d{2}-\d{2}$/.test(newDeadline)) {
+                stage.deadline = newDeadline;
+            }
+
+            saveProjects();
+            renderProjectDetails();
+            
+            alert('Этап обновлен');
+        }
+
+        // Показать модальное окно детализации
+        function showDetailModal(stageIndex) {
+            currentStage = currentProject.stages[stageIndex];
+            document.getElementById('currentStageName').textContent = currentStage.name;
+            document.getElementById('detailStageModal').style.display = 'block';
+            
+            // Обновляем отображение типа задачи
+            updateSubtaskTypeVisibility();
+            renderSubtasks();
+        }
+
+        // Закрыть модальное окно детализации
+        function closeDetailModal() {
+            document.getElementById('detailStageModal').style.display = 'none';
+            currentStage = null;
+            clearSubtaskForm();
+        }
+
+        // Очистить форму подзадачи
+        function clearSubtaskForm() {
+            document.getElementById('newSubtaskName').value = '';
+            document.getElementById('subtaskType').value = 'flexible';
+            document.getElementById('subtaskDeadline').value = '';
+            updateSubtaskTypeVisibility();
+        }
+
+        // Обновить видимость полей в зависимости от типа подзадачи
+        function updateSubtaskTypeVisibility() {
+            const type = document.getElementById('subtaskType').value;
+            const dateGroup = document.getElementById('subtaskDateGroup');
+            
+            if (type === 'fixed') {
+                dateGroup.style.display = 'block';
+            } else {
+                dateGroup.style.display = 'none';
+            }
+        }
+
+        // Добавить подзадачу
+        function addSubtask() {
+            if (!currentStage) return;
+
+            const name = document.getElementById('newSubtaskName').value.trim();
+            const type = document.getElementById('subtaskType').value;
+            const deadline = type === 'fixed' ? document.getElementById('subtaskDeadline').value : null;
+
+            if (!name) {
+                alert('Введите название подзадачи!');
+                return;
+            }
+
+            if (type === 'fixed' && !deadline) {
+                alert('Выберите дедлайн для жесткой задачи!');
+                return;
+            }
+
+            const newSubtask = {
+                id: Date.now(),
+                name: name,
+                type: type,
+                deadline: deadline,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            if (!currentStage.subtasks) {
+                currentStage.subtasks = [];
+            }
+
+            currentStage.subtasks.push(newSubtask);
+            saveProjects();
+
+            clearSubtaskForm();
+            renderSubtasks();
+            renderProjectDetails(); // Обновляем основной вид
+            
+            alert('Подзадача добавлена!');
+        }
+
+        // Отрисовка подзадач в модальном окне
+        function renderSubtasks() {
+            const container = document.getElementById('subtasksList');
+            
+            if (!currentStage || !currentStage.subtasks || currentStage.subtasks.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #718096; padding: 20px;">Подзадач пока нет</div>';
+                return;
+            }
+
+            const html = currentStage.subtasks.map((subtask, index) => `
+                <div class="subtask-item ${subtask.type}">
+                    <strong>${subtask.name}</strong>
+                    <span class="subtask-type subtask-${subtask.type}">
+                        ${subtask.type === 'flexible' ? 'Гибкая' : 'Жесткий дедлайн'}
+                    </span>
+                    ${subtask.deadline ? `<br><small>до ${formatDate(subtask.deadline)}</small>` : ''}
+                    <div style="margin-top: 8px;">
+                        <button onclick="deleteSubtask(${index})" class="btn btn-danger btn-sm">🗑️ Удалить</button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Удалить подзадачу
+        function deleteSubtask(subtaskIndex) {
+            if (!confirm('Удалить подзадачу?')) return;
+
+            currentStage.subtasks.splice(subtaskIndex, 1);
+            saveProjects();
+            renderSubtasks();
+            renderProjectDetails();
+            
+            alert('Подзадача удалена');
+        }
+
+        // Редактировать проект
+        function editProject() {
+            if (!currentProject) return;
+
+            const newName = prompt('Новое название:', currentProject.name);
+            if (newName === null) return;
+
+            const newDeadline = prompt('Новый дедлайн (YYYY-MM-DD):', currentProject.deadline);
+            if (newDeadline === null) return;
+
+            if (newName.trim()) {
+                currentProject.name = newName.trim();
+            }
+            if (newDeadline && /^\d{4}-\d{2}-\d{2}$/.test(newDeadline)) {
+                currentProject.deadline = newDeadline;
+            }
+
+            saveProjects();
+            renderProjectDetails();
+            renderProjectsGrid();
+            
+            alert('Проект обновлен');
+        }
+
+        // Удалить проект
+        function deleteProject() {
+            if (!currentProject) return;
+            if (!confirm(`Удалить проект "${currentProject.name}"?`)) return;
+
+            projects = projects.filter(p => p.id !== currentProject.id);
+            saveProjects();
+            showProjectsList();
+            renderProjectsGrid();
+            
+            alert('Проект удален');
+        }
+
+        // Обработчики для типа подзадачи
+        document.getElementById('subtaskType').addEventListener('change', updateSubtaskTypeVisibility);
+
+        // Закрытие модальных окон по клику вне их
+        window.onclick = function(event) {
+            const modals = ['createProjectModal', 'addStageModal', 'detailStageModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Функции для интеграции с другими модулями
+        window.ProjectsFlow = {
+            // Получить задачи на конкретную дату
+            getTasksForDate: function(targetDate) {
+                const tasks = [];
+                
+                projects.forEach(project => {
+                    if (!project.stages) return;
+                    
+                    project.stages.forEach(stage => {
+                        if (!stage.subtasks) return;
+                        
+                        stage.subtasks.forEach(subtask => {
+                            if (subtask.type === 'fixed' && subtask.deadline === targetDate && !subtask.completed) {
+                                tasks.push({
+                                    id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                                    name: subtask.name,
+                                    project: project.name,
+                                    stage: stage.name,
+                                    deadline: subtask.deadline,
+                                    type: 'fixed',
+                                    source: 'projects',
+                                    projectId: project.id,
+                                    stageId: stage.id,
+                                    subtaskId: subtask.id
+                                });
+                            }
+                        });
+                    });
+                });
+                
+                return tasks;
+            },
+
+            // Получить просроченные задачи
+            getOverdueTasks: function() {
+                const today = new Date().toISOString().split('T')[0];
+                const tasks = [];
+                
+                projects.forEach(project => {
+                    if (!project.stages) return;
+                    
+                    project.stages.forEach(stage => {
+                        if (!stage.subtasks) return;
+                        
+                        stage.subtasks.forEach(subtask => {
+                            if (subtask.type === 'fixed' && subtask.deadline < today && !subtask.completed) {
+                                const overdueDays = Math.ceil((new Date() - new Date(subtask.deadline)) / (1000 * 60 * 60 * 24));
+                                
+                                tasks.push({
+                                    id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                                    name: subtask.name,
+                                    project: project.name,
+                                    stage: stage.name,
+                                    deadline: subtask.deadline,
+                                    overdueDays: overdueDays,
+                                    type: 'fixed',
+                                    source: 'projects',
+                                    projectId: project.id,
+                                    stageId: stage.id,
+                                    subtaskId: subtask.id
+                                });
+                            }
+                        });
+                    });
+                });
+                
+                return tasks;
+            },
+
+            // Получить гибкие задачи для назначения
+            getFlexibleTasks: function() {
+                const tasks = [];
+                
+                projects.forEach(project => {
+                    if (!project.stages) return;
+                    
+                    project.stages.forEach(stage => {
+                        if (!stage.subtasks) return;
+                        
+                        stage.subtasks.forEach(subtask => {
+                            if (subtask.type === 'flexible' && !subtask.completed) {
+                                tasks.push({
+                                    id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                                    name: subtask.name,
+                                    project: project.name,
+                                    stage: stage.name,
+                                    type: 'flexible',
+                                    source: 'projects',
+                                    projectId: project.id,
+                                    stageId: stage.id,
+                                    subtaskId: subtask.id
+                                });
+                            }
+                        });
+                    });
+                });
+                
+                return tasks;
+            },
+
+            // Отметить задачу как выполненную
+            completeTask: function(taskId) {
+                const parts = taskId.split('_');
+                if (parts.length < 4) return false;
+                
+                const projectId = parseInt(parts[1]);
+                const stageId = parseInt(parts[2]);
+                const subtaskId = parseInt(parts[3]);
+                
+                const project = projects.find(p => p.id === projectId);
+                if (!project || !project.stages) return false;
+                
+                const stage = project.stages.find(s => s.id === stageId);
+                if (!stage || !stage.subtasks) return false;
+                
+                const subtask = stage.subtasks.find(st => st.id === subtaskId);
+                if (!subtask) return false;
+                
+                subtask.completed = true;
+                subtask.completedAt = new Date().toISOString();
+                
+                // Архивируем
+                try {
+                    if (typeof window.ArchiveManager !== 'undefined') {
+                        const archiveData = {
+                            id: subtask.id,
+                            text: `${project.name}: ${subtask.name}`,
+                            moduleType: 'projects-flow',
+                            projectId: project.name,
+                            date: subtask.deadline || null,
+                            createdAt: subtask.completedAt
+                        };
+                        window.ArchiveManager.archive(archiveData);
+                    }
+                } catch (error) {
+                    console.error('Ошибка архивирования:', error);
+                }
+                
+                saveProjects();
+                return true;
+            }
+        };
+    </script>
+</body>
+</html>
