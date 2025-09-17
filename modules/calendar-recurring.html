@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Календарные повторяющиеся</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .navigation {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover {
+            background: #5f4fcf;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .working-version {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #edf2f7;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .section-count {
+            background: #38a169;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #38a169;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #38a169;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #38a169;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2f855a;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .btn-secondary {
+            background: #6c5ce7;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5f4fcf;
+        }
+
+        .recurring-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #38a169;
+            transition: all 0.3s ease;
+        }
+
+        .recurring-item:hover {
+            background: #f0fff4;
+            border-left-color: #2f855a;
+        }
+
+        .recurring-item.paused {
+            border-left-color: #ed8936;
+            background: #fffaf0;
+        }
+
+        .recurring-title {
+            font-size: 1.1em;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .recurring-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .recurring-schedule {
+            background: #e6fffa;
+            color: #38a169;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .recurring-next {
+            background: #fef5e7;
+            color: #dd6b20;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .recurring-project {
+            background: #e0e6ff;
+            color: #6c5ce7;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .recurring-status {
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .recurring-status.paused {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .recurring-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .stats {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #4a5568;
+            font-size: 0.9em;
+        }
+
+        .recurrence-preview {
+            background: #f0fff4;
+            border: 1px solid #9ae6b4;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .preview-title {
+            font-weight: bold;
+            color: #38a169;
+            margin-bottom: 10px;
+        }
+
+        .preview-dates {
+            color: #2d3748;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navigation">
+            <a href="urgent-flow.html" class="nav-btn">⚡ Срочные</a>
+            <a href="repeat-flow.html" class="nav-btn">🔄 Повторяющиеся</a>
+            <a href="calendar-events.html" class="nav-btn">📅 События</a>
+            <a href="week-collector.html" class="nav-btn">📅 План недели</a>
+            <a href="day-planner.html" class="nav-btn">📱 План дня</a>
+            <a href="archive-viewer.html" class="nav-btn">📊 Архив</a>
+        </div>
+
+        <div class="header">
+            <h1>🔄 КАЛЕНДАРНЫЕ ПОВТОРЯЮЩИЕСЯ</h1>
+            <p>Регулярные события привязанные к датам</p>
+        </div>
+
+        <div class="working-version">
+            🔧 WORKING: calendar-recurring v1.0
+        </div>
+
+        <!-- Статистика -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalRecurring">0</div>
+                    <div class="stat-label">Всего правил</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="activeRecurring">0</div>
+                    <div class="stat-label">Активных</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="upcomingWeek">0</div>
+                    <div class="stat-label">На неделю</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="upcomingMonth">0</div>
+                    <div class="stat-label">На месяц</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Добавление нового повторяющегося события -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">➕ СОЗДАТЬ ПРАВИЛО ПОВТОРЕНИЯ</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Название события:</label>
+                <input type="text" id="eventName" class="form-input" placeholder="Например: Заказ лекарств в аптеку">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Тип повторения:</label>
+                <select id="recurrenceType" class="form-select" onchange="updateRecurrenceOptions()">
+                    <option value="">Выберите тип</option>
+                    <option value="monthly_date">Каждого Х числа месяца</option>
+                    <option value="weekly">Каждую неделю в определенный день</option>
+                    <option value="interval_days">Каждые Х дней</option>
+                    <option value="quarterly">Каждый квартал</option>
+                    <option value="yearly">Каждый год</option>
+                </select>
+            </div>
+
+            <!-- Опции для разных типов повторения -->
+            <div id="monthlyOptions" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Число месяца:</label>
+                        <select id="monthlyDate" class="form-select">
+                            <option value="">Выберите число</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Время (опционально):</label>
+                        <input type="time" id="monthlyTime" class="form-input">
+                    </div>
+                </div>
+            </div>
+
+            <div id="weeklyOptions" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">День недели:</label>
+                        <select id="weeklyDay" class="form-select">
+                            <option value="">Выберите день</option>
+                            <option value="1">Понедельник</option>
+                            <option value="2">Вторник</option>
+                            <option value="3">Среда</option>
+                            <option value="4">Четверг</option>
+                            <option value="5">Пятница</option>
+                            <option value="6">Суббота</option>
+                            <option value="0">Воскресенье</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Время (опционально):</label>
+                        <input type="time" id="weeklyTime" class="form-input">
+                    </div>
+                </div>
+            </div>
+
+            <div id="intervalOptions" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Каждые (дней):</label>
+                        <input type="number" id="intervalDays" class="form-input" min="1" max="365" placeholder="7">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Начать с:</label>
+                        <input type="date" id="intervalStart" class="form-input">
+                    </div>
+                </div>
+            </div>
+
+            <div id="quarterlyOptions" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Число квартала:</label>
+                        <select id="quarterlyDate" class="form-select">
+                            <option value="">Выберите число</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Начать с квартала:</label>
+                        <select id="quarterlyStart" class="form-select">
+                            <option value="1">Q1 (янв-мар)</option>
+                            <option value="2">Q2 (апр-июн)</option>
+                            <option value="3">Q3 (июл-сен)</option>
+                            <option value="4">Q4 (окт-дек)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="yearlyOptions" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Дата:</label>
+                        <input type="date" id="yearlyDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Время (опционально):</label>
+                        <input type="time" id="yearlyTime" class="form-input">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Проект:</label>
+                <select id="eventProject" class="form-select">
+                    <option value="">Без проекта</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Описание (опционально):</label>
+                <input type="text" id="eventDescription" class="form-input" placeholder="Дополнительная информация">
+            </div>
+
+            <!-- Превью следующих дат -->
+            <div id="recurrencePreview" style="display: none;">
+                <div class="recurrence-preview">
+                    <div class="preview-title">📅 Следующие даты события:</div>
+                    <div class="preview-dates" id="previewDates"></div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center; margin-top: 20px;">
+                <button onclick="previewRecurrence()" class="btn btn-secondary">👀 Предпросмотр дат</button>
+                <button onclick="addRecurringEvent()" class="btn btn-primary">🔄 Создать правило</button>
+            </div>
+        </div>
+
+        <!-- Список повторяющихся событий -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">📋 ПРАВИЛА ПОВТОРЕНИЯ</div>
+                <div class="section-count" id="recurringCount">0</div>
+            </div>
+            <div id="recurringList">
+                <div class="empty-state">Повторяющихся событий пока нет</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем системы -->
+    <script src="../shared/projects.js"></script>
+    <script src="../shared/archive.js"></script>
+    <script>
+        let recurringEvents = [];
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== КАЛЕНДАРНЫЕ ПОВТОРЯЮЩИЕСЯ ЗАГРУЖАЮТСЯ ===');
+            loadRecurringEvents();
+            loadProjects();
+            populateDateSelects();
+            renderRecurringEvents();
+            updateStats();
+        });
+
+        // Загрузка повторяющихся событий
+        function loadRecurringEvents() {
+            try {
+                const stored = localStorage.getItem('recurringEvents');
+                recurringEvents = stored ? JSON.parse(stored) : [];
+                console.log('Загружено правил:', recurringEvents.length);
+            } catch (error) {
+                console.error('Ошибка загрузки повторяющихся событий:', error);
+                recurringEvents = [];
+            }
+        }
+
+        // Сохранение повторяющихся событий
+        function saveRecurringEvents() {
+            try {
+                localStorage.setItem('recurringEvents', JSON.stringify(recurringEvents));
+                console.log('Правила повторения сохранены');
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+            }
+        }
+
+        // Загрузка проектов
+        function loadProjects() {
+            try {
+                if (typeof window.ProjectsManager !== 'undefined') {
+                    window.ProjectsManager.init();
+                    const projects = window.ProjectsManager.getActive();
+                    console.log('Загружены проекты:', projects);
+                    
+                    const eventSelect = document.getElementById('eventProject');
+                    eventSelect.innerHTML = '<option value="">Без проекта</option>';
+                    projects.forEach(project => {
+                        const option = document.createElement('option');
+                        option.value = project.name;
+                        option.textContent = project.name;
+                        eventSelect.appendChild(option);
+                    });
+                } else {
+                    console.error('ProjectsManager не найден');
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки проектов:', error);
+            }
+        }
+
+        // Заполнение селектов с числами
+        function populateDateSelects() {
+            const monthlySelect = document.getElementById('monthlyDate');
+            const quarterlySelect = document.getElementById('quarterlyDate');
+            
+            // Числа месяца
+            for (let i = 1; i <= 31; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i + ' число';
+                monthlySelect.appendChild(option);
+            }
+            
+            // Числа квартала
+            for (let i = 1; i <= 31; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i + ' число';
+                quarterlySelect.appendChild(option);
+            }
+        }
+
+        // Обновление опций повторения
+        function updateRecurrenceOptions() {
+            const type = document.getElementById('recurrenceType').value;
+            
+            // Скрываем все опции
+            document.getElementById('monthlyOptions').style.display = 'none';
+            document.getElementById('weeklyOptions').style.display = 'none';
+            document.getElementById('intervalOptions').style.display = 'none';
+            document.getElementById('quarterlyOptions').style.display = 'none';
+            document.getElementById('yearlyOptions').style.display = 'none';
+            document.getElementById('recurrencePreview').style.display = 'none';
+            
+            // Показываем нужные опции
+            if (type === 'monthly_date') {
+                document.getElementById('monthlyOptions').style.display = 'block';
+            } else if (type === 'weekly') {
+                document.getElementById('weeklyOptions').style.display = 'block';
+            } else if (type === 'interval_days') {
+                document.getElementById('intervalOptions').style.display = 'block';
+                document.getElementById('intervalStart').value = new Date().toISOString().split('T')[0];
+            } else if (type === 'quarterly') {
+                document.getElementById('quarterlyOptions').style.display = 'block';
+            } else if (type === 'yearly') {
+                document.getElementById('yearlyOptions').style.display = 'block';
+                document.getElementById('yearlyDate').value = new Date().toISOString().split('T')[0];
+            }
+        }
+
+        // Предпросмотр дат
+        function previewRecurrence() {
+            const type = document.getElementById('recurrenceType').value;
+            if (!type) {
+                alert('Выберите тип повторения!');
+                return;
+            }
+
+            const nextDates = generateNextDates(type, 10); // Следующие 10 дат
+            if (nextDates.length > 0) {
+                document.getElementById('previewDates').innerHTML = nextDates
+                    .map(date => formatDate(date))
+                    .join('<br>');
+                document.getElementById('recurrencePreview').style.display = 'block';
+            } else {
+                alert('Не удалось сгенерировать даты. Проверьте настройки.');
+            }
+        }
+
+        // Генерация следующих дат
+        function generateNextDates(type, count = 10) {
+            const dates = [];
+            const today = new Date();
+            
+            try {
+                if (type === 'monthly_date') {
+                    const date = parseInt(document.getElementById('monthlyDate').value);
+                    if (!date) return [];
+                    
+                    for (let i = 0; i < count; i++) {
+                        const nextDate = new Date(today.getFullYear(), today.getMonth() + i, date);
+                        if (nextDate >= today) {
+                            dates.push(nextDate);
+                        }
+                    }
+                } else if (type === 'weekly') {
+                    const dayOfWeek = parseInt(document.getElementById('weeklyDay').value);
+                    if (isNaN(dayOfWeek)) return [];
+                    
+                    let current = new Date(today);
+                    while (dates.length < count) {
+                        if (current.getDay() === dayOfWeek && current >= today) {
+                            dates.push(new Date(current));
+                        }
+                        current.setDate(current.getDate() + 1);
+                        
+                        // Защита от бесконечного цикла
+                        if (current.getTime() - today.getTime() > 365 * 24 * 60 * 60 * 1000) break;
+                    }
+                } else if (type === 'interval_days') {
+                    const interval = parseInt(document.getElementById('intervalDays').value);
+                    const startDate = new Date(document.getElementById('intervalStart').value);
+                    if (!interval || !startDate) return [];
+                    
+                    let current = new Date(startDate);
+                    while (dates.length < count) {
+                        if (current >= today) {
+                            dates.push(new Date(current));
+                        }
+                        current.setDate(current.getDate() + interval);
+                    }
+                } else if (type === 'yearly') {
+                    const yearlyDate = new Date(document.getElementById('yearlyDate').value);
+                    if (!yearlyDate) return [];
+                    
+                    for (let i = 0; i < count; i++) {
+                        const nextDate = new Date(today.getFullYear() + i, yearlyDate.getMonth(), yearlyDate.getDate());
+                        if (nextDate >= today) {
+                            dates.push(nextDate);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка генерации дат:', error);
+            }
+            
+            return dates.slice(0, count);
+        }
+
+        // Добавление повторяющегося события
+        function addRecurringEvent() {
+            const name = document.getElementById('eventName').value.trim();
+            const type = document.getElementById('recurrenceType').value;
+            const project = document.getElementById('eventProject').value;
+            const description = document.getElementById('eventDescription').value.trim();
+
+            if (!name) {
+                alert('Введите название события!');
+                return;
+            }
+
+            if (!type) {
+                alert('Выберите тип повторения!');
+                return;
+            }
+
+            // Собираем параметры в зависимости от типа
+            let recurrenceConfig = { type };
+            
+            if (type === 'monthly_date') {
+                const date = document.getElementById('monthlyDate').value;
+                const time = document.getElementById('monthlyTime').value;
+                if (!date) {
+                    alert('Выберите число месяца!');
+                    return;
+                }
+                recurrenceConfig.date = parseInt(date);
+                recurrenceConfig.time = time || null;
+            } else if (type === 'weekly') {
+                const day = document.getElementById('weeklyDay').value;
+                const time = document.getElementById('weeklyTime').value;
+                if (!day) {
+                    alert('Выберите день недели!');
+                    return;
+                }
+                recurrenceConfig.dayOfWeek = parseInt(day);
+                recurrenceConfig.time = time || null;
+            } else if (type === 'interval_days') {
+                const interval = document.getElementById('intervalDays').value;
+                const start = document.getElementById('intervalStart').value;
+                if (!interval || !start) {
+                    alert('Заполните интервал и дату начала!');
+                    return;
+                }
+                recurrenceConfig.interval = parseInt(interval);
+                recurrenceConfig.startDate = start;
+            } else if (type === 'yearly') {
+                const date = document.getElementById('yearlyDate').value;
+                const time = document.getElementById('yearlyTime').value;
+                if (!date) {
+                    alert('Выберите дату!');
+                    return;
+                }
+                recurrenceConfig.date = date;
+                recurrenceConfig.time = time || null;
+            }
+
+            const newRecurring = {
+                id: Date.now(),
+                name: name,
+                recurrence: recurrenceConfig,
+                project: project || null,
+                description: description || null,
+                active: true,
+                createdAt: new Date().toISOString()
+            };
+
+            recurringEvents.push(newRecurring);
+            saveRecurringEvents();
+
+            // Очищаем форму
+            clearForm();
+
+            renderRecurringEvents();
+            updateStats();
+            
+            alert('Правило повторения создано!');
+        }
+
+        // Очистка формы
+        function clearForm() {
+            document.getElementById('eventName').value = '';
+            document.getElementById('recurrenceType').value = '';
+            document.getElementById('eventProject').value = '';
+            document.getElementById('eventDescription').value = '';
+            updateRecurrenceOptions();
+        }
+
+        // Отрисовка повторяющихся событий
+        function renderRecurringEvents() {
+            const container = document.getElementById('recurringList');
+            
+            if (recurringEvents.length === 0) {
+                container.innerHTML = '<div class="empty-state">Повторяющихся событий пока нет</div>';
+                document.getElementById('recurringCount').textContent = '0';
+                return;
+            }
+
+            const html = recurringEvents.map(event => {
+                const scheduleText = getScheduleText(event.recurrence);
+                const nextDate = getNextOccurrence(event);
+                const nextDateText = nextDate ? formatDate(nextDate) : 'Не определено';
+
+                return `
+                    <div class="recurring-item ${event.active ? '' : 'paused'}">
+                        <div class="recurring-title">${event.name}</div>
+                        <div class="recurring-meta">
+                            <span class="recurring-schedule">${scheduleText}</span>
+                            <span class="recurring-next">Следующий: ${nextDateText}</span>
+                            ${event.project ? `<span class="recurring-project">📁 ${event.project}</span>` : ''}
+                            <span class="recurring-status ${event.active ? '' : 'paused'}">${event.active ? 'Активно' : 'Приостановлено'}</span>
+                        </div>
+                        ${event.description ? `<div style="color: #4a5568; font-size: 0.9em; margin-bottom: 10px;">${event.description}</div>` : ''}
+                        <div class="recurring-actions">
+                            ${event.active ? 
+                                `<button onclick="pauseRecurring(${event.id})" class="btn btn-secondary">⏸️ Приостановить</button>` :
+                                `<button onclick="resumeRecurring(${event.id})" class="btn btn-success">▶️ Возобновить</button>`
+                            }
+                            <button onclick="editRecurring(${event.id})" class="btn btn-secondary">✏️ Редактировать</button>
+                            <button onclick="deleteRecurring(${event.id})" class="btn btn-danger">🗑️ Удалить</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+            document.getElementById('recurringCount').textContent = recurringEvents.length;
+        }
+
+        // Получение текста расписания
+        function getScheduleText(recurrence) {
+            const { type } = recurrence;
+            
+            if (type === 'monthly_date') {
+                const timeText = recurrence.time ? ` в ${recurrence.time}` : '';
+                return `${recurrence.date} числа каждого месяца${timeText}`;
+            } else if (type === 'weekly') {
+                const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+                const timeText = recurrence.time ? ` в ${recurrence.time}` : '';
+                return `Каждый ${days[recurrence.dayOfWeek]}${timeText}`;
+            } else if (type === 'interval_days') {
+                return `Каждые ${recurrence.interval} дней`;
+            } else if (type === 'quarterly') {
+                return `${recurrence.date} числа каждого квартала`;
+            } else if (type === 'yearly') {
+                const date = new Date(recurrence.date);
+                const timeText = recurrence.time ? ` в ${recurrence.time}` : '';
+                return `${date.getDate()} ${date.toLocaleDateString('ru-RU', { month: 'long' })} каждый год${timeText}`;
+            }
+            
+            return 'Неопределенное расписание';
+        }
+
+        // Получение следующего события
+        function getNextOccurrence(event) {
+            const { recurrence } = event;
+            const today = new Date();
+            
+            try {
+                if (recurrence.type === 'monthly_date') {
+                    // Следующее число этого или следующего месяца
+                    let nextDate = new Date(today.getFullYear(), today.getMonth(), recurrence.date);
+                    if (nextDate <= today) {
+                        nextDate = new Date(today.getFullYear(), today.getMonth() + 1, recurrence.date);
+                    }
+                    return nextDate;
+                } else if (recurrence.type === 'weekly') {
+                    // Следующий день недели
+                    let current = new Date(today);
+                    current.setDate(current.getDate() + 1); // Начинаем с завтра
+                    
+                    for (let i = 0; i < 7; i++) {
+                        if (current.getDay() === recurrence.dayOfWeek) {
+                            return current;
+                        }
+                        current.setDate(current.getDate() + 1);
+                    }
+                } else if (recurrence.type === 'interval_days') {
+                    // Следующая дата по интервалу
+                    const startDate = new Date(recurrence.startDate);
+                    let current = new Date(startDate);
+                    
+                    while (current <= today) {
+                        current.setDate(current.getDate() + recurrence.interval);
+                    }
+                    return current;
+                } else if (recurrence.type === 'yearly') {
+                    // Следующий год этой же даты
+                    const date = new Date(recurrence.date);
+                    let nextDate = new Date(today.getFullYear(), date.getMonth(), date.getDate());
+                    if (nextDate <= today) {
+                        nextDate = new Date(today.getFullYear() + 1, date.getMonth(), date.getDate());
+                    }
+                    return nextDate;
+                }
+            } catch (error) {
+                console.error('Ошибка расчета следующего события:', error);
+            }
+            
+            return null;
+        }
+
+        // Форматирование даты
+        function formatDate(date) {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const dateStr = date.toISOString().split('T')[0];
+            const todayStr = today.toISOString().split('T')[0];
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+            
+            if (dateStr === todayStr) {
+                return 'Сегодня';
+            } else if (dateStr === tomorrowStr) {
+                return 'Завтра';
+            } else {
+                return date.toLocaleDateString('ru-RU', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+                });
+            }
+        }
+
+        // Приостановка правила
+        function pauseRecurring(eventId) {
+            const event = recurringEvents.find(e => e.id === eventId);
+            if (event) {
+                event.active = false;
+                saveRecurringEvents();
+                renderRecurringEvents();
+                updateStats();
+                alert('Правило приостановлено');
+            }
+        }
+
+        // Возобновление правила
+        function resumeRecurring(eventId) {
+            const event = recurringEvents.find(e => e.id === eventId);
+            if (event) {
+                event.active = true;
+                saveRecurringEvents();
+                renderRecurringEvents();
+                updateStats();
+                alert('Правило возобновлено');
+            }
+        }
+
+        // Удаление правила
+        function deleteRecurring(eventId) {
+            if (!confirm('Удалить правило повторения?')) return;
+
+            recurringEvents = recurringEvents.filter(e => e.id !== eventId);
+            saveRecurringEvents();
+            renderRecurringEvents();
+            updateStats();
+            
+            alert('Правило удалено');
+        }
+
+        // Редактирование правила (упрощенная версия)
+        function editRecurring(eventId) {
+            const event = recurringEvents.find(e => e.id === eventId);
+            if (!event) return;
+
+            const newName = prompt('Новое название:', event.name);
+            if (newName === null) return;
+
+            if (newName.trim()) {
+                event.name = newName.trim();
+                saveRecurringEvents();
+                renderRecurringEvents();
+                alert('Правило обновлено');
+            }
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            const total = recurringEvents.length;
+            const active = recurringEvents.filter(e => e.active).length;
+            
+            // Подсчет событий на неделю и месяц
+            let upcomingWeek = 0;
+            let upcomingMonth = 0;
+            
+            const today = new Date();
+            const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+            const monthFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+            
+            recurringEvents.forEach(event => {
+                if (!event.active) return;
+                
+                const nextOccurrence = getNextOccurrence(event);
+                if (nextOccurrence) {
+                    if (nextOccurrence <= weekFromNow) {
+                        upcomingWeek++;
+                    }
+                    if (nextOccurrence <= monthFromNow) {
+                        upcomingMonth++;
+                    }
+                }
+            });
+
+            document.getElementById('totalRecurring').textContent = total;
+            document.getElementById('activeRecurring').textContent = active;
+            document.getElementById('upcomingWeek').textContent = upcomingWeek;
+            document.getElementById('upcomingMonth').textContent = upcomingMonth;
+        }
+
+        // Функция для получения событий на конкретную дату (для интеграции с календарем)
+        function getEventsForDate(targetDate) {
+            const events = [];
+            const target = new Date(targetDate);
+            
+            recurringEvents.forEach(event => {
+                if (!event.active) return;
+                
+                const { recurrence } = event;
+                let matches = false;
+                
+                if (recurrence.type === 'monthly_date') {
+                    matches = target.getDate() === recurrence.date;
+                } else if (recurrence.type === 'weekly') {
+                    matches = target.getDay() === recurrence.dayOfWeek;
+                } else if (recurrence.type === 'interval_days') {
+                    const startDate = new Date(recurrence.startDate);
+                    const diffTime = target.getTime() - startDate.getTime();
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    matches = diffDays >= 0 && diffDays % recurrence.interval === 0;
+                } else if (recurrence.type === 'yearly') {
+                    const recurDate = new Date(recurrence.date);
+                    matches = target.getDate() === recurDate.getDate() && 
+                             target.getMonth() === recurDate.getMonth();
+                }
+                
+                if (matches) {
+                    events.push({
+                        ...event,
+                        date: targetDate,
+                        time: recurrence.time || null,
+                        source: 'recurring'
+                    });
+                }
+            });
+            
+            return events;
+        }
+
+        // Экспорт функции для других модулей
+        window.CalendarRecurring = {
+            getEventsForDate: getEventsForDate,
+            getAll: () => recurringEvents,
+            getActive: () => recurringEvents.filter(e => e.active)
+        };
+    </script>
+</body>
+</html>
