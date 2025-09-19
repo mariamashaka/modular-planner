@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -454,10 +454,23 @@
 <body>
     <div class="container">
         <div class="navigation">
-            <a href="../modules/urgent-flow.html" class="nav-btn">⚡ Срочные</a>
-            <a href="../modules/repeat-flow.html" class="nav-btn">🔄 Повторяющиеся</a>
-            <a href="../modules/week-collector.html" class="nav-btn">📅 План недели</a>
-            <a href="../modules/archive-viewer.html" class="nav-btn">📊 Архив</a>
+            <!-- СОЗДАНИЕ ЗАДАЧ -->
+            <div style="margin-bottom: 10px; color: white; font-weight: bold; text-align: center;">СОЗДАНИЕ ЗАДАЧ:</div>
+            <a href="urgent-flow.html" class="nav-btn">⚡ Срочные</a>
+            <a href="repeat-flow.html" class="nav-btn">🔄 Повторы</a>
+            <a href="calendar-events.html" class="nav-btn">📅 События</a>
+            <a href="calendar-recurring.html" class="nav-btn">🔄 Календарные</a>
+            <a href="projects-flow.html" class="nav-btn">🎯 Проекты</a>
+            
+            <!-- КОЛЛЕКТОРЫ -->
+            <div style="margin: 15px 0 5px 0; color: white; font-weight: bold; text-align: center;">КОЛЛЕКТОРЫ:</div>
+            <a href="week-collector.html" class="nav-btn">📅 Неделя</a>
+            <a href="archive-viewer.html" class="nav-btn">📊 Архив</a>
+            
+            <!-- НАСТРОЙКИ -->
+            <div style="margin: 15px 0 5px 0; color: white; font-weight: bold; text-align: center;">НАСТРОЙКИ:</div>
+            <a href="category-manager.html" class="nav-btn">📂 Категории</a>
+            <a href="../shared/tags.js" class="nav-btn">🏷️ Теги</a>
         </div>
 
         <div class="header">
@@ -742,14 +755,47 @@
                 dayData.calendar = [];
             }
 
-            // Пока заглушки
-            dayData.projects = [];
-            
+            // Проектные задачи на сегодня
+            try {
+                if (typeof window.ProjectsFlow !== 'undefined') {
+                    // Жесткие задачи с дедлайном на сегодня
+                    const projectTasksToday = window.ProjectsFlow.getTasksForDate(today);
+                    
+                    // Просроченные проектные задачи
+                    const overdueProjectTasks = window.ProjectsFlow.getOverdueTasks();
+                    
+                    dayData.projects = projectTasksToday;
+                    
+                    // Добавляем просроченные проектные к общим просроченным
+                    dayData.overdue = dayData.overdue.concat(overdueProjectTasks);
+                    
+                    console.log('Проектных задач на сегодня:', projectTasksToday.length);
+                    console.log('Просроченных проектных задач:', overdueProjectTasks.length);
+                } else {
+                    console.log('ProjectsFlow не загружен, загружаем напрямую');
+                    
+                    // Фолбэк - загружаем напрямую из localStorage
+                    const projectsFlow = JSON.parse(localStorage.getItem('projectsFlow') || '[]');
+                    const { todayTasks, overdueTasks } = getProjectTasksForDay(projectsFlow, today);
+                    
+                    dayData.projects = todayTasks;
+                    dayData.overdue = dayData.overdue.concat(overdueTasks);
+                    
+                    console.log('Проектных задач на сегодня (фолбэк):', todayTasks.length);
+                    console.log('Просроченных проектных задач (фолбэк):', overdueTasks.length);
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки проектных задач:', error);
+                dayData.projects = [];
+            }
+
             // Итоговая диагностика
             console.log('=== ИТОГО ЗАГРУЖЕНО ===');
             console.log('Urgent:', dayData.urgent.length);
             console.log('Overdue:', dayData.overdue.length);
             console.log('Repeat:', dayData.repeat.length);
+            console.log('Calendar:', dayData.calendar.length);
+            console.log('Projects:', dayData.projects.length);
             console.log('Quick:', dayData.quick.length);
         }
 
@@ -760,6 +806,51 @@
             const diffTime = today - task;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             return diffDays;
+        }
+
+        // Фолбэк функция для получения проектных задач на дату
+        function getProjectTasksForDay(projectsData, targetDateStr) {
+            const todayTasks = [];
+            const overdueTasks = [];
+            const today = new Date(targetDateStr);
+            
+            projectsData.forEach(project => {
+                if (!project.stages) return;
+                
+                project.stages.forEach(stage => {
+                    if (!stage.subtasks) return;
+                    
+                    stage.subtasks.forEach(subtask => {
+                        if (subtask.completed) return;
+                        
+                        if (subtask.type === 'fixed' && subtask.deadline) {
+                            if (subtask.deadline === targetDateStr) {
+                                todayTasks.push({
+                                    id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                                    name: subtask.name,
+                                    project: project.name,
+                                    stage: stage.name,
+                                    deadline: subtask.deadline,
+                                    source: 'projects'
+                                });
+                            } else if (subtask.deadline < targetDateStr) {
+                                const overdueDays = Math.ceil((today - new Date(subtask.deadline)) / (1000 * 60 * 60 * 24));
+                                overdueTasks.push({
+                                    id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                                    name: subtask.name,
+                                    project: project.name,
+                                    stage: stage.name,
+                                    deadline: subtask.deadline,
+                                    overdueDays: overdueDays,
+                                    source: 'projects'
+                                });
+                            }
+                        }
+                    });
+                });
+            });
+            
+            return { todayTasks, overdueTasks };
         }
 
         // Фолбэк функция для получения повторяющихся событий на дату
