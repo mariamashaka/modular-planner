@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -258,9 +258,9 @@
 <body>
     <div class="container">
         <div class="navigation">
-            <a href="../modules/urgent-flow.html" class="nav-btn">⚡ Срочные</a>
-            <a href="../modules/project-manager.html" class="nav-btn">📋 Проекты</a>
-            <a href="../modules/archive-viewer.html" class="nav-btn">📊 Архив</a>
+            <a href="urgent-flow.html" class="nav-btn">⚡ Срочные</a>
+            <a href="category-manager.html" class="nav-btn">📂 Категории</a>
+            <a href="archive-viewer.html" class="nav-btn">📊 Архив</a>
         </div>
 
         <div class="header">
@@ -284,9 +284,9 @@
                 <input type="text" id="poolName" class="form-input" placeholder="Английский">
             </div>
             <div class="form-group">
-                <label class="form-label">Проект:</label>
+                <label class="form-label">Категория:</label>
                 <select id="poolProject" class="form-select">
-                    <option value="">Без проекта</option>
+                    <option value="">Без категории</option>
                 </select>
             </div>
             <button onclick="addPool()" class="btn btn-complete">Создать пул</button>
@@ -312,102 +312,68 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('=== REPEAT FLOW ЗАГРУЖАЕТСЯ ===');
             
-            // АВТОСБРОС В ПОНЕДЕЛЬНИК - проверяем сразу при загрузке
-            checkMondayReset();
-            
             // Проверяем архивные функции
-            console.log('🗄️ Проверяем ArchiveManager...');
+            console.log('Проверяем ArchiveManager...');
             if (typeof window.ArchiveManager !== 'undefined') {
-                console.log('✅ ArchiveManager найден');
-                console.log('📦 Доступные методы:', Object.keys(window.ArchiveManager));
+                console.log('ArchiveManager найден');
             } else {
-                console.error('❌ ArchiveManager НЕ найден!');
+                console.error('ArchiveManager НЕ найден!');
             }
             
-            loadProjects();
+            // АВТОСБРОС В НОВОЙ НЕДЕЛЕ - проверяем сразу при загрузке
+            checkWeeklyReset();
+            
+            loadCategories();
             updateWeekStatus();
             renderPools();
             updateStats();
         });
 
-        // АВТОСБРОС В ПОНЕДЕЛЬНИК
-        function checkMondayReset() {
-    const currentWeek = getCurrentWeek();
-    const currentYear = getCurrentYear();
-    const currentWeekKey = `${currentYear}-W${currentWeek}`;
-    
-    console.log('Проверяем автосброс. Текущая неделя:', currentWeekKey);
-    
-    const lastReset = localStorage.getItem('lastMondayReset');
-    console.log('Последний сброс был:', lastReset || 'никогда');
-    
-    // Если сброса не было вообще или номер недели изменился - сбрасываем
-    if (!lastReset || lastReset !== currentWeekKey) {
-        console.log('🔄 Выполняем автосброс недельных счетчиков');
-        
-        let resetCount = 0;
-        try {
-            repeatPools.forEach(pool => {
-                pool.tasks.forEach(task => {
-                    if (task.completed > 0) {
-                        resetCount++;
-                    }
-                    task.completed = 0;
-                    if (task.type === 'detailed') {
-                        task.weeklyPlan = '';
-                    }
-                    // Обновляем ключ недели
-                    task.weekKey = currentWeekKey;
-                });
-            });
-            
-            saveData();
-            localStorage.setItem('lastMondayReset', currentWeekKey);
-            
-            console.log(`✅ Автосброс выполнен! Обнулено ${resetCount} задач`);
-            
-            if (resetCount > 0) {
-                showNotification(`Новая неделя! Сброшено ${resetCount} задач 🔄`);
-            }
-            
-        } catch (error) {
-            console.error('❌ Ошибка автосброса:', error);
-        }
-    } else {
-        console.log('Сброс уже был на этой неделе, пропускаем');
-    }
-}
-            
-            const lastReset = localStorage.getItem('lastMondayReset');
+        // ИСПРАВЛЕННЫЙ АВТОСБРОС ПО НЕДЕЛЯМ
+        function checkWeeklyReset() {
             const currentWeek = getCurrentWeek();
+            const currentYear = getCurrentYear();
+            const currentWeekKey = `${currentYear}-W${currentWeek}`;
             
-            if (lastReset) {
-                const lastResetWeek = parseInt(lastReset);
-                if (lastResetWeek >= currentWeek) {
-                    console.log('Сброс уже был на этой неделе');
-                    return;
-                }
-            }
+            console.log('Проверяем автосброс. Текущая неделя:', currentWeekKey);
             
-            console.log('🔄 Выполняем автосброс в понедельник');
+            const lastReset = localStorage.getItem('lastWeeklyReset');
+            console.log('Последний сброс был:', lastReset || 'никогда');
             
-            try {
-                repeatPools.forEach(pool => {
-                    pool.tasks.forEach(task => {
-                        task.completed = 0;
-                        if (task.type === 'detailed') {
-                            task.weeklyPlan = '';
-                        }
+            // Если сброса не было вообще или номер недели изменился - сбрасываем
+            if (!lastReset || lastReset !== currentWeekKey) {
+                console.log('Выполняем автосброс недельных счетчиков');
+                
+                let resetCount = 0;
+                try {
+                    repeatPools.forEach(pool => {
+                        pool.tasks.forEach(task => {
+                            if (task.completed > 0) {
+                                resetCount++;
+                            }
+                            task.completed = 0;
+                            if (task.type === 'detailed') {
+                                task.weeklyPlan = '';
+                            }
+                            // Обновляем ключ недели
+                            task.weekKey = currentWeekKey;
+                        });
                     });
-                });
-                
-                saveData();
-                localStorage.setItem('lastMondayReset', currentWeek.toString());
-                
-                console.log('✅ Автосброс выполнен успешно');
-                showNotification('Понедельник! Счетчики регулярных задач сброшены на новую неделю 🔄');
-            } catch (error) {
-                console.error('❌ Ошибка автосброса:', error);
+                    
+                    saveData();
+                    localStorage.setItem('lastWeeklyReset', currentWeekKey);
+                    
+                    console.log(`Автосброс выполнен! Обнулено ${resetCount} задач`);
+                    
+                    if (resetCount > 0) {
+                        showNotification(`Новая неделя! Сброшено ${resetCount} задач`);
+                    }
+                    
+                } catch (error) {
+                    console.error('Ошибка автосброса:', error);
+                }
+            } else {
+                console.log('Сброс уже был на этой неделе, пропускаем');
             }
         }
 
@@ -464,35 +430,37 @@
             }
         }
 
-        // Загрузка проектов
-        function loadProjects() {
-            console.log('🔄 Загружаем проекты...');
+        // Загрузка категорий
+        function loadCategories() {
+            console.log('Загружаем категории...');
             
             try {
-                if (typeof getProjects !== 'function') {
-                    console.error('❌ Функция getProjects не найдена!');
-                    return;
+                if (typeof window.CategoryManager !== 'undefined') {
+                    // Инициализируем категории
+                    window.CategoryManager.init();
+                    const categories = window.CategoryManager.getActive();
+                    console.log('Получили категории:', categories.length);
+                    
+                    const select = document.getElementById('poolProject');
+                    if (!select) return;
+                    
+                    select.innerHTML = '<option value="">Без категории</option>';
+                    
+                    categories.forEach((category) => {
+                        const option = document.createElement('option');
+                        option.value = category.name;
+                        option.textContent = `${category.group} → ${category.name}`;
+                        select.appendChild(option);
+                    });
+                    
+                    console.log('Dropdown заполнен категориями');
+                    
+                } else {
+                    console.error('CategoryManager не найден!');
                 }
                 
-                const projects = getProjects();
-                console.log('✅ Получили проекты:', projects.length);
-                
-                const select = document.getElementById('poolProject');
-                if (!select) return;
-                
-                select.innerHTML = '<option value="">Без проекта</option>';
-                
-                projects.forEach((project) => {
-                    const option = document.createElement('option');
-                    option.value = project.name;
-                    option.textContent = project.name;
-                    select.appendChild(option);
-                });
-                
-                console.log('✅ Dropdown заполнен');
-                
             } catch (error) {
-                console.error('💥 Ошибка загрузки проектов:', error);
+                console.error('Ошибка загрузки категорий:', error);
             }
         }
 
@@ -511,7 +479,7 @@
                 name: name,
                 project: project || '',
                 tasks: [],
-                color: project ? getProjectColor(project) : '#6c5ce7'
+                color: project ? getCategoryColor(project) : '#6c5ce7'
             };
             
             repeatPools.push(pool);
@@ -546,7 +514,7 @@
             const task = {
                 id: Date.now(),
                 name: name,
-                targetPerWeek: target, // Изменено: добавил targetPerWeek для совместимости с day-planner
+                targetPerWeek: target, // Для совместимости с day-planner
                 target: target,
                 completed: 0,
                 type: isDetailed ? 'detailed' : 'simple',
@@ -569,10 +537,10 @@
             
             // Увеличиваем счетчик
             task.completed++;
-            console.log('⏫ Задача выполнена:', task.name, 'прогресс:', task.completed + '/' + task.target);
+            console.log('Задача выполнена:', task.name, 'прогресс:', task.completed + '/' + task.target);
             
             // Добавляем в архив ТОЛЬКО через ArchiveManager
-            console.log('🗄️ Добавляем в архив...');
+            console.log('Добавляем в архив...');
             try {
                 if (typeof window.ArchiveManager !== 'undefined' && typeof window.ArchiveManager.archive === 'function') {
                     const archiveData = {
@@ -586,16 +554,15 @@
                         date: new Date().toISOString().split('T')[0]
                     };
                     
-                    console.log('📦 Отправляем в архив:', archiveData);
+                    console.log('Отправляем в архив:', archiveData);
                     const result = window.ArchiveManager.archive(archiveData);
-                    console.log('✅ В архив добавлено успешно!', result);
+                    console.log('В архив добавлено успешно!', result);
                     
                 } else {
-                    console.error('❌ ArchiveManager.archive недоступен!');
+                    console.error('ArchiveManager.archive недоступен!');
                 }
             } catch (error) {
-                console.error('💥 Ошибка архивирования:', error);
-                console.error('Stack:', error.stack);
+                console.error('Ошибка архивирования:', error);
             }
             
             saveData();
@@ -647,30 +614,8 @@
             renderPools();
         }
 
-        // Сброс недельных счетчиков (старая логика для совместимости)
-        function resetWeeklyCounters() {
-            const currentWeekKey = `${getCurrentYear()}-W${getCurrentWeek()}`;
-            
-            repeatPools.forEach(pool => {
-                pool.tasks.forEach(task => {
-                    if (task.weekKey !== currentWeekKey) {
-                        task.completed = 0;
-                        task.weekKey = currentWeekKey;
-                        
-                        if (task.type === 'detailed') {
-                            task.weeklyPlan = '';
-                        }
-                    }
-                });
-            });
-            
-            saveData();
-        }
-
         // Рендер пулов
         function renderPools() {
-            resetWeeklyCounters();
-            
             const container = document.getElementById('poolsContainer');
             container.innerHTML = '';
             
@@ -740,20 +685,20 @@
 
         // Обновление статистики
         function updateStats() {
-            console.log('📊 Обновляем статистику...');
+            console.log('Обновляем статистику...');
             try {
                 const today = new Date().toISOString().split('T')[0];
                 
                 if (typeof window.ArchiveManager !== 'undefined' && typeof window.ArchiveManager.getAll === 'function') {
                     const archive = window.ArchiveManager.getAll();
-                    console.log('📦 Архив содержит записей:', archive.length);
+                    console.log('Архив содержит записей:', archive.length);
                     
                     // Считаем repeat-flow задачи на сегодня
                     const todayTasks = archive.filter(task => {
                         const taskDate = task.completedAt ? task.completedAt.split('T')[0] : '';
                         return taskDate === today && task.moduleType === 'repeat-flow';
                     });
-                    console.log('📋 Задач repeat-flow на сегодня:', todayTasks.length);
+                    console.log('Задач repeat-flow на сегодня:', todayTasks.length);
                     
                     // Считаем на этой неделе
                     const weekStart = getWeekStart(new Date());
@@ -762,19 +707,19 @@
                         const taskDate = new Date(task.completedAt);
                         return taskDate >= weekStart;
                     });
-                    console.log('📅 Задач repeat-flow на этой неделе:', thisWeek.length);
+                    console.log('Задач repeat-flow на этой неделе:', thisWeek.length);
                     
                     document.getElementById('completedToday').textContent = todayTasks.length;
                     document.getElementById('completedWeek').textContent = thisWeek.length;
                     
-                    console.log('✅ Статистика обновлена');
+                    console.log('Статистика обновлена');
                 } else {
-                    console.error('❌ ArchiveManager недоступен для статистики!');
+                    console.error('ArchiveManager недоступен для статистики!');
                     document.getElementById('completedToday').textContent = '?';
                     document.getElementById('completedWeek').textContent = '?';
                 }
             } catch (error) {
-                console.error('💥 Ошибка статистики:', error);
+                console.error('Ошибка статистики:', error);
                 document.getElementById('completedToday').textContent = 'err';
                 document.getElementById('completedWeek').textContent = 'err';
             }
@@ -788,18 +733,17 @@
             return new Date(d.setDate(diff));
         }
 
-        // Получение цвета проекта
-        function getProjectColor(projectName) {
+        // Получение цвета категории
+        function getCategoryColor(categoryName) {
             try {
-                if (typeof getProjects === 'function') {
-                    const projects = getProjects();
-                    const project = projects.find(p => p.name === projectName);
-                    return project ? project.color : '#6c5ce7';
+                if (typeof window.CategoryManager !== 'undefined') {
+                    const category = window.CategoryManager.getByName(categoryName);
+                    return category ? category.color : '#6c5ce7';
                 } else {
                     return '#6c5ce7';
                 }
             } catch (error) {
-                console.error('Ошибка получения цвета:', error);
+                console.error('Ошибка получения цвета категории:', error);
                 return '#6c5ce7';
             }
         }
