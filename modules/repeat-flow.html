@@ -332,13 +332,51 @@
 
         // АВТОСБРОС В ПОНЕДЕЛЬНИК
         function checkMondayReset() {
-            const today = new Date();
-            const isMonday = today.getDay() === 1; // 1 = понедельник
+    const currentWeek = getCurrentWeek();
+    const currentYear = getCurrentYear();
+    const currentWeekKey = `${currentYear}-W${currentWeek}`;
+    
+    console.log('Проверяем автосброс. Текущая неделя:', currentWeekKey);
+    
+    const lastReset = localStorage.getItem('lastMondayReset');
+    console.log('Последний сброс был:', lastReset || 'никогда');
+    
+    // Если сброса не было вообще или номер недели изменился - сбрасываем
+    if (!lastReset || lastReset !== currentWeekKey) {
+        console.log('🔄 Выполняем автосброс недельных счетчиков');
+        
+        let resetCount = 0;
+        try {
+            repeatPools.forEach(pool => {
+                pool.tasks.forEach(task => {
+                    if (task.completed > 0) {
+                        resetCount++;
+                    }
+                    task.completed = 0;
+                    if (task.type === 'detailed') {
+                        task.weeklyPlan = '';
+                    }
+                    // Обновляем ключ недели
+                    task.weekKey = currentWeekKey;
+                });
+            });
             
-            if (!isMonday) {
-                console.log('Сегодня не понедельник, сброс не нужен');
-                return;
+            saveData();
+            localStorage.setItem('lastMondayReset', currentWeekKey);
+            
+            console.log(`✅ Автосброс выполнен! Обнулено ${resetCount} задач`);
+            
+            if (resetCount > 0) {
+                showNotification(`Новая неделя! Сброшено ${resetCount} задач 🔄`);
             }
+            
+        } catch (error) {
+            console.error('❌ Ошибка автосброса:', error);
+        }
+    } else {
+        console.log('Сброс уже был на этой неделе, пропускаем');
+    }
+}
             
             const lastReset = localStorage.getItem('lastMondayReset');
             const currentWeek = getCurrentWeek();
