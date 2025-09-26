@@ -936,7 +936,7 @@
         }
 
         // Функции переключения типов дат
-        function updateProjectDateFields() {
+        window.updateProjectDateFields = function() {
             const type = document.getElementById('newProjectDateType').value;
             const deadlineField = document.getElementById('projectDeadlineField');
             const timeframeFields = document.getElementById('projectTimeframeFields');
@@ -953,7 +953,7 @@
             }
         }
 
-        function updateStageDateFields() {
+        window.updateStageDateFields = function() {
             const type = document.getElementById('newStageDateType').value;
             const deadlineField = document.getElementById('stageDeadlineField');
             const timeframeFields = document.getElementById('stageTimeframeFields');
@@ -970,7 +970,7 @@
             }
         }
 
-        function updateSubtaskDateFields() {
+        window.updateSubtaskDateFields = function() {
             const type = document.getElementById('subtaskDateType').value;
             const deadlineField = document.getElementById('subtaskDeadlineField');
             const timeframeFields = document.getElementById('subtaskTimeframeFields');
@@ -988,7 +988,7 @@
         }
 
         // Функции гибких полей
-        function toggleField(fieldName) {
+        window.toggleField = function(fieldName) {
             const checkbox = document.getElementById(`enable${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}`);
             const field = document.getElementById(`${fieldName}Field`);
             
@@ -1081,7 +1081,7 @@
         }
 
         // Показать модальное окно создания проекта
-        function showCreateModal() {
+        window.showCreateModal = function() {
             document.getElementById('createProjectModal').style.display = 'block';
             updateProjectDateFields();
         }
@@ -1176,7 +1176,7 @@
         }
 
         // Показать детали проекта
-        function showProjectDetails(projectId) {
+        window.showProjectDetails = function(projectId) {
             currentProject = projects.find(p => p.id === projectId);
             if (!currentProject) return;
 
@@ -1187,7 +1187,7 @@
         }
 
         // Показать список проектов
-        function showProjectsList() {
+        window.showProjectsList = function() {
             document.getElementById('projectDetails').classList.remove('active');
             document.getElementById('projectsList').style.display = 'block';
             currentProject = null;
@@ -1509,7 +1509,7 @@
         }
 
         // Удалить подзадачу
-        function deleteSubtask(subtaskIndex) {
+        window.deleteSubtask = function(subtaskIndex) {
             if (!confirm('Удалить подзадачу?')) return;
 
             currentStage.subtasks.splice(subtaskIndex, 1);
@@ -1521,7 +1521,7 @@
         }
 
         // Завершить этап
-        function completeStage(stageIndex) {
+        window.completeStage = function(stageIndex) {
             if (!confirm('Отметить этап как завершенный?')) return;
 
             const stage = currentProject.stages[stageIndex];
@@ -1552,7 +1552,7 @@
         }
 
         // Удалить этап
-        function deleteStage(stageIndex) {
+        window.deleteStage = function(stageIndex) {
             if (!confirm('Удалить этап?')) return;
 
             currentProject.stages.splice(stageIndex, 1);
@@ -1563,7 +1563,7 @@
         }
 
         // Редактировать этап (упрощенная версия)
-        function editStage(stageIndex) {
+        window.editStage = function(stageIndex) {
             const stage = currentProject.stages[stageIndex];
             
             const newName = prompt('Новое название:', stage.name);
@@ -1580,7 +1580,7 @@
         }
 
         // Редактировать проект
-        function editProject() {
+        window.editProject = function() {
             if (!currentProject) return;
 
             const newName = prompt('Новое название:', currentProject.name);
@@ -1598,7 +1598,7 @@
         }
 
         // Удалить проект
-        function deleteProject() {
+        window.deleteProject = function() {
             if (!currentProject) return;
             if (!confirm(`Удалить проект "${currentProject.name}"?`)) return;
 
@@ -1611,7 +1611,7 @@
         }
 
         // Добавить срочную задачу к проекту
-        function addUrgentTask() {
+        window.addUrgentTask = function() {
             if (!currentProject) return;
             
             const taskName = prompt('Название срочной задачи:', '');
