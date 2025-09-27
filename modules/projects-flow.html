@@ -643,10 +643,17 @@
         <option value="someday">♾️ Когда-нибудь - без конкретных дат</option>
     </select>
 </div>
-            <div class="form-group">
-                <label class="form-label">Общий дедлайн:</label>
-                <input type="date" id="newProjectDeadline" class="form-input">
-            </div>
+           <div id="projectDateFields">
+    <div id="projectDeadlineField" class="form-group">
+        <label class="form-label">Дедлайн проекта:</label>
+        <input type="date" id="newProjectDeadline" class="form-input">
+    </div>
+    <div id="projectTimeframeFields" class="form-group" style="display: none;">
+        <label class="form-label">Период проекта:</label>
+        <input type="date" id="newProjectStartDate" class="form-input" placeholder="Начало" style="margin-bottom: 10px;">
+        <input type="date" id="newProjectEndDate" class="form-input" placeholder="Конец">
+    </div>
+</div>
 
             <div class="modal-actions">
                 <button onclick="createProject()" class="btn btn-primary">Создать проект</button>
