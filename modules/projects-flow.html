@@ -637,7 +637,7 @@
             </div>
 <div class="form-group">
     <label class="form-label">Тип дат проекта:</label>
-    <select id="newProjectDateType" class="form-select">
+   <select id="newProjectDateType" class="form-select" onchange="updateProjectDateFields()">
         <option value="deadline">⏰ Дедлайн - до конкретной даты</option>
         <option value="timeframe">🗓️ Отрезок времени - с даты по дату</option>
         <option value="someday">♾️ Когда-нибудь - без конкретных дат</option>
