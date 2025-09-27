@@ -108,25 +108,12 @@
         }
 
         .project-deadline {
+            background: #e6fffa;
+            color: #38a169;
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 0.8em;
             font-weight: bold;
-        }
-
-        .project-deadline.timeframe {
-            background: #e6fffa;
-            color: #38a169;
-        }
-
-        .project-deadline.deadline {
-            background: #fef5e7;
-            color: #dd6b20;
-        }
-
-        .project-deadline.someday {
-            background: #e0e6ff;
-            color: #6c5ce7;
         }
 
         .project-deadline.overdue {
@@ -316,24 +303,11 @@
         }
 
         .stage-deadline {
+            background: #fef5e7;
+            color: #dd6b20;
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 0.8em;
-        }
-
-        .stage-deadline.timeframe {
-            background: #e6fffa;
-            color: #38a169;
-        }
-
-        .stage-deadline.deadline {
-            background: #fef5e7;
-            color: #dd6b20;
-        }
-
-        .stage-deadline.someday {
-            background: #e0e6ff;
-            color: #6c5ce7;
         }
 
         .stage-quarter {
@@ -365,16 +339,12 @@
             font-size: 0.9em;
         }
 
-        .subtask-item.timeframe {
-            border-left-color: #38a169;
+        .subtask-item.flexible {
+            border-left-color: #ed8936;
         }
 
-        .subtask-item.deadline {
-            border-left-color: #dd6b20;
-        }
-
-        .subtask-item.someday {
-            border-left-color: #6c5ce7;
+        .subtask-item.fixed {
+            border-left-color: #e53e3e;
         }
 
         .subtask-type {
@@ -385,19 +355,14 @@
             margin-left: 8px;
         }
 
-        .subtask-timeframe {
-            background: #e6fffa;
-            color: #38a169;
-        }
-
-        .subtask-deadline {
+        .subtask-flexible {
             background: #fef5e7;
             color: #dd6b20;
         }
 
-        .subtask-someday {
-            background: #e0e6ff;
-            color: #6c5ce7;
+        .subtask-fixed {
+            background: #fed7d7;
+            color: #c53030;
         }
 
         .btn {
@@ -568,44 +533,6 @@
             font-style: italic;
         }
 
-        /* ГИБКИЕ ПОЛЯ */
-        .flexible-fields {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-
-        .field-checkbox {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .field-checkbox input {
-            margin-right: 8px;
-        }
-
-        .field-content {
-            margin-top: 10px;
-            padding: 10px;
-            background: white;
-            border-radius: 8px;
-            border: 2px solid #e2e8f0;
-        }
-
-        .date-type-fields {
-            display: none;
-            background: #f0f8ff;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-
-        .date-type-fields.show {
-            display: block;
-        }
-
         @media (max-width: 768px) {
             .projects-grid {
                 grid-template-columns: 1fr;
@@ -641,11 +568,11 @@
 
         <div class="header">
             <h1>🎯 ПРОЕКТЫ</h1>
-            <p>Иерархическое планирование с гибкими типами дат: отрезок времени / дедлайн / когда-нибудь</p>
+            <p>Иерархическое планирование: этапы → задачи → дни</p>
         </div>
 
         <div class="working-version">
-            🔧 WORKING: projects-flow v2.0 - 3 типа дат + гибкие поля + интеграция с дневным коллектором
+            🔧 WORKING: projects-flow v1.0
         </div>
 
         <!-- ГЛАВНАЯ СТРАНИЦА - СПИСОК ПРОЕКТОВ -->
@@ -675,7 +602,6 @@
                 </div>
                 <div class="project-actions" style="margin-top: 15px;">
                     <button class="btn btn-primary" onclick="editProject()">✏️ Редактировать проект</button>
-                    <button class="btn btn-success" onclick="addUrgentTask()">⚡ Создать срочную задачу</button>
                     <button class="btn btn-danger" onclick="deleteProject()">🗑️ Удалить проект</button>
                 </div>
             </div>
@@ -711,62 +637,8 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Тип дат проекта:</label>
-                <select id="newProjectDateType" class="form-select" onchange="updateProjectDateFields()">
-                    <option value="deadline">⏰ Дедлайн - до конкретной даты</option>
-                    <option value="timeframe">🗓️ Отрезок времени - с даты по дату</option>
-                    <option value="someday">♾️ Когда-нибудь - без конкретных дат</option>
-                </select>
-            </div>
-
-            <div id="projectDateFields" class="date-type-fields show">
-                <div id="projectDeadlineField">
-                    <label class="form-label">Дедлайн проекта:</label>
-                    <input type="date" id="newProjectDeadline" class="form-input">
-                </div>
-                <div id="projectTimeframeFields" style="display: none;">
-                    <label class="form-label">Период проекта:</label>
-                    <input type="date" id="newProjectStartDate" class="form-input" placeholder="Начало" style="margin-bottom: 10px;">
-                    <input type="date" id="newProjectEndDate" class="form-input" placeholder="Конец">
-                </div>
-            </div>
-
-            <div class="flexible-fields">
-                <h4>📋 Дополнительные поля (выберите нужные):</h4>
-                
-                <div class="field-checkbox">
-                    <input type="checkbox" id="enableBudget" onchange="toggleField('budget')">
-                    <label>💰 Бюджет (план/собрано/потрачено)</label>
-                </div>
-                <div id="budgetField" class="field-content" style="display: none;">
-                    <input type="number" id="projectBudgetPlan" class="form-input" placeholder="Планируемый бюджет" style="margin-bottom: 5px;">
-                    <input type="number" id="projectBudgetCollected" class="form-input" placeholder="Собрано" style="margin-bottom: 5px;">
-                    <input type="number" id="projectBudgetSpent" class="form-input" placeholder="Потрачено">
-                </div>
-
-                <div class="field-checkbox">
-                    <input type="checkbox" id="enableContacts" onchange="toggleField('contacts')">
-                    <label>👥 Контакты и участники</label>
-                </div>
-                <div id="contactsField" class="field-content" style="display: none;">
-                    <textarea id="projectContacts" class="form-textarea" placeholder="Контакты, участники, ответственные"></textarea>
-                </div>
-
-                <div class="field-checkbox">
-                    <input type="checkbox" id="enableDocuments" onchange="toggleField('documents')">
-                    <label>📄 Документы и файлы</label>
-                </div>
-                <div id="documentsField" class="field-content" style="display: none;">
-                    <textarea id="projectDocuments" class="form-textarea" placeholder="Список необходимых документов, ссылки"></textarea>
-                </div>
-
-                <div class="field-checkbox">
-                    <input type="checkbox" id="enableLocation" onchange="toggleField('location')">
-                    <label>📍 Места и логистика</label>
-                </div>
-                <div id="locationField" class="field-content" style="display: none;">
-                    <textarea id="projectLocation" class="form-textarea" placeholder="Адреса, места проведения, логистика"></textarea>
-                </div>
+                <label class="form-label">Общий дедлайн:</label>
+                <input type="date" id="newProjectDeadline" class="form-input">
             </div>
 
             <div class="modal-actions">
@@ -795,24 +667,8 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Тип дат этапа:</label>
-                <select id="newStageDateType" class="form-select" onchange="updateStageDateFields()">
-                    <option value="deadline">⏰ Дедлайн - до конкретной даты</option>
-                    <option value="timeframe">🗓️ Отрезок времени - с даты по дату</option>
-                    <option value="someday">♾️ Когда-нибудь - без конкретных дат</option>
-                </select>
-            </div>
-
-            <div id="stageDateFields" class="date-type-fields show">
-                <div id="stageDeadlineField">
-                    <label class="form-label">Дедлайн этапа:</label>
-                    <input type="date" id="newStageDeadline" class="form-input">
-                </div>
-                <div id="stageTimeframeFields" style="display: none;">
-                    <label class="form-label">Период этапа:</label>
-                    <input type="date" id="newStageStartDate" class="form-input" placeholder="Начало" style="margin-bottom: 10px;">
-                    <input type="date" id="newStageEndDate" class="form-input" placeholder="Конец">
-                </div>
+                <label class="form-label">Дедлайн:</label>
+                <input type="date" id="newStageDeadline" class="form-input">
             </div>
 
             <div class="form-group">
@@ -853,24 +709,16 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Тип дат подзадачи:</label>
-                <select id="subtaskDateType" class="form-select" onchange="updateSubtaskDateFields()">
-                    <option value="deadline">⏰ Дедлайн - до конкретной даты</option>
-                    <option value="timeframe">🗓️ Отрезок времени - с даты по дату</option>
-                    <option value="someday">♾️ Когда-нибудь - без конкретных дат</option>
+                <label class="form-label">Тип задачи:</label>
+                <select id="subtaskType" class="form-select">
+                    <option value="flexible">Гибкая (назначается на дни вручную)</option>
+                    <option value="fixed">Жесткий дедлайн (конкретная дата)</option>
                 </select>
             </div>
 
-            <div id="subtaskDateFields" class="date-type-fields show">
-                <div id="subtaskDeadlineField">
-                    <label class="form-label">Дедлайн подзадачи:</label>
-                    <input type="date" id="subtaskDeadline" class="form-input">
-                </div>
-                <div id="subtaskTimeframeFields" style="display: none;">
-                    <label class="form-label">Период подзадачи:</label>
-                    <input type="date" id="subtaskStartDate" class="form-input" placeholder="Начало" style="margin-bottom: 10px;">
-                    <input type="date" id="subtaskEndDate" class="form-input" placeholder="Конец">
-                </div>
+            <div class="form-group" id="subtaskDateGroup" style="display: none;">
+                <label class="form-label">Дедлайн:</label>
+                <input type="date" id="subtaskDeadline" class="form-input">
             </div>
 
             <div class="form-group">
@@ -888,8 +736,8 @@
     </div>
 
     <!-- Подключаем системы -->
-   <!--<script src="../shared/categories.js"></script>-->
-<!--<script src="../shared/archive.js"></script>-->
+    <script src="../shared/projects.js"></script>
+    <script src="../shared/archive.js"></script>
     <script>
         let projects = [];
         let currentProject = null;
@@ -932,71 +780,6 @@
             
             document.getElementById('newProjectDeadline').value = futureDate.toISOString().split('T')[0];
             document.getElementById('newStageDeadline').value = futureDate.toISOString().split('T')[0];
-            document.getElementById('subtaskDeadline').value = futureDate.toISOString().split('T')[0];
-        }
-
-        // Функции переключения типов дат
-        window.updateProjectDateFields = function() {
-            const type = document.getElementById('newProjectDateType').value;
-            const deadlineField = document.getElementById('projectDeadlineField');
-            const timeframeFields = document.getElementById('projectTimeframeFields');
-            
-            if (type === 'deadline') {
-                deadlineField.style.display = 'block';
-                timeframeFields.style.display = 'none';
-            } else if (type === 'timeframe') {
-                deadlineField.style.display = 'none';
-                timeframeFields.style.display = 'block';
-            } else {
-                deadlineField.style.display = 'none';
-                timeframeFields.style.display = 'none';
-            }
-        }
-
-        window.updateStageDateFields = function() {
-            const type = document.getElementById('newStageDateType').value;
-            const deadlineField = document.getElementById('stageDeadlineField');
-            const timeframeFields = document.getElementById('stageTimeframeFields');
-            
-            if (type === 'deadline') {
-                deadlineField.style.display = 'block';
-                timeframeFields.style.display = 'none';
-            } else if (type === 'timeframe') {
-                deadlineField.style.display = 'none';
-                timeframeFields.style.display = 'block';
-            } else {
-                deadlineField.style.display = 'none';
-                timeframeFields.style.display = 'none';
-            }
-        }
-
-        window.updateSubtaskDateFields = function() {
-            const type = document.getElementById('subtaskDateType').value;
-            const deadlineField = document.getElementById('subtaskDeadlineField');
-            const timeframeFields = document.getElementById('subtaskTimeframeFields');
-            
-            if (type === 'deadline') {
-                deadlineField.style.display = 'block';
-                timeframeFields.style.display = 'none';
-            } else if (type === 'timeframe') {
-                deadlineField.style.display = 'none';
-                timeframeFields.style.display = 'block';
-            } else {
-                deadlineField.style.display = 'none';
-                timeframeFields.style.display = 'none';
-            }
-        }
-
-        // Функции гибких полей
-        window.toggleField = function(fieldName) {
-            const checkbox = document.getElementById(`enable${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}`);
-            const field = document.getElementById(`${fieldName}Field`);
-            
-            if (checkbox.checked) {
-                field.style.display = 'block';
-            } else {
-                field.style.display = 'none';
-            }
         }
 
         // Отрисовка сетки проектов
@@ -1024,16 +807,19 @@
             card.className = 'project-card';
             card.onclick = () => showProjectDetails(project.id);
 
+            const isOverdue = new Date(project.deadline) < new Date();
+            if (isOverdue) {
+                card.classList.add('overdue');
+            }
+
             const completedStages = project.stages ? project.stages.filter(s => s.completed).length : 0;
             const totalStages = project.stages ? project.stages.length : 0;
             const progress = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
 
-            const dateInfo = getProjectDateInfo(project);
-
             card.innerHTML = `
                 <div class="project-title">${project.name}</div>
                 <div class="project-meta">
-                    <span class="project-deadline ${dateInfo.cssClass}">${dateInfo.text}</span>
+                    <span class="project-deadline ${isOverdue ? 'overdue' : ''}">${formatDate(project.deadline)}</span>
                     <span class="project-progress">${completedStages}/${totalStages} этапов</span>
                 </div>
                 <div class="project-description">${project.description || 'Без описания'}</div>
@@ -1043,47 +829,25 @@
             return card;
         }
 
-        // Получить информацию о датах проекта
-        function getProjectDateInfo(project) {
-            const today = new Date();
-            
-            if (project.dateType === 'someday') {
-                return { text: 'Когда-нибудь', cssClass: 'someday' };
-            } else if (project.dateType === 'timeframe') {
-                const start = new Date(project.startDate);
-                const end = new Date(project.endDate);
-                
-                if (today >= start && today <= end) {
-                    return { text: `${formatDate(project.startDate)} - ${formatDate(project.endDate)}`, cssClass: 'timeframe' };
-                } else if (today > end) {
-                    return { text: 'Период завершен', cssClass: 'overdue' };
-                } else {
-                    return { text: `с ${formatDate(project.startDate)}`, cssClass: 'timeframe' };
-                }
-            } else {
-                // deadline
-                const deadline = new Date(project.deadline);
-                if (deadline < today) {
-                    return { text: 'Просрочен', cssClass: 'overdue' };
-                } else {
-                    return { text: `до ${formatDate(project.deadline)}`, cssClass: 'deadline' };
-                }
-            }
-        }
-
         // Форматирование даты
         function formatDate(dateString) {
             const date = new Date(dateString);
+            const today = new Date();
+            
+            if (date < today) {
+                return 'Просрочен';
+            }
+            
             return date.toLocaleDateString('ru-RU', {
                 day: 'numeric',
-                month: 'short'
+                month: 'short',
+                year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
             });
         }
 
         // Показать модальное окно создания проекта
-        window.showCreateModal = function() {
+        function showCreateModal() {
             document.getElementById('createProjectModal').style.display = 'block';
-            updateProjectDateFields();
         }
 
         // Закрыть модальное окно создания
@@ -1096,24 +860,22 @@
         function clearCreateForm() {
             document.getElementById('newProjectName').value = '';
             document.getElementById('newProjectDescription').value = '';
-            document.getElementById('newProjectDateType').value = 'deadline';
-            
-            // Очистить гибкие поля
-            document.querySelectorAll('.field-checkbox input').forEach(cb => cb.checked = false);
-            document.querySelectorAll('.field-content').forEach(field => field.style.display = 'none');
-            
             setDefaultDates();
-            updateProjectDateFields();
         }
 
         // Создать проект
         function createProject() {
             const name = document.getElementById('newProjectName').value.trim();
             const description = document.getElementById('newProjectDescription').value.trim();
-            const dateType = document.getElementById('newProjectDateType').value;
+            const deadline = document.getElementById('newProjectDeadline').value;
 
             if (!name) {
                 alert('Введите название проекта!');
+                return;
+            }
+
+            if (!deadline) {
+                alert('Выберите дедлайн проекта!');
                 return;
             }
 
@@ -1121,50 +883,10 @@
                 id: Date.now(),
                 name: name,
                 description: description,
-                dateType: dateType,
+                deadline: deadline,
                 stages: [],
                 createdAt: new Date().toISOString()
             };
-
-            // Добавляем даты в зависимости от типа
-            if (dateType === 'deadline') {
-                const deadline = document.getElementById('newProjectDeadline').value;
-                if (!deadline) {
-                    alert('Выберите дедлайн проекта!');
-                    return;
-                }
-                newProject.deadline = deadline;
-            } else if (dateType === 'timeframe') {
-                const startDate = document.getElementById('newProjectStartDate').value;
-                const endDate = document.getElementById('newProjectEndDate').value;
-                if (!startDate || !endDate) {
-                    alert('Выберите период проекта!');
-                    return;
-                }
-                newProject.startDate = startDate;
-                newProject.endDate = endDate;
-            }
-
-            // Добавляем гибкие поля
-            if (document.getElementById('enableBudget').checked) {
-                newProject.budget = {
-                    plan: parseFloat(document.getElementById('projectBudgetPlan').value) || 0,
-                    collected: parseFloat(document.getElementById('projectBudgetCollected').value) || 0,
-                    spent: parseFloat(document.getElementById('projectBudgetSpent').value) || 0
-                };
-            }
-
-            if (document.getElementById('enableContacts').checked) {
-                newProject.contacts = document.getElementById('projectContacts').value.trim();
-            }
-
-            if (document.getElementById('enableDocuments').checked) {
-                newProject.documents = document.getElementById('projectDocuments').value.trim();
-            }
-
-            if (document.getElementById('enableLocation').checked) {
-                newProject.location = document.getElementById('projectLocation').value.trim();
-            }
 
             projects.push(newProject);
             saveProjects();
@@ -1176,7 +898,7 @@
         }
 
         // Показать детали проекта
-        window.showProjectDetails = function(projectId) {
+        function showProjectDetails(projectId) {
             currentProject = projects.find(p => p.id === projectId);
             if (!currentProject) return;
 
@@ -1187,7 +909,7 @@
         }
 
         // Показать список проектов
-        window.showProjectsList = function() {
+        function showProjectsList() {
             document.getElementById('projectDetails').classList.remove('active');
             document.getElementById('projectsList').style.display = 'block';
             currentProject = null;
@@ -1201,10 +923,10 @@
             document.getElementById('detailProjectTitle').textContent = currentProject.name;
             document.getElementById('detailProjectDescription').textContent = currentProject.description || 'Без описания';
             
-            const dateInfo = getProjectDateInfo(currentProject);
+            const isOverdue = new Date(currentProject.deadline) < new Date();
             const deadlineEl = document.getElementById('detailProjectDeadline');
-            deadlineEl.textContent = dateInfo.text;
-            deadlineEl.className = `project-deadline ${dateInfo.cssClass}`;
+            deadlineEl.textContent = formatDate(currentProject.deadline);
+            deadlineEl.className = `project-deadline ${isOverdue ? 'overdue' : ''}`;
 
             const completedStages = currentProject.stages.filter(s => s.completed).length;
             const totalStages = currentProject.stages.length;
@@ -1226,26 +948,23 @@
             }
 
             const html = currentProject.stages.map((stage, index) => {
-                const dateInfo = getStageDateInfo(stage);
-                const statusClass = stage.completed ? 'completed' : (dateInfo.isOverdue ? 'overdue' : 'pending');
-                const statusText = stage.completed ? 'Завершен' : (dateInfo.isOverdue ? 'Просрочен' : 'В работе');
+                const isOverdue = !stage.completed && new Date(stage.deadline) < new Date();
+                const statusClass = stage.completed ? 'completed' : (isOverdue ? 'overdue' : 'pending');
+                const statusText = stage.completed ? 'Завершен' : (isOverdue ? 'Просрочен' : 'В работе');
 
                 let subtasksHtml = '';
                 if (stage.subtasks && stage.subtasks.length > 0) {
                     subtasksHtml = `
                         <div class="subtasks-list">
-                            ${stage.subtasks.map(subtask => {
-                                const subtaskDateInfo = getSubtaskDateInfo(subtask);
-                                return `
-                                    <div class="subtask-item ${subtask.dateType}">
-                                        ${subtask.name}
-                                        <span class="subtask-type subtask-${subtask.dateType}">
-                                            ${getDateTypeText(subtask.dateType)}
-                                        </span>
-                                        ${subtaskDateInfo.text ? `<br><small>${subtaskDateInfo.text}</small>` : ''}
-                                    </div>
-                                `;
-                            }).join('')}
+                            ${stage.subtasks.map(subtask => `
+                                <div class="subtask-item ${subtask.type}">
+                                    ${subtask.name}
+                                    <span class="subtask-type subtask-${subtask.type}">
+                                        ${subtask.type === 'flexible' ? 'Гибкая' : 'Жесткий дедлайн'}
+                                    </span>
+                                    ${subtask.deadline ? `<br><small>до ${formatDate(subtask.deadline)}</small>` : ''}
+                                </div>
+                            `).join('')}
                         </div>
                     `;
                 }
@@ -1257,7 +976,7 @@
                             <div class="stage-status ${statusClass}">${statusText}</div>
                         </div>
                         <div class="stage-meta">
-                            <span class="stage-deadline ${stage.dateType}">${dateInfo.text}</span>
+                            <span class="stage-deadline">до ${formatDate(stage.deadline)}</span>
                             ${stage.quarter ? `<span class="stage-quarter">${stage.quarter}</span>` : ''}
                         </div>
                         ${stage.description ? `<div style="color: #4a5568; margin-bottom: 10px;">${stage.description}</div>` : ''}
@@ -1277,59 +996,9 @@
             container.innerHTML = html;
         }
 
-        // Получить информацию о датах этапа
-        function getStageDateInfo(stage) {
-            const today = new Date();
-            
-            if (stage.dateType === 'someday') {
-                return { text: 'Когда-нибудь', isOverdue: false };
-            } else if (stage.dateType === 'timeframe') {
-                const start = new Date(stage.startDate);
-                const end = new Date(stage.endDate);
-                
-                if (today >= start && today <= end) {
-                    return { text: `${formatDate(stage.startDate)} - ${formatDate(stage.endDate)}`, isOverdue: false };
-                } else if (today > end) {
-                    return { text: 'Период завершен', isOverdue: true };
-                } else {
-                    return { text: `с ${formatDate(stage.startDate)}`, isOverdue: false };
-                }
-            } else {
-                // deadline
-                const deadline = new Date(stage.deadline);
-                const isOverdue = deadline < today;
-                return { 
-                    text: `до ${formatDate(stage.deadline)}`, 
-                    isOverdue: isOverdue && !stage.completed 
-                };
-            }
-        }
-
-        // Получить информацию о датах подзадачи
-        function getSubtaskDateInfo(subtask) {
-            if (subtask.dateType === 'someday') {
-                return { text: '' };
-            } else if (subtask.dateType === 'timeframe') {
-                return { text: `${formatDate(subtask.startDate)} - ${formatDate(subtask.endDate)}` };
-            } else {
-                return { text: `до ${formatDate(subtask.deadline)}` };
-            }
-        }
-
-        // Получить текст типа дат
-        function getDateTypeText(dateType) {
-            switch(dateType) {
-                case 'deadline': return 'Дедлайн';
-                case 'timeframe': return 'Отрезок времени';
-                case 'someday': return 'Когда-нибудь';
-                default: return 'Дедлайн';
-            }
-        }
-
         // Показать модальное окно добавления этапа
         function showAddStageModal() {
             document.getElementById('addStageModal').style.display = 'block';
-            updateStageDateFields();
         }
 
         // Закрыть модальное окно добавления этапа
@@ -1343,20 +1012,23 @@
             document.getElementById('newStageName').value = '';
             document.getElementById('newStageDescription').value = '';
             document.getElementById('newStageQuarter').value = '';
-            document.getElementById('newStageDateType').value = 'deadline';
             setDefaultDates();
-            updateStageDateFields();
         }
 
         // Добавить этап
         function addStage() {
             const name = document.getElementById('newStageName').value.trim();
             const description = document.getElementById('newStageDescription').value.trim();
+            const deadline = document.getElementById('newStageDeadline').value;
             const quarter = document.getElementById('newStageQuarter').value;
-            const dateType = document.getElementById('newStageDateType').value;
 
             if (!name) {
                 alert('Введите название этапа!');
+                return;
+            }
+
+            if (!deadline) {
+                alert('Выберите дедлайн этапа!');
                 return;
             }
 
@@ -1364,31 +1036,12 @@
                 id: Date.now(),
                 name: name,
                 description: description,
+                deadline: deadline,
                 quarter: quarter,
-                dateType: dateType,
                 completed: false,
                 subtasks: [],
                 createdAt: new Date().toISOString()
             };
-
-            // Добавляем даты в зависимости от типа
-            if (dateType === 'deadline') {
-                const deadline = document.getElementById('newStageDeadline').value;
-                if (!deadline) {
-                    alert('Выберите дедлайн этапа!');
-                    return;
-                }
-                newStage.deadline = deadline;
-            } else if (dateType === 'timeframe') {
-                const startDate = document.getElementById('newStageStartDate').value;
-                const endDate = document.getElementById('newStageEndDate').value;
-                if (!startDate || !endDate) {
-                    alert('Выберите период этапа!');
-                    return;
-                }
-                newStage.startDate = startDate;
-                newStage.endDate = endDate;
-            }
 
             if (!currentProject.stages) {
                 currentProject.stages = [];
@@ -1403,125 +1056,8 @@
             alert('Этап добавлен!');
         }
 
-        // Показать модальное окно детализации
-        function showDetailModal(stageIndex) {
-            currentStage = currentProject.stages[stageIndex];
-            document.getElementById('currentStageName').textContent = currentStage.name;
-            document.getElementById('detailStageModal').style.display = 'block';
-            
-            updateSubtaskDateFields();
-            renderSubtasks();
-        }
-
-        // Закрыть модальное окно детализации
-        function closeDetailModal() {
-            document.getElementById('detailStageModal').style.display = 'none';
-            currentStage = null;
-            clearSubtaskForm();
-        }
-
-        // Очистить форму подзадачи
-        function clearSubtaskForm() {
-            document.getElementById('newSubtaskName').value = '';
-            document.getElementById('subtaskDateType').value = 'deadline';
-            updateSubtaskDateFields();
-        }
-
-        // Добавить подзадачу
-        function addSubtask() {
-            if (!currentStage) return;
-
-            const name = document.getElementById('newSubtaskName').value.trim();
-            const dateType = document.getElementById('subtaskDateType').value;
-
-            if (!name) {
-                alert('Введите название подзадачи!');
-                return;
-            }
-
-            const newSubtask = {
-                id: Date.now(),
-                name: name,
-                dateType: dateType,
-                completed: false,
-                createdAt: new Date().toISOString()
-            };
-
-            // Добавляем даты в зависимости от типа
-            if (dateType === 'deadline') {
-                const deadline = document.getElementById('subtaskDeadline').value;
-                if (!deadline) {
-                    alert('Выберите дедлайн для подзадачи!');
-                    return;
-                }
-                newSubtask.deadline = deadline;
-            } else if (dateType === 'timeframe') {
-                const startDate = document.getElementById('subtaskStartDate').value;
-                const endDate = document.getElementById('subtaskEndDate').value;
-                if (!startDate || !endDate) {
-                    alert('Выберите период для подзадачи!');
-                    return;
-                }
-                newSubtask.startDate = startDate;
-                newSubtask.endDate = endDate;
-            }
-
-            if (!currentStage.subtasks) {
-                currentStage.subtasks = [];
-            }
-
-            currentStage.subtasks.push(newSubtask);
-            saveProjects();
-
-            clearSubtaskForm();
-            renderSubtasks();
-            renderProjectDetails();
-            
-            alert('Подзадача добавлена!');
-        }
-
-        // Отрисовка подзадач в модальном окне
-        function renderSubtasks() {
-            const container = document.getElementById('subtasksList');
-            
-            if (!currentStage || !currentStage.subtasks || currentStage.subtasks.length === 0) {
-                container.innerHTML = '<div style="text-align: center; color: #718096; padding: 20px;">Подзадач пока нет</div>';
-                return;
-            }
-
-            const html = currentStage.subtasks.map((subtask, index) => {
-                const dateInfo = getSubtaskDateInfo(subtask);
-                return `
-                    <div class="subtask-item ${subtask.dateType}">
-                        <strong>${subtask.name}</strong>
-                        <span class="subtask-type subtask-${subtask.dateType}">
-                            ${getDateTypeText(subtask.dateType)}
-                        </span>
-                        ${dateInfo.text ? `<br><small>${dateInfo.text}</small>` : ''}
-                        <div style="margin-top: 8px;">
-                            <button onclick="deleteSubtask(${index})" class="btn btn-danger btn-sm">🗑️ Удалить</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            container.innerHTML = html;
-        }
-
-        // Удалить подзадачу
-        window.deleteSubtask = function(subtaskIndex) {
-            if (!confirm('Удалить подзадачу?')) return;
-
-            currentStage.subtasks.splice(subtaskIndex, 1);
-            saveProjects();
-            renderSubtasks();
-            renderProjectDetails();
-            
-            alert('Подзадача удалена');
-        }
-
         // Завершить этап
-        window.completeStage = function(stageIndex) {
+        function completeStage(stageIndex) {
             if (!confirm('Отметить этап как завершенный?')) return;
 
             const stage = currentProject.stages[stageIndex];
@@ -1536,7 +1072,7 @@
                         text: `${currentProject.name}: ${stage.name}`,
                         moduleType: 'projects-flow',
                         projectId: currentProject.name,
-                        date: stage.deadline || stage.endDate || null,
+                        date: stage.deadline,
                         createdAt: stage.completedAt
                     };
                     window.ArchiveManager.archive(archiveData);
@@ -1552,7 +1088,7 @@
         }
 
         // Удалить этап
-        window.deleteStage = function(stageIndex) {
+        function deleteStage(stageIndex) {
             if (!confirm('Удалить этап?')) return;
 
             currentProject.stages.splice(stageIndex, 1);
@@ -1563,14 +1099,20 @@
         }
 
         // Редактировать этап (упрощенная версия)
-        window.editStage = function(stageIndex) {
+        function editStage(stageIndex) {
             const stage = currentProject.stages[stageIndex];
             
             const newName = prompt('Новое название:', stage.name);
             if (newName === null) return;
 
+            const newDeadline = prompt('Новый дедлайн (YYYY-MM-DD):', stage.deadline);
+            if (newDeadline === null) return;
+
             if (newName.trim()) {
                 stage.name = newName.trim();
+            }
+            if (newDeadline && /^\d{4}-\d{2}-\d{2}$/.test(newDeadline)) {
+                stage.deadline = newDeadline;
             }
 
             saveProjects();
@@ -1579,15 +1121,137 @@
             alert('Этап обновлен');
         }
 
+        // Показать модальное окно детализации
+        function showDetailModal(stageIndex) {
+            currentStage = currentProject.stages[stageIndex];
+            document.getElementById('currentStageName').textContent = currentStage.name;
+            document.getElementById('detailStageModal').style.display = 'block';
+            
+            // Обновляем отображение типа задачи
+            updateSubtaskTypeVisibility();
+            renderSubtasks();
+        }
+
+        // Закрыть модальное окно детализации
+        function closeDetailModal() {
+            document.getElementById('detailStageModal').style.display = 'none';
+            currentStage = null;
+            clearSubtaskForm();
+        }
+
+        // Очистить форму подзадачи
+        function clearSubtaskForm() {
+            document.getElementById('newSubtaskName').value = '';
+            document.getElementById('subtaskType').value = 'flexible';
+            document.getElementById('subtaskDeadline').value = '';
+            updateSubtaskTypeVisibility();
+        }
+
+        // Обновить видимость полей в зависимости от типа подзадачи
+        function updateSubtaskTypeVisibility() {
+            const type = document.getElementById('subtaskType').value;
+            const dateGroup = document.getElementById('subtaskDateGroup');
+            
+            if (type === 'fixed') {
+                dateGroup.style.display = 'block';
+            } else {
+                dateGroup.style.display = 'none';
+            }
+        }
+
+        // Добавить подзадачу
+        function addSubtask() {
+            if (!currentStage) return;
+
+            const name = document.getElementById('newSubtaskName').value.trim();
+            const type = document.getElementById('subtaskType').value;
+            const deadline = type === 'fixed' ? document.getElementById('subtaskDeadline').value : null;
+
+            if (!name) {
+                alert('Введите название подзадачи!');
+                return;
+            }
+
+            if (type === 'fixed' && !deadline) {
+                alert('Выберите дедлайн для жесткой задачи!');
+                return;
+            }
+
+            const newSubtask = {
+                id: Date.now(),
+                name: name,
+                type: type,
+                deadline: deadline,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            if (!currentStage.subtasks) {
+                currentStage.subtasks = [];
+            }
+
+            currentStage.subtasks.push(newSubtask);
+            saveProjects();
+
+            clearSubtaskForm();
+            renderSubtasks();
+            renderProjectDetails(); // Обновляем основной вид
+            
+            alert('Подзадача добавлена!');
+        }
+
+        // Отрисовка подзадач в модальном окне
+        function renderSubtasks() {
+            const container = document.getElementById('subtasksList');
+            
+            if (!currentStage || !currentStage.subtasks || currentStage.subtasks.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #718096; padding: 20px;">Подзадач пока нет</div>';
+                return;
+            }
+
+            const html = currentStage.subtasks.map((subtask, index) => `
+                <div class="subtask-item ${subtask.type}">
+                    <strong>${subtask.name}</strong>
+                    <span class="subtask-type subtask-${subtask.type}">
+                        ${subtask.type === 'flexible' ? 'Гибкая' : 'Жесткий дедлайн'}
+                    </span>
+                    ${subtask.deadline ? `<br><small>до ${formatDate(subtask.deadline)}</small>` : ''}
+                    <div style="margin-top: 8px;">
+                        <button onclick="deleteSubtask(${index})" class="btn btn-danger btn-sm">🗑️ Удалить</button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Удалить подзадачу
+        function deleteSubtask(subtaskIndex) {
+            if (!confirm('Удалить подзадачу?')) return;
+
+            currentStage.subtasks.splice(subtaskIndex, 1);
+            saveProjects();
+            renderSubtasks();
+            renderProjectDetails();
+            
+            alert('Подзадача удалена');
+        }
+
         // Редактировать проект
-        window.editProject = function() {
+        function editProject() {
             if (!currentProject) return;
 
             const newName = prompt('Новое название:', currentProject.name);
             if (newName === null) return;
 
+            const newDeadline = prompt('Новый дедлайн (YYYY-MM-DD):', currentProject.deadline);
+            if (newDeadline === null) return;
+
             if (newName.trim()) {
                 currentProject.name = newName.trim();
+            }
+            if (newDeadline && /^\d{4}-\d{2}-\d{2}$/.test(newDeadline)) {
+                currentProject.deadline = newDeadline;
             }
 
             saveProjects();
@@ -1598,7 +1262,7 @@
         }
 
         // Удалить проект
-        window.deleteProject = function() {
+        function deleteProject() {
             if (!currentProject) return;
             if (!confirm(`Удалить проект "${currentProject.name}"?`)) return;
 
@@ -1610,30 +1274,163 @@
             alert('Проект удален');
         }
 
-        // Добавить срочную задачу к проекту
-        window.addUrgentTask = function() {
-            if (!currentProject) return;
-            
-            const taskName = prompt('Название срочной задачи:', '');
-            if (!taskName || !taskName.trim()) return;
-            
-            const taskDeadline = prompt('Дедлайн (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
-            if (!taskDeadline) return;
-            
-            // Создаем срочную задачу с привязкой к проекту
-            const urgentTask = {
-                id: Date.now(),
-                text: taskName.trim(),
-                deadline: taskDeadline,
-                priority: 'high',
-                project: currentProject.name,
-                projectId: currentProject.id,
-                completed: false,
-                createdAt: new Date().toISOString()
-            };
-            
-            // Сохраняем в urgent-flow
-            try {
-                const urgentTasks = JSON.parse(localStorage.getItem('urgentTasks') || '[]');
-                urgentTasks.push(urgentTask);
-                localStorage.setItem('urgentTasks', JSON.stringify(urgentTasks));
+        // Обработчики для типа подзадачи
+        document.getElementById('subtaskType').addEventListener('change', updateSubtaskTypeVisibility);
+
+        // Закрытие модальных окон по клику вне их
+        window.onclick = function(event) {
+            const modals = ['createProjectModal', 'addStageModal', 'detailStageModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Функции для интеграции с другими модулями
+        window.ProjectsFlow = {
+            // Получить задачи на конкретную дату
+            getTasksForDate: function(targetDate) {
+                const tasks = [];
+                
+                projects.forEach(project => {
+                    if (!project.stages) return;
+                    
+                    project.stages.forEach(stage => {
+                        if (!stage.subtasks) return;
+                        
+                        stage.subtasks.forEach(subtask => {
+                            if (subtask.type === 'fixed' && subtask.deadline === targetDate && !subtask.completed) {
+                                tasks.push({
+                                    id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                                    name: subtask.name,
+                                    project: project.name,
+                                    stage: stage.name,
+                                    deadline: subtask.deadline,
+                                    type: 'fixed',
+                                    source: 'projects',
+                                    projectId: project.id,
+                                    stageId: stage.id,
+                                    subtaskId: subtask.id
+                                });
+                            }
+                        });
+                    });
+                });
+                
+                return tasks;
+            },
+
+            // Получить просроченные задачи
+            getOverdueTasks: function() {
+                const today = new Date().toISOString().split('T')[0];
+                const tasks = [];
+                
+                projects.forEach(project => {
+                    if (!project.stages) return;
+                    
+                    project.stages.forEach(stage => {
+                        if (!stage.subtasks) return;
+                        
+                        stage.subtasks.forEach(subtask => {
+                            if (subtask.type === 'fixed' && subtask.deadline < today && !subtask.completed) {
+                                const overdueDays = Math.ceil((new Date() - new Date(subtask.deadline)) / (1000 * 60 * 60 * 24));
+                                
+                                tasks.push({
+                                    id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                                    name: subtask.name,
+                                    project: project.name,
+                                    stage: stage.name,
+                                    deadline: subtask.deadline,
+                                    overdueDays: overdueDays,
+                                    type: 'fixed',
+                                    source: 'projects',
+                                    projectId: project.id,
+                                    stageId: stage.id,
+                                    subtaskId: subtask.id
+                                });
+                            }
+                        });
+                    });
+                });
+                
+                return tasks;
+            },
+
+            // Получить гибкие задачи для назначения
+            getFlexibleTasks: function() {
+                const tasks = [];
+                
+                projects.forEach(project => {
+                    if (!project.stages) return;
+                    
+                    project.stages.forEach(stage => {
+                        if (!stage.subtasks) return;
+                        
+                        stage.subtasks.forEach(subtask => {
+                            if (subtask.type === 'flexible' && !subtask.completed) {
+                                tasks.push({
+                                    id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                                    name: subtask.name,
+                                    project: project.name,
+                                    stage: stage.name,
+                                    type: 'flexible',
+                                    source: 'projects',
+                                    projectId: project.id,
+                                    stageId: stage.id,
+                                    subtaskId: subtask.id
+                                });
+                            }
+                        });
+                    });
+                });
+                
+                return tasks;
+            },
+
+            // Отметить задачу как выполненную
+            completeTask: function(taskId) {
+                const parts = taskId.split('_');
+                if (parts.length < 4) return false;
+                
+                const projectId = parseInt(parts[1]);
+                const stageId = parseInt(parts[2]);
+                const subtaskId = parseInt(parts[3]);
+                
+                const project = projects.find(p => p.id === projectId);
+                if (!project || !project.stages) return false;
+                
+                const stage = project.stages.find(s => s.id === stageId);
+                if (!stage || !stage.subtasks) return false;
+                
+                const subtask = stage.subtasks.find(st => st.id === subtaskId);
+                if (!subtask) return false;
+                
+                subtask.completed = true;
+                subtask.completedAt = new Date().toISOString();
+                
+                // Архивируем
+                try {
+                    if (typeof window.ArchiveManager !== 'undefined') {
+                        const archiveData = {
+                            id: subtask.id,
+                            text: `${project.name}: ${subtask.name}`,
+                            moduleType: 'projects-flow',
+                            projectId: project.name,
+                            date: subtask.deadline || null,
+                            createdAt: subtask.completedAt
+                        };
+                        window.ArchiveManager.archive(archiveData);
+                    }
+                } catch (error) {
+                    console.error('Ошибка архивирования:', error);
+                }
+                
+                saveProjects();
+                return true;
+            }
+        };
+    </script>
+</body>
+</html>
