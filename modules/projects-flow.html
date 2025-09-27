@@ -1445,6 +1445,23 @@
                 return true;
             }
         };
+        // Функция переключения типов дат для проектов
+function updateProjectDateFields() {
+    const type = document.getElementById('newProjectDateType').value;
+    const deadlineField = document.getElementById('projectDeadlineField');
+    const timeframeFields = document.getElementById('projectTimeframeFields');
+    
+    if (type === 'deadline') {
+        deadlineField.style.display = 'block';
+        timeframeFields.style.display = 'none';
+    } else if (type === 'timeframe') {
+        deadlineField.style.display = 'none';
+        timeframeFields.style.display = 'block';
+    } else {
+        deadlineField.style.display = 'none';
+        timeframeFields.style.display = 'none';
+    }
+}
     </script>
 </body>
 </html>
