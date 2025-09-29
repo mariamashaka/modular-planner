@@ -844,20 +844,22 @@
         }
 
         // Форматирование даты
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const today = new Date();
-            
-            if (date < today) {
-                return 'Просрочен';
-            }
-            
-            return date.toLocaleDateString('ru-RU', {
-                day: 'numeric',
-                month: 'short',
-                year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
-            });
-        }
+function formatDate(dateString) {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    const today = new Date();
+    
+    if (date < today) {
+        return 'Просрочен';
+    }
+    
+    return date.toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'short',
+        year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+    });
+}
 
         // Показать модальное окно создания проекта
         function showCreateModal() {
