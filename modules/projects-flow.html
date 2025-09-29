@@ -879,28 +879,42 @@
 
         // Создать проект
         function createProject() {
-            const name = document.getElementById('newProjectName').value.trim();
-            const description = document.getElementById('newProjectDescription').value.trim();
-            const deadline = document.getElementById('newProjectDeadline').value;
+    const name = document.getElementById('newProjectName').value.trim();
+    const description = document.getElementById('newProjectDescription').value.trim();
+    const dateType = document.getElementById('newProjectDateType').value;
 
             if (!name) {
                 alert('Введите название проекта!');
                 return;
             }
 
-            if (!deadline) {
-                alert('Выберите дедлайн проекта!');
-                return;
-            }
+          const newProject = {
+    id: Date.now(),
+    name: name,
+    description: description,
+    dateType: dateType,
+    stages: [],
+    createdAt: new Date().toISOString()
+};
 
-            const newProject = {
-                id: Date.now(),
-                name: name,
-                description: description,
-                deadline: deadline,
-                stages: [],
-                createdAt: new Date().toISOString()
-            };
+// Добавляем даты в зависимости от типа
+if (dateType === 'deadline') {
+    const deadline = document.getElementById('newProjectDeadline').value;
+    if (!deadline) {
+        alert('Выберите дедлайн проекта!');
+        return;
+    }
+    newProject.deadline = deadline;
+} else if (dateType === 'timeframe') {
+    const startDate = document.getElementById('newProjectStartDate').value;
+    const endDate = document.getElementById('newProjectEndDate').value;
+    if (!startDate || !endDate) {
+        alert('Выберите период проекта!');
+        return;
+    }
+    newProject.startDate = startDate;
+    newProject.endDate = endDate;
+}
 
             projects.push(newProject);
             saveProjects();
