@@ -960,23 +960,27 @@
             return card;
         }
 
-        // Форматирование даты
-        function formatDate(dateString) {
-            if (!dateString) return '';
-            
-            const date = new Date(dateString);
-            const today = new Date();
-            
-            if (date < today) {
-                return 'Просрочен';
-            }
-            
-            return date.toLocaleDateString('ru-RU', {
-                day: 'numeric',
-                month: 'short',
-                year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
-            });
-        }
+// Форматирование даты 
+function formatDate(dateString) {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    const today = new Date();
+    
+    // Сбрасываем время для корректного сравнения только дат
+    const dateWithoutTime = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const todayWithoutTime = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    if (dateWithoutTime < todayWithoutTime) {
+        return 'Просрочен';
+    }
+    
+    return date.toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'short',
+        year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+    });
+}
 
         // Показать модальное окно создания проекта
         function showCreateModal() {
