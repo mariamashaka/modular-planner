@@ -821,7 +821,26 @@
             card.className = 'project-card';
             card.onclick = () => showProjectDetails(project.id);
 
-            const isOverdue = new Date(project.deadline) < new Date();
+            // Определяем текст и класс для даты
+let dateText = '';
+let dateClass = '';
+
+if (project.dateType === 'someday') {
+    dateText = 'Когда-нибудь';
+    dateClass = 'someday';
+} else if (project.dateType === 'timeframe') {
+    dateText = formatDate(project.startDate) + ' - ' + formatDate(project.endDate);
+    dateClass = 'timeframe';
+} else {
+    const deadline = new Date(project.deadline);
+    if (deadline < new Date()) {
+        dateText = 'Просрочен';
+        dateClass = 'overdue';
+    } else {
+        dateText = 'до ' + formatDate(project.deadline);
+        dateClass = 'deadline';
+    }
+}
             if (isOverdue) {
                 card.classList.add('overdue');
             }
