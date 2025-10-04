@@ -852,7 +852,7 @@ if (project.dateType === 'someday') {
             card.innerHTML = `
                 <div class="project-title">${project.name}</div>
                 <div class="project-meta">
-                    <span class="project-deadline ${isOverdue ? 'overdue' : ''}">${formatDate(project.deadline)}</span>
+                    <span class="project-deadline ${dateClass}">${dateText}</span>
                     <span class="project-progress">${completedStages}/${totalStages} этапов</span>
                 </div>
                 <div class="project-description">${project.description || 'Без описания'}</div>
