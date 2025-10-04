@@ -757,33 +757,46 @@
 
 // Проектные задачи на сегодня
 try {
-    if (typeof window.ProjectsFlow !== 'undefined') {
-        // Жесткие задачи с дедлайном на сегодня
-        const projectTasksToday = window.ProjectsFlow.getTasksForDate(today);
-        
-        // Просроченные проектные задачи
-        const overdueProjectTasks = window.ProjectsFlow.getOverdueTasks();
-        
-        // ВСЕ проектные (и просроченные, и текущие) идут в projects
-        dayData.projects = [...projectTasksToday, ...overdueProjectTasks];
-        
-        console.log('Проектных задач на сегодня:', projectTasksToday.length);
-        console.log('Просроченных проектных задач:', overdueProjectTasks.length);
+    console.log('=== ЗАГРУЗКА ПРОЕКТНЫХ ЗАДАЧ ===');
+    
+    // Смотрим что лежит в localStorage
+    const projectsFlowRaw = localStorage.getItem('projectsFlow');
+    console.log('projectsFlow в localStorage:', projectsFlowRaw);
+    
+    if (!projectsFlowRaw || projectsFlowRaw === '[]') {
+        console.log('❌ В localStorage нет проектных данных!');
+        alert('ДИАГНОСТИКА: В localStorage нет проектных данных! Нужно создать задачи в projects-flow.html');
+        dayData.projects = [];
     } else {
-        console.log('ProjectsFlow не загружен, загружаем напрямую');
+        const projectsFlow = JSON.parse(projectsFlowRaw);
+        console.log('Распарсенные проекты:', projectsFlow);
+        console.log('Количество проектов:', projectsFlow.length);
         
-        // Фолбэк - загружаем напрямую из localStorage
-        const projectsFlow = JSON.parse(localStorage.getItem('projectsFlow') || '[]');
+        // Показываем структуру первого проекта для диагностики
+        if (projectsFlow.length > 0) {
+            console.log('Первый проект:', JSON.stringify(projectsFlow[0], null, 2));
+        }
+        
         const { todayTasks, overdueTasks } = getProjectTasksForDay(projectsFlow, today);
+        
+        console.log('Задач на сегодня:', todayTasks.length);
+        console.log('Просроченных задач:', overdueTasks.length);
+        
+        if (todayTasks.length > 0) {
+            console.log('Сегодняшние задачи:', todayTasks);
+        }
+        if (overdueTasks.length > 0) {
+            console.log('Просроченные задачи:', overdueTasks);
+        }
         
         // ВСЕ проектные (и просроченные, и текущие) идут в projects
         dayData.projects = [...todayTasks, ...overdueTasks];
         
-        console.log('Проектных задач на сегодня (фолбэк):', todayTasks.length);
-        console.log('Просроченных проектных задач (фолбэк):', overdueTasks.length);
+        alert(`ДИАГНОСТИКА: Загружено ${todayTasks.length} задач на сегодня и ${overdueTasks.length} просроченных`);
     }
 } catch (error) {
     console.error('Ошибка загрузки проектных задач:', error);
+    alert('ОШИБКА загрузки проектных задач: ' + error.message);
     dayData.projects = [];
 }
 
