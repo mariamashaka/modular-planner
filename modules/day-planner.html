@@ -808,50 +808,72 @@
             return diffDays;
         }
 
-        // Фолбэк функция для получения проектных задач на дату
-        function getProjectTasksForDay(projectsData, targetDateStr) {
-            const todayTasks = [];
-            const overdueTasks = [];
-            const today = new Date(targetDateStr);
+// Фолбэк функция для получения проектных задач на дату
+function getProjectTasksForDay(projectsData, targetDateStr) {
+    const todayTasks = [];
+    const overdueTasks = [];
+    const today = new Date(targetDateStr);
+    
+    projectsData.forEach(project => {
+        if (!project.stages) return;
+        
+        project.stages.forEach(stage => {
+            if (!stage.subtasks) return;
             
-            projectsData.forEach(project => {
-                if (!project.stages) return;
+            stage.subtasks.forEach(subtask => {
+                if (subtask.completed) return;
                 
-                project.stages.forEach(stage => {
-                    if (!stage.subtasks) return;
-                    
-                    stage.subtasks.forEach(subtask => {
-                        if (subtask.completed) return;
-                        
-                        if (subtask.type === 'fixed' && subtask.deadline) {
-                            if (subtask.deadline === targetDateStr) {
-                                todayTasks.push({
-                                    id: `project_${project.id}_${stage.id}_${subtask.id}`,
-                                    name: subtask.name,
-                                    project: project.name,
-                                    stage: stage.name,
-                                    deadline: subtask.deadline,
-                                    source: 'projects'
-                                });
-                            } else if (subtask.deadline < targetDateStr) {
-                                const overdueDays = Math.ceil((today - new Date(subtask.deadline)) / (1000 * 60 * 60 * 24));
-                                overdueTasks.push({
-                                    id: `project_${project.id}_${stage.id}_${subtask.id}`,
-                                    name: subtask.name,
-                                    project: project.name,
-                                    stage: stage.name,
-                                    deadline: subtask.deadline,
-                                    overdueDays: overdueDays,
-                                    source: 'projects'
-                                });
-                            }
-                        }
-                    });
-                });
+                // Обратная совместимость: type='fixed' работает как dateType='deadline'
+                const dateType = subtask.dateType || (subtask.type === 'fixed' ? 'deadline' : null);
+                
+                // DEADLINE - жесткая дата
+                if (dateType === 'deadline' && subtask.deadline) {
+                    if (subtask.deadline === targetDateStr) {
+                        todayTasks.push({
+                            id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                            name: subtask.name,
+                            project: project.name,
+                            stage: stage.name,
+                            deadline: subtask.deadline,
+                            priority: subtask.priority,
+                            source: 'projects'
+                        });
+                    } else if (subtask.deadline < targetDateStr) {
+                        const overdueDays = Math.ceil((today - new Date(subtask.deadline)) / (1000 * 60 * 60 * 24));
+                        overdueTasks.push({
+                            id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                            name: subtask.name,
+                            project: project.name,
+                            stage: stage.name,
+                            deadline: subtask.deadline,
+                            overdueDays: overdueDays,
+                            priority: subtask.priority,
+                            source: 'projects'
+                        });
+                    }
+                }
+                
+                // TIMEFRAME - период "от-до"
+                else if (dateType === 'timeframe' && subtask.startDate && subtask.endDate) {
+                    if (targetDateStr >= subtask.startDate && targetDateStr <= subtask.endDate) {
+                        todayTasks.push({
+                            id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                            name: subtask.name,
+                            project: project.name,
+                            stage: stage.name,
+                            startDate: subtask.startDate,
+                            endDate: subtask.endDate,
+                            priority: subtask.priority,
+                            source: 'projects'
+                        });
+                    }
+                }
             });
-            
-            return { todayTasks, overdueTasks };
-        }
+        });
+    });
+    
+    return { todayTasks, overdueTasks };
+}
 
         // Фолбэк функция для получения повторяющихся событий на дату
         function getRecurringEventsForDate(recurringEvents, targetDateStr) {
