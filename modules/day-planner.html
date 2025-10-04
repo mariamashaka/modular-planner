@@ -755,39 +755,37 @@
                 dayData.calendar = [];
             }
 
-            // Проектные задачи на сегодня
-            try {
-                if (typeof window.ProjectsFlow !== 'undefined') {
-                    // Жесткие задачи с дедлайном на сегодня
-                    const projectTasksToday = window.ProjectsFlow.getTasksForDate(today);
-                    
-                    // Просроченные проектные задачи
-                    const overdueProjectTasks = window.ProjectsFlow.getOverdueTasks();
-                    
-                    dayData.projects = projectTasksToday;
-                    
-                    // Добавляем просроченные проектные к общим просроченным
-                    dayData.overdue = dayData.overdue.concat(overdueProjectTasks);
-                    
-                    console.log('Проектных задач на сегодня:', projectTasksToday.length);
-                    console.log('Просроченных проектных задач:', overdueProjectTasks.length);
-                } else {
-                    console.log('ProjectsFlow не загружен, загружаем напрямую');
-                    
-                    // Фолбэк - загружаем напрямую из localStorage
-                    const projectsFlow = JSON.parse(localStorage.getItem('projectsFlow') || '[]');
-                    const { todayTasks, overdueTasks } = getProjectTasksForDay(projectsFlow, today);
-                    
-                    dayData.projects = todayTasks;
-                    dayData.overdue = dayData.overdue.concat(overdueTasks);
-                    
-                    console.log('Проектных задач на сегодня (фолбэк):', todayTasks.length);
-                    console.log('Просроченных проектных задач (фолбэк):', overdueTasks.length);
-                }
-            } catch (error) {
-                console.error('Ошибка загрузки проектных задач:', error);
-                dayData.projects = [];
-            }
+// Проектные задачи на сегодня
+try {
+    if (typeof window.ProjectsFlow !== 'undefined') {
+        // Жесткие задачи с дедлайном на сегодня
+        const projectTasksToday = window.ProjectsFlow.getTasksForDate(today);
+        
+        // Просроченные проектные задачи
+        const overdueProjectTasks = window.ProjectsFlow.getOverdueTasks();
+        
+        // ВСЕ проектные (и просроченные, и текущие) идут в projects
+        dayData.projects = [...projectTasksToday, ...overdueProjectTasks];
+        
+        console.log('Проектных задач на сегодня:', projectTasksToday.length);
+        console.log('Просроченных проектных задач:', overdueProjectTasks.length);
+    } else {
+        console.log('ProjectsFlow не загружен, загружаем напрямую');
+        
+        // Фолбэк - загружаем напрямую из localStorage
+        const projectsFlow = JSON.parse(localStorage.getItem('projectsFlow') || '[]');
+        const { todayTasks, overdueTasks } = getProjectTasksForDay(projectsFlow, today);
+        
+        // ВСЕ проектные (и просроченные, и текущие) идут в projects
+        dayData.projects = [...todayTasks, ...overdueTasks];
+        
+        console.log('Проектных задач на сегодня (фолбэк):', todayTasks.length);
+        console.log('Просроченных проектных задач (фолбэк):', overdueTasks.length);
+    }
+} catch (error) {
+    console.error('Ошибка загрузки проектных задач:', error);
+    dayData.projects = [];
+}
 
             // Итоговая диагностика
             console.log('=== ИТОГО ЗАГРУЖЕНО ===');
