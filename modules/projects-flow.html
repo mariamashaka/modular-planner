@@ -121,6 +121,16 @@
             color: #c53030;
         }
 
+        .project-deadline.someday {
+            background: #f0f0f0;
+            color: #718096;
+        }
+
+        .project-deadline.timeframe {
+            background: #e0e6ff;
+            color: #6c5ce7;
+        }
+
         .project-progress {
             background: #e0e6ff;
             color: #6c5ce7;
@@ -310,6 +320,21 @@
             font-size: 0.8em;
         }
 
+        .stage-deadline.overdue {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .stage-deadline.someday {
+            background: #f0f0f0;
+            color: #718096;
+        }
+
+        .stage-deadline.timeframe {
+            background: #e0e6ff;
+            color: #6c5ce7;
+        }
+
         .stage-quarter {
             background: #e0e6ff;
             color: #6c5ce7;
@@ -347,6 +372,18 @@
             border-left-color: #e53e3e;
         }
 
+        .subtask-item.deadline {
+            border-left-color: #e53e3e;
+        }
+
+        .subtask-item.timeframe {
+            border-left-color: #6c5ce7;
+        }
+
+        .subtask-item.someday {
+            border-left-color: #a0aec0;
+        }
+
         .subtask-type {
             padding: 2px 6px;
             border-radius: 8px;
@@ -363,6 +400,21 @@
         .subtask-fixed {
             background: #fed7d7;
             color: #c53030;
+        }
+
+        .subtask-deadline {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .subtask-timeframe {
+            background: #e0e6ff;
+            color: #6c5ce7;
+        }
+
+        .subtask-someday {
+            background: #f0f0f0;
+            color: #718096;
         }
 
         .btn {
@@ -681,8 +733,24 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Дедлайн:</label>
-                <input type="date" id="newStageDeadline" class="form-input">
+                <label class="form-label">Тип дат этапа:</label>
+                <select id="newStageDateType" class="form-select" onchange="updateStageDateFields()">
+                    <option value="deadline">⏰ Дедлайн - до конкретной даты</option>
+                    <option value="timeframe">🗓️ Отрезок времени - с даты по дату</option>
+                    <option value="someday">♾️ Когда-нибудь - без конкретных дат</option>
+                </select>
+            </div>
+
+            <div id="stageDateFields">
+                <div id="stageDeadlineField" class="form-group">
+                    <label class="form-label">Дедлайн этапа:</label>
+                    <input type="date" id="newStageDeadline" class="form-input">
+                </div>
+                <div id="stageTimeframeFields" class="form-group" style="display: none;">
+                    <label class="form-label">Период этапа:</label>
+                    <input type="date" id="newStageStartDate" class="form-input" placeholder="Начало" style="margin-bottom: 10px;">
+                    <input type="date" id="newStageEndDate" class="form-input" placeholder="Конец">
+                </div>
             </div>
 
             <div class="form-group">
@@ -724,15 +792,31 @@
 
             <div class="form-group">
                 <label class="form-label">Тип задачи:</label>
-                <select id="subtaskType" class="form-select">
+                <select id="subtaskTaskType" class="form-select">
                     <option value="flexible">Гибкая (назначается на дни вручную)</option>
                     <option value="fixed">Жесткий дедлайн (конкретная дата)</option>
                 </select>
             </div>
 
-            <div class="form-group" id="subtaskDateGroup" style="display: none;">
-                <label class="form-label">Дедлайн:</label>
-                <input type="date" id="subtaskDeadline" class="form-input">
+            <div class="form-group">
+                <label class="form-label">Тип дат подзадачи:</label>
+                <select id="subtaskDateType" class="form-select" onchange="updateSubtaskDateFields()">
+                    <option value="deadline">⏰ Дедлайн - до конкретной даты</option>
+                    <option value="timeframe">🗓️ Отрезок времени - с даты по дату</option>
+                    <option value="someday">♾️ Когда-нибудь - без конкретных дат</option>
+                </select>
+            </div>
+
+            <div id="subtaskDateFields">
+                <div id="subtaskDeadlineField" class="form-group" style="display: none;">
+                    <label class="form-label">Дедлайн подзадачи:</label>
+                    <input type="date" id="subtaskDeadline" class="form-input">
+                </div>
+                <div id="subtaskTimeframeFields" class="form-group" style="display: none;">
+                    <label class="form-label">Период подзадачи:</label>
+                    <input type="date" id="subtaskStartDate" class="form-input" placeholder="Начало" style="margin-bottom: 10px;">
+                    <input type="date" id="subtaskEndDate" class="form-input" placeholder="Конец">
+                </div>
             </div>
 
             <div class="form-group">
@@ -763,6 +847,10 @@
             loadProjects();
             renderProjectsGrid();
             setDefaultDates();
+            
+            // Инициализация обработчиков
+            document.getElementById('subtaskDateType').addEventListener('change', updateSubtaskDateFields);
+            document.getElementById('newStageDateType').addEventListener('change', updateStageDateFields);
         });
 
         // Загрузка проектов
@@ -794,6 +882,7 @@
             
             document.getElementById('newProjectDeadline').value = futureDate.toISOString().split('T')[0];
             document.getElementById('newStageDeadline').value = futureDate.toISOString().split('T')[0];
+            document.getElementById('subtaskDeadline').value = futureDate.toISOString().split('T')[0];
         }
 
         // Отрисовка сетки проектов
@@ -822,27 +911,36 @@
             card.onclick = () => showProjectDetails(project.id);
 
             // Определяем текст и класс для даты
-let dateText = '';
-let dateClass = '';
+            let dateText = '';
+            let dateClass = '';
 
-if (project.dateType === 'someday') {
-    dateText = 'Когда-нибудь';
-    dateClass = 'someday';
-} else if (project.dateType === 'timeframe') {
-    dateText = formatDate(project.startDate) + ' - ' + formatDate(project.endDate);
-    dateClass = 'timeframe';
-} else {
-    const deadline = new Date(project.deadline);
-    if (deadline < new Date()) {
-        dateText = 'Просрочен';
-        dateClass = 'overdue';
-    } else {
-        dateText = 'до ' + formatDate(project.deadline);
-        dateClass = 'deadline';
-    }
-}
-            if (isOverdue) {
-                card.classList.add('overdue');
+            if (project.dateType === 'someday') {
+                dateText = 'Когда-нибудь';
+                dateClass = 'someday';
+            } else if (project.dateType === 'timeframe') {
+                dateText = formatDate(project.startDate) + ' - ' + formatDate(project.endDate);
+                dateClass = 'timeframe';
+            } else {
+                // Для старых проектов без dateType или с deadline
+                const deadline = project.deadline ? new Date(project.deadline) : null;
+                if (deadline && deadline < new Date()) {
+                    dateText = 'Просрочен';
+                    dateClass = 'overdue';
+                } else if (deadline) {
+                    dateText = 'до ' + formatDate(project.deadline);
+                    dateClass = 'deadline';
+                } else {
+                    dateText = 'Когда-нибудь';
+                    dateClass = 'someday';
+                }
+            }
+
+            // Проверяем просроченность только для deadline проектов
+            if (project.dateType === 'deadline' || !project.dateType) {
+                const deadline = project.deadline ? new Date(project.deadline) : null;
+                if (deadline && deadline < new Date()) {
+                    card.classList.add('overdue');
+                }
             }
 
             const completedStages = project.stages ? project.stages.filter(s => s.completed).length : 0;
@@ -863,22 +961,22 @@ if (project.dateType === 'someday') {
         }
 
         // Форматирование даты
-function formatDate(dateString) {
-    if (!dateString) return '';
-    
-    const date = new Date(dateString);
-    const today = new Date();
-    
-    if (date < today) {
-        return 'Просрочен';
-    }
-    
-    return date.toLocaleDateString('ru-RU', {
-        day: 'numeric',
-        month: 'short',
-        year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
-    });
-}
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            
+            const date = new Date(dateString);
+            const today = new Date();
+            
+            if (date < today) {
+                return 'Просрочен';
+            }
+            
+            return date.toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'short',
+                year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+            });
+        }
 
         // Показать модальное окно создания проекта
         function showCreateModal() {
@@ -900,42 +998,42 @@ function formatDate(dateString) {
 
         // Создать проект
         function createProject() {
-    const name = document.getElementById('newProjectName').value.trim();
-    const description = document.getElementById('newProjectDescription').value.trim();
-    const dateType = document.getElementById('newProjectDateType').value;
+            const name = document.getElementById('newProjectName').value.trim();
+            const description = document.getElementById('newProjectDescription').value.trim();
+            const dateType = document.getElementById('newProjectDateType').value;
 
             if (!name) {
                 alert('Введите название проекта!');
                 return;
             }
 
-          const newProject = {
-    id: Date.now(),
-    name: name,
-    description: description,
-    dateType: dateType,
-    stages: [],
-    createdAt: new Date().toISOString()
-};
+            const newProject = {
+                id: Date.now(),
+                name: name,
+                description: description,
+                dateType: dateType,
+                stages: [],
+                createdAt: new Date().toISOString()
+            };
 
-// Добавляем даты в зависимости от типа
-if (dateType === 'deadline') {
-    const deadline = document.getElementById('newProjectDeadline').value;
-    if (!deadline) {
-        alert('Выберите дедлайн проекта!');
-        return;
-    }
-    newProject.deadline = deadline;
-} else if (dateType === 'timeframe') {
-    const startDate = document.getElementById('newProjectStartDate').value;
-    const endDate = document.getElementById('newProjectEndDate').value;
-    if (!startDate || !endDate) {
-        alert('Выберите период проекта!');
-        return;
-    }
-    newProject.startDate = startDate;
-    newProject.endDate = endDate;
-}
+            // Добавляем даты в зависимости от типа
+            if (dateType === 'deadline') {
+                const deadline = document.getElementById('newProjectDeadline').value;
+                if (!deadline) {
+                    alert('Выберите дедлайн проекта!');
+                    return;
+                }
+                newProject.deadline = deadline;
+            } else if (dateType === 'timeframe') {
+                const startDate = document.getElementById('newProjectStartDate').value;
+                const endDate = document.getElementById('newProjectEndDate').value;
+                if (!startDate || !endDate) {
+                    alert('Выберите период проекта!');
+                    return;
+                }
+                newProject.startDate = startDate;
+                newProject.endDate = endDate;
+            }
 
             projects.push(newProject);
             saveProjects();
@@ -952,6 +1050,8 @@ if (dateType === 'deadline') {
             if (!currentProject) return;
 
             document.getElementById('projectsList').style.display = 'none';
+            document.getElementById
+                        document.getElementById('projectsList').style.display = 'none';
             document.getElementById('projectDetails').classList.add('active');
 
             renderProjectDetails();
@@ -972,13 +1072,37 @@ if (dateType === 'deadline') {
             document.getElementById('detailProjectTitle').textContent = currentProject.name;
             document.getElementById('detailProjectDescription').textContent = currentProject.description || 'Без описания';
             
-            const isOverdue = new Date(currentProject.deadline) < new Date();
-            const deadlineEl = document.getElementById('detailProjectDeadline');
-            deadlineEl.textContent = formatDate(currentProject.deadline);
-            deadlineEl.className = `project-deadline ${isOverdue ? 'overdue' : ''}`;
+            // Обновляем отображение даты проекта с учетом типа
+            let dateText = '';
+            let dateClass = '';
 
-            const completedStages = currentProject.stages.filter(s => s.completed).length;
-            const totalStages = currentProject.stages.length;
+            if (currentProject.dateType === 'someday') {
+                dateText = 'Когда-нибудь';
+                dateClass = 'someday';
+            } else if (currentProject.dateType === 'timeframe') {
+                dateText = formatDate(currentProject.startDate) + ' - ' + formatDate(currentProject.endDate);
+                dateClass = 'timeframe';
+            } else {
+                // Для старых проектов без dateType или с deadline
+                const deadline = currentProject.deadline ? new Date(currentProject.deadline) : null;
+                if (deadline && deadline < new Date()) {
+                    dateText = 'Просрочен';
+                    dateClass = 'overdue';
+                } else if (deadline) {
+                    dateText = 'до ' + formatDate(currentProject.deadline);
+                    dateClass = 'deadline';
+                } else {
+                    dateText = 'Когда-нибудь';
+                    dateClass = 'someday';
+                }
+            }
+
+            const deadlineEl = document.getElementById('detailProjectDeadline');
+            deadlineEl.textContent = dateText;
+            deadlineEl.className = `project-deadline ${dateClass}`;
+
+            const completedStages = currentProject.stages ? currentProject.stages.filter(s => s.completed).length : 0;
+            const totalStages = currentProject.stages ? currentProject.stages.length : 0;
             const progress = totalStages > 0 ? (completedStages / totalStages) * 100 : 0;
 
             document.getElementById('detailProgressFill').style.width = progress + '%';
@@ -997,7 +1121,33 @@ if (dateType === 'deadline') {
             }
 
             const html = currentProject.stages.map((stage, index) => {
-                const isOverdue = !stage.completed && new Date(stage.deadline) < new Date();
+                // Определяем статус и классы для этапа
+                let dateText = '';
+                let dateClass = '';
+                let isOverdue = false;
+
+                if (stage.dateType === 'someday') {
+                    dateText = 'Когда-нибудь';
+                    dateClass = 'someday';
+                } else if (stage.dateType === 'timeframe') {
+                    dateText = formatDate(stage.startDate) + ' - ' + formatDate(stage.endDate);
+                    dateClass = 'timeframe';
+                } else {
+                    // Для старых этапов без dateType или с deadline
+                    const deadline = stage.deadline ? new Date(stage.deadline) : null;
+                    if (deadline && !stage.completed && deadline < new Date()) {
+                        dateText = 'Просрочен';
+                        dateClass = 'overdue';
+                        isOverdue = true;
+                    } else if (deadline) {
+                        dateText = 'до ' + formatDate(stage.deadline);
+                        dateClass = 'deadline';
+                    } else {
+                        dateText = 'Когда-нибудь';
+                        dateClass = 'someday';
+                    }
+                }
+
                 const statusClass = stage.completed ? 'completed' : (isOverdue ? 'overdue' : 'pending');
                 const statusText = stage.completed ? 'Завершен' : (isOverdue ? 'Просрочен' : 'В работе');
 
@@ -1005,15 +1155,41 @@ if (dateType === 'deadline') {
                 if (stage.subtasks && stage.subtasks.length > 0) {
                     subtasksHtml = `
                         <div class="subtasks-list">
-                            ${stage.subtasks.map(subtask => `
-                                <div class="subtask-item ${subtask.type}">
-                                    ${subtask.name}
-                                    <span class="subtask-type subtask-${subtask.type}">
-                                        ${subtask.type === 'flexible' ? 'Гибкая' : 'Жесткий дедлайн'}
-                                    </span>
-                                    ${subtask.deadline ? `<br><small>до ${formatDate(subtask.deadline)}</small>` : ''}
-                                </div>
-                            `).join('')}
+                            ${stage.subtasks.map(subtask => {
+                                // Определяем тип отображения для подзадачи (обратная совместимость)
+                                let subtaskTypeClass = '';
+                                let subtaskTypeText = '';
+                                
+                                if (subtask.dateType) {
+                                    // Новый формат с dateType
+                                    subtaskTypeClass = subtask.dateType;
+                                    subtaskTypeText = subtask.dateType === 'deadline' ? 'Дедлайн' : 
+                                                     subtask.dateType === 'timeframe' ? 'Период' : 'Когда-нибудь';
+                                } else {
+                                    // Старый формат с type
+                                    subtaskTypeClass = subtask.type;
+                                    subtaskTypeText = subtask.type === 'flexible' ? 'Гибкая' : 'Жесткий дедлайн';
+                                }
+
+                                let dateInfo = '';
+                                if (subtask.dateType === 'deadline' && subtask.deadline) {
+                                    dateInfo = `<br><small>до ${formatDate(subtask.deadline)}</small>`;
+                                } else if (subtask.dateType === 'timeframe' && subtask.startDate && subtask.endDate) {
+                                    dateInfo = `<br><small>${formatDate(subtask.startDate)} - ${formatDate(subtask.endDate)}</small>`;
+                                } else if (!subtask.dateType && subtask.type === 'fixed' && subtask.deadline) {
+                                    dateInfo = `<br><small>до ${formatDate(subtask.deadline)}</small>`;
+                                }
+
+                                return `
+                                    <div class="subtask-item ${subtaskTypeClass}">
+                                        ${subtask.name}
+                                        <span class="subtask-type subtask-${subtaskTypeClass}">
+                                            ${subtaskTypeText}
+                                        </span>
+                                        ${dateInfo}
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     `;
                 }
@@ -1025,7 +1201,7 @@ if (dateType === 'deadline') {
                             <div class="stage-status ${statusClass}">${statusText}</div>
                         </div>
                         <div class="stage-meta">
-                            <span class="stage-deadline">до ${formatDate(stage.deadline)}</span>
+                            <span class="stage-deadline ${dateClass}">${dateText}</span>
                             ${stage.quarter ? `<span class="stage-quarter">${stage.quarter}</span>` : ''}
                         </div>
                         ${stage.description ? `<div style="color: #4a5568; margin-bottom: 10px;">${stage.description}</div>` : ''}
@@ -1061,14 +1237,34 @@ if (dateType === 'deadline') {
             document.getElementById('newStageName').value = '';
             document.getElementById('newStageDescription').value = '';
             document.getElementById('newStageQuarter').value = '';
+            document.getElementById('newStageDateType').value = 'deadline';
+            updateStageDateFields();
             setDefaultDates();
+        }
+
+        // Обновить поля дат для этапа
+        function updateStageDateFields() {
+            const type = document.getElementById('newStageDateType').value;
+            const deadlineField = document.getElementById('stageDeadlineField');
+            const timeframeFields = document.getElementById('stageTimeframeFields');
+            
+            if (type === 'deadline') {
+                deadlineField.style.display = 'block';
+                timeframeFields.style.display = 'none';
+            } else if (type === 'timeframe') {
+                deadlineField.style.display = 'none';
+                timeframeFields.style.display = 'block';
+            } else {
+                deadlineField.style.display = 'none';
+                timeframeFields.style.display = 'none';
+            }
         }
 
         // Добавить этап
         function addStage() {
             const name = document.getElementById('newStageName').value.trim();
             const description = document.getElementById('newStageDescription').value.trim();
-            const deadline = document.getElementById('newStageDeadline').value;
+            const dateType = document.getElementById('newStageDateType').value;
             const quarter = document.getElementById('newStageQuarter').value;
 
             if (!name) {
@@ -1076,21 +1272,35 @@ if (dateType === 'deadline') {
                 return;
             }
 
-            if (!deadline) {
-                alert('Выберите дедлайн этапа!');
-                return;
-            }
-
             const newStage = {
                 id: Date.now(),
                 name: name,
                 description: description,
-                deadline: deadline,
+                dateType: dateType,
                 quarter: quarter,
                 completed: false,
                 subtasks: [],
                 createdAt: new Date().toISOString()
             };
+
+            // Добавляем даты в зависимости от типа
+            if (dateType === 'deadline') {
+                const deadline = document.getElementById('newStageDeadline').value;
+                if (!deadline) {
+                    alert('Выберите дедлайн этапа!');
+                    return;
+                }
+                newStage.deadline = deadline;
+            } else if (dateType === 'timeframe') {
+                const startDate = document.getElementById('newStageStartDate').value;
+                const endDate = document.getElementById('newStageEndDate').value;
+                if (!startDate || !endDate) {
+                    alert('Выберите период этапа!');
+                    return;
+                }
+                newStage.startDate = startDate;
+                newStage.endDate = endDate;
+            }
 
             if (!currentProject.stages) {
                 currentProject.stages = [];
@@ -1154,8 +1364,14 @@ if (dateType === 'deadline') {
             const newName = prompt('Новое название:', stage.name);
             if (newName === null) return;
 
-            const newDeadline = prompt('Новый дедлайн (YYYY-MM-DD):', stage.deadline);
-            if (newDeadline === null) return;
+            // Для обратной совместимости - если у этапа нет dateType, считаем его deadline
+            const currentDateType = stage.dateType || 'deadline';
+            let newDeadline = null;
+
+            if (currentDateType === 'deadline') {
+                newDeadline = prompt('Новый дедлайн (YYYY-MM-DD):', stage.deadline);
+                if (newDeadline === null) return;
+            }
 
             if (newName.trim()) {
                 stage.name = newName.trim();
@@ -1176,8 +1392,7 @@ if (dateType === 'deadline') {
             document.getElementById('currentStageName').textContent = currentStage.name;
             document.getElementById('detailStageModal').style.display = 'block';
             
-            // Обновляем отображение типа задачи
-            updateSubtaskTypeVisibility();
+            updateSubtaskDateFields();
             renderSubtasks();
         }
 
@@ -1191,20 +1406,29 @@ if (dateType === 'deadline') {
         // Очистить форму подзадачи
         function clearSubtaskForm() {
             document.getElementById('newSubtaskName').value = '';
-            document.getElementById('subtaskType').value = 'flexible';
+            document.getElementById('subtaskTaskType').value = 'flexible';
+            document.getElementById('subtaskDateType').value = 'deadline';
             document.getElementById('subtaskDeadline').value = '';
-            updateSubtaskTypeVisibility();
+            document.getElementById('subtaskStartDate').value = '';
+            document.getElementById('subtaskEndDate').value = '';
+            updateSubtaskDateFields();
         }
 
-        // Обновить видимость полей в зависимости от типа подзадачи
-        function updateSubtaskTypeVisibility() {
-            const type = document.getElementById('subtaskType').value;
-            const dateGroup = document.getElementById('subtaskDateGroup');
+        // Обновить видимость полей в зависимости от типа дат подзадачи
+        function updateSubtaskDateFields() {
+            const dateType = document.getElementById('subtaskDateType').value;
+            const deadlineField = document.getElementById('subtaskDeadlineField');
+            const timeframeFields = document.getElementById('subtaskTimeframeFields');
             
-            if (type === 'fixed') {
-                dateGroup.style.display = 'block';
+            if (dateType === 'deadline') {
+                deadlineField.style.display = 'block';
+                timeframeFields.style.display = 'none';
+            } else if (dateType === 'timeframe') {
+                deadlineField.style.display = 'none';
+                timeframeFields.style.display = 'block';
             } else {
-                dateGroup.style.display = 'none';
+                deadlineField.style.display = 'none';
+                timeframeFields.style.display = 'none';
             }
         }
 
@@ -1213,27 +1437,42 @@ if (dateType === 'deadline') {
             if (!currentStage) return;
 
             const name = document.getElementById('newSubtaskName').value.trim();
-            const type = document.getElementById('subtaskType').value;
-            const deadline = type === 'fixed' ? document.getElementById('subtaskDeadline').value : null;
+            const taskType = document.getElementById('subtaskTaskType').value;
+            const dateType = document.getElementById('subtaskDateType').value;
 
             if (!name) {
                 alert('Введите название подзадачи!');
                 return;
             }
 
-            if (type === 'fixed' && !deadline) {
-                alert('Выберите дедлайн для жесткой задачи!');
-                return;
-            }
-
             const newSubtask = {
                 id: Date.now(),
                 name: name,
-                type: type,
-                deadline: deadline,
+                // Для обратной совместимости сохраняем оба поля
+                type: taskType, // Старое поле: flexible/fixed
+                dateType: dateType, // Новое поле: deadline/timeframe/someday
                 completed: false,
                 createdAt: new Date().toISOString()
             };
+
+            // Добавляем даты в зависимости от типа
+            if (dateType === 'deadline') {
+                const deadline = document.getElementById('subtaskDeadline').value;
+                if (taskType === 'fixed' && !deadline) {
+                    alert('Выберите дедлайн для жесткой задачи!');
+                    return;
+                }
+                newSubtask.deadline = deadline;
+            } else if (dateType === 'timeframe') {
+                const startDate = document.getElementById('subtaskStartDate').value;
+                const endDate = document.getElementById('subtaskEndDate').value;
+                if (!startDate || !endDate) {
+                    alert('Выберите период для задачи!');
+                    return;
+                }
+                newSubtask.startDate = startDate;
+                newSubtask.endDate = endDate;
+            }
 
             if (!currentStage.subtasks) {
                 currentStage.subtasks = [];
@@ -1258,18 +1497,46 @@ if (dateType === 'deadline') {
                 return;
             }
 
-            const html = currentStage.subtasks.map((subtask, index) => `
-                <div class="subtask-item ${subtask.type}">
-                    <strong>${subtask.name}</strong>
-                    <span class="subtask-type subtask-${subtask.type}">
-                        ${subtask.type === 'flexible' ? 'Гибкая' : 'Жесткий дедлайн'}
-                    </span>
-                    ${subtask.deadline ? `<br><small>до ${formatDate(subtask.deadline)}</small>` : ''}
-                    <div style="margin-top: 8px;">
-                        <button onclick="deleteSubtask(${index})" class="btn btn-danger btn-sm">🗑️ Удалить</button>
+            const html = currentStage.subtasks.map((subtask, index) => {
+                // Определяем тип отображения для подзадачи (обратная совместимость)
+                let subtaskTypeClass = '';
+                let subtaskTypeText = '';
+                let dateInfo = '';
+                
+                if (subtask.dateType) {
+                    // Новый формат с dateType
+                    subtaskTypeClass = subtask.dateType;
+                    subtaskTypeText = subtask.dateType === 'deadline' ? 'Дедлайн' : 
+                                     subtask.dateType === 'timeframe' ? 'Период' : 'Когда-нибудь';
+                    
+                    if (subtask.dateType === 'deadline' && subtask.deadline) {
+                        dateInfo = `<br><small>до ${formatDate(subtask.deadline)}</small>`;
+                    } else if (subtask.dateType === 'timeframe' && subtask.startDate && subtask.endDate) {
+                        dateInfo = `<br><small>${formatDate(subtask.startDate)} - ${formatDate(subtask.endDate)}</small>`;
+                    }
+                } else {
+                    // Старый формат с type
+                    subtaskTypeClass = subtask.type;
+                    subtaskTypeText = subtask.type === 'flexible' ? 'Гибкая' : 'Жесткий дедлайн';
+                    
+                    if (subtask.type === 'fixed' && subtask.deadline) {
+                        dateInfo = `<br><small>до ${formatDate(subtask.deadline)}</small>`;
+                    }
+                }
+
+                return `
+                    <div class="subtask-item ${subtaskTypeClass}">
+                        <strong>${subtask.name}</strong>
+                        <span class="subtask-type subtask-${subtaskTypeClass}">
+                            ${subtaskTypeText}
+                        </span>
+                        ${dateInfo}
+                        <div style="margin-top: 8px;">
+                            <button onclick="deleteSubtask(${index})" class="btn btn-danger btn-sm">🗑️ Удалить</button>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             container.innerHTML = html;
         }
@@ -1293,8 +1560,14 @@ if (dateType === 'deadline') {
             const newName = prompt('Новое название:', currentProject.name);
             if (newName === null) return;
 
-            const newDeadline = prompt('Новый дедлайн (YYYY-MM-DD):', currentProject.deadline);
-            if (newDeadline === null) return;
+            // Для обратной совместимости - если у проекта нет dateType, считаем его deadline
+            const currentDateType = currentProject.dateType || 'deadline';
+            let newDeadline = null;
+
+            if (currentDateType === 'deadline') {
+                newDeadline = prompt('Новый дедлайн (YYYY-MM-DD):', currentProject.deadline);
+                if (newDeadline === null) return;
+            }
 
             if (newName.trim()) {
                 currentProject.name = newName.trim();
@@ -1323,8 +1596,23 @@ if (dateType === 'deadline') {
             alert('Проект удален');
         }
 
-        // Обработчики для типа подзадачи
-        document.getElementById('subtaskType').addEventListener('change', updateSubtaskTypeVisibility);
+        // Функция переключения типов дат для проектов
+        function updateProjectDateFields() {
+            const type = document.getElementById('newProjectDateType').value;
+            const deadlineField = document.getElementById('projectDeadlineField');
+            const timeframeFields = document.getElementById('projectTimeframeFields');
+            
+            if (type === 'deadline') {
+                deadlineField.style.display = 'block';
+                timeframeFields.style.display = 'none';
+            } else if (type === 'timeframe') {
+                deadlineField.style.display = 'none';
+                timeframeFields.style.display = 'block';
+            } else {
+                deadlineField.style.display = 'none';
+                timeframeFields.style.display = 'none';
+            }
+        }
 
         // Закрытие модальных окон по клику вне их
         window.onclick = function(event) {
@@ -1350,7 +1638,11 @@ if (dateType === 'deadline') {
                         if (!stage.subtasks) return;
                         
                         stage.subtasks.forEach(subtask => {
-                            if (subtask.type === 'fixed' && subtask.deadline === targetDate && !subtask.completed) {
+                            // Проверяем как старый формат (type=fixed), так и новый (dateType=deadline)
+                            const isFixedTask = (subtask.type === 'fixed' || subtask.dateType === 'deadline');
+                            const hasDeadline = subtask.deadline === targetDate;
+                            
+                            if (isFixedTask && hasDeadline && !subtask.completed) {
                                 tasks.push({
                                     id: `project_${project.id}_${stage.id}_${subtask.id}`,
                                     name: subtask.name,
@@ -1383,7 +1675,11 @@ if (dateType === 'deadline') {
                         if (!stage.subtasks) return;
                         
                         stage.subtasks.forEach(subtask => {
-                            if (subtask.type === 'fixed' && subtask.deadline < today && !subtask.completed) {
+                            // Проверяем как старый формат (type=fixed), так и новый (dateType=deadline)
+                            const isFixedTask = (subtask.type === 'fixed' || subtask.dateType === 'deadline');
+                            const isOverdue = subtask.deadline && subtask.deadline < today && !subtask.completed;
+                            
+                            if (isFixedTask && isOverdue) {
                                 const overdueDays = Math.ceil((new Date() - new Date(subtask.deadline)) / (1000 * 60 * 60 * 24));
                                 
                                 tasks.push({
@@ -1418,7 +1714,12 @@ if (dateType === 'deadline') {
                         if (!stage.subtasks) return;
                         
                         stage.subtasks.forEach(subtask => {
-                            if (subtask.type === 'flexible' && !subtask.completed) {
+                            // Гибкие задачи - старый формат type=flexible или новые без жестких дедлайнов
+                            const isFlexible = (subtask.type === 'flexible' || 
+                                              subtask.dateType === 'someday' || 
+                                              subtask.dateType === 'timeframe');
+                            
+                            if (isFlexible && !subtask.completed) {
                                 tasks.push({
                                     id: `project_${project.id}_${stage.id}_${subtask.id}`,
                                     name: subtask.name,
@@ -1480,23 +1781,6 @@ if (dateType === 'deadline') {
                 return true;
             }
         };
-        // Функция переключения типов дат для проектов
-function updateProjectDateFields() {
-    const type = document.getElementById('newProjectDateType').value;
-    const deadlineField = document.getElementById('projectDeadlineField');
-    const timeframeFields = document.getElementById('projectTimeframeFields');
-    
-    if (type === 'deadline') {
-        deadlineField.style.display = 'block';
-        timeframeFields.style.display = 'none';
-    } else if (type === 'timeframe') {
-        deadlineField.style.display = 'none';
-        timeframeFields.style.display = 'block';
-    } else {
-        deadlineField.style.display = 'none';
-        timeframeFields.style.display = 'none';
-    }
-}
     </script>
 </body>
 </html>
