@@ -1,4 +1,1043 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>План дня</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .navigation {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover {
+            background: #5f4fcf;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .date-info {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .date-title {
+            font-size: 1.5em;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .date-subtitle {
+            color: #4a5568;
+        }
+
+        .stats {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            color: #4a5568;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #edf2f7;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .section-count {
+            background: #6c5ce7;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .urgent-section .section-title {
+            color: #c53030;
+        }
+
+        .urgent-section .section-count {
+            background: #c53030;
+        }
+
+        .overdue-section .section-title {
+            color: #e53e3e;
+        }
+
+        .overdue-section .section-count {
+            background: #e53e3e;
+        }
+
+        .calendar-section .section-title {
+            color: #3182ce;
+        }
+
+        .calendar-section .section-count {
+            background: #3182ce;
+        }
+
+        .regular-section .section-title {
+            color: #38a169;
+        }
+
+        .regular-section .section-count {
+            background: #38a169;
+        }
+
+        .projects-section .section-title {
+            color: #805ad5;
+        }
+
+        .projects-section .section-count {
+            background: #805ad5;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #6c5ce7;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            background: #f0f0ff;
+            border-left-color: #5f4fcf;
+        }
+
+        .task-item.overdue {
+            border-left-color: #e53e3e;
+            background: #fef5f5;
+        }
+
+        .task-item.overdue:hover {
+            background: #fed7d7;
+        }
+
+        .task-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .task-title {
+            font-size: 1.1em;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .task-project {
+            background: #e0e6ff;
+            color: #6c5ce7;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .task-priority {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .priority-high-task {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .priority-medium-task {
+            background: #fef5e7;
+            color: #dd6b20;
+        }
+
+        .priority-low-task {
+            background: #f0fff4;
+            color: #38a169;
+        }
+
+        .task-source {
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .task-progress {
+            background: #e6fffa;
+            color: #38a169;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .task-overdue {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #38a169;
+        }
+
+        .btn-secondary {
+            background: #6c5ce7;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5f4fcf;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+
+        .btn-edit {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #3182ce;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .empty-state.good {
+            color: #38a169;
+        }
+
+        .quick-add {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .quick-add-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        .quick-add-input:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+
+        .progress-indicator {
+            background: #edf2f7;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            background: #48bb78;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #4a5568;
+            font-size: 0.9em;
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #edf2f7;
+        }
+
+        .modal-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .close {
+            color: #718096;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #2d3748;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navigation">
+            <!-- СОЗДАНИЕ ЗАДАЧ -->
+            <div style="margin-bottom: 10px; color: white; font-weight: bold; text-align: center;">СОЗДАНИЕ ЗАДАЧ:</div>
+            <a href="urgent-flow.html" class="nav-btn">⚡ Срочные</a>
+            <a href="repeat-flow.html" class="nav-btn">🔄 Повторы</a>
+            <a href="calendar-events.html" class="nav-btn">📅 События</a>
+            <a href="calendar-recurring.html" class="nav-btn">🔄 Календарные</a>
+            <a href="projects-flow.html" class="nav-btn">🎯 Проекты</a>
+            
+            <!-- КОЛЛЕКТОРЫ -->
+            <div style="margin: 15px 0 5px 0; color: white; font-weight: bold; text-align: center;">КОЛЛЕКТОРЫ:</div>
+            <a href="week-collector.html" class="nav-btn">📅 Неделя</a>
+            <a href="archive-viewer.html" class="nav-btn">📊 Архив</a>
+            
+            <!-- НАСТРОЙКИ -->
+            <div style="margin: 15px 0 5px 0; color: white; font-weight: bold; text-align: center;">НАСТРОЙКИ:</div>
+            <a href="category-manager.html" class="nav-btn">📂 Категории</a>
+            <a href="../shared/tags.js" class="nav-btn">🏷️ Теги</a>
+        </div>
+
+        <div class="header">
+            <h1>📱 ПЛАН ДНЯ</h1>
+            <p>Все задачи на сегодня в одном месте</p>
+        </div>
+
+        <div class="date-info">
+            <div class="date-title" id="dateTitle">Понедельник, 16 сентября 2025</div>
+            <div class="date-subtitle" id="dateSubtitle">Неделя 37</div>
+        </div>
+
+        <div class="stats">
+            <span id="totalStats">Загружается статистика...</span>
+        </div>
+
+        <div class="progress-indicator">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="progress-text" id="progressText">Выполнено: 0 из 0 задач</div>
+
+        <div class="quick-add">
+            <input type="text" class="quick-add-input" id="quickTaskInput" placeholder="Быстро добавить задачу на сегодня...">
+            <button onclick="addQuickTask()" class="btn btn-primary">Добавить</button>
+        </div>
+
+        <!-- ПРОСРОЧЕННЫЕ ЗАДАЧИ -->
+        <div class="section overdue-section" id="overdueSection" style="display: none;">
+            <div class="section-header">
+                <div class="section-title">🚨 ПРОСРОЧЕННЫЕ ЗАДАЧИ</div>
+                <div class="section-count" id="overdueCount">0</div>
+            </div>
+            <div id="overdueTasks"></div>
+        </div>
+
+        <!-- Календарные события -->
+        <div class="section calendar-section">
+            <div class="section-header">
+                <div class="section-title">📅 КАЛЕНДАРЬ НА СЕГОДНЯ</div>
+                <div class="section-count" id="calendarCount">0</div>
+            </div>
+            <div id="calendarTasks">
+                <div class="empty-state good">Календарных событий на сегодня нет</div>
+            </div>
+        </div>
+
+        <!-- Срочные задачи -->
+        <div class="section urgent-section">
+            <div class="section-header">
+                <div class="section-title">⚡ СРОЧНЫЕ НА СЕГОДНЯ</div>
+                <div class="section-count" id="urgentCount">0</div>
+            </div>
+            <div id="urgentTasks">
+                <div class="empty-state good">Срочных задач на сегодня нет</div>
+            </div>
+        </div>
+
+        <!-- Регулярные задачи -->
+        <div class="section regular-section">
+            <div class="section-header">
+                <div class="section-title">🔄 МОЖНО СДЕЛАТЬ СЕГОДНЯ</div>
+                <div class="section-count" id="regularCount">0</div>
+            </div>
+            <div id="regularTasks">
+                <div class="empty-state good">Регулярных задач пока нет</div>
+            </div>
+        </div>
+
+        <!-- Проектные задачи -->
+        <div class="section projects-section">
+            <div class="section-header">
+                <div class="section-title">🎯 ИЗ ПРОЕКТОВ</div>
+                <div class="section-count" id="projectsCount">0</div>
+            </div>
+            <div id="projectsTasks">
+                <div class="empty-state good">Проектных задач на сегодня нет</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">✏️ Редактировать задачу</span>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Название задачи:</label>
+                <input type="text" id="editTaskName" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Дата:</label>
+                <input type="date" id="editTaskDate" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Проект:</label>
+                <select id="editTaskProject" class="form-select">
+                    <option value="">Без проекта</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Приоритет:</label>
+                <select id="editTaskPriority" class="form-select">
+                    <option value="">Не указан</option>
+                    <option value="high">🔥 Высокий</option>
+                    <option value="medium">🟡 Средний</option>
+                    <option value="low">🟢 Низкий</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="saveTaskEdit()" class="btn btn-primary">Сохранить</button>
+                <button onclick="closeEditModal()" class="btn btn-secondary">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let dayData = {
+            urgent: [],
+            overdue: [],
+            repeat: [],
+            calendar: [],
+            projects: [],
+            quick: []
+        };
+
+        let completedToday = 0;
+        let totalToday = 0;
+        let currentEditTask = null;
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== ПЛАН ДНЯ ЗАГРУЖАЕТСЯ ===');
+            loadDayData();
+            renderDateInfo();
+            renderAllSections();
+            updateStats();
+            setupQuickAdd();
+            loadProjectsForEdit();
+        });
+
+        // Загрузка данных на сегодня - ИСПРАВЛЕННАЯ ВЕРСИЯ
+        function loadDayData() {
+            const today = new Date().toISOString().split('T')[0];
+            console.log('Загружаем данные на:', today);
+            
+            // Сбрасываем данные
+            dayData = {
+                urgent: [],
+                overdue: [],
+                repeat: [],
+                calendar: [],
+                projects: [],
+                quick: []
+            };
+
+            // 1. Загружаем Urgent задачи
+            try {
+                const allUrgent = JSON.parse(localStorage.getItem('urgentTasks') || '[]');
+                console.log('Все urgent задачи:', allUrgent);
+                
+                allUrgent.forEach(task => {
+                    if (task.scheduledDate === today) {
+                        dayData.urgent.push(task);
+                    } else if (task.scheduledDate < today) {
+                        const overdueDays = calculateOverdueDays(task.scheduledDate, today);
+                        dayData.overdue.push({
+                            ...task,
+                            overdueDays: overdueDays,
+                            source: 'urgent'
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки urgent:', error);
+            }
+
+            // 2. Загружаем Repeat задачи
+            try {
+                const repeatPools = JSON.parse(localStorage.getItem('repeatPools') || '[]');
+                console.log('Repeat пулы:', repeatPools);
+                
+                repeatPools.forEach((pool, poolIndex) => {
+                    if (pool.tasks && Array.isArray(pool.tasks)) {
+                        pool.tasks.forEach((task, taskIndex) => {
+                            const completed = task.completed || 0;
+                            const target = task.targetPerWeek || task.target || 1;
+                            
+                            if (completed < target) {
+                                dayData.repeat.push({
+                                    name: task.name,
+                                    completed: completed,
+                                    targetPerWeek: target,
+                                    poolName: pool.name,
+                                    poolIndex: poolIndex,
+                                    taskIndex: taskIndex,
+                                    project: pool.project
+                                });
+                            }
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки repeat:', error);
+            }
+
+            // 3. Загружаем Quick задачи
+            try {
+                const quickTasks = JSON.parse(localStorage.getItem('quickTasks') || '[]');
+                dayData.quick = quickTasks.filter(task => 
+                    task.date === today && !task.completed
+                );
+            } catch (error) {
+                console.error('Ошибка загрузки quick:', error);
+            }
+
+            // 4. Загружаем Календарные события
+            try {
+                const allEvents = JSON.parse(localStorage.getItem('calendarEvents') || '[]');
+                dayData.calendar = allEvents.filter(event => 
+                    event.date === today && !event.completed
+                );
+                
+                // Добавляем повторяющиеся события
+                try {
+                    const recurringEvents = JSON.parse(localStorage.getItem('recurringEvents') || '[]');
+                    const recurringToday = getRecurringEventsForDate(recurringEvents, today);
+                    dayData.calendar = dayData.calendar.concat(recurringToday);
+                } catch (recurringError) {
+                    console.error('Ошибка загрузки повторяющихся событий:', recurringError);
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки календарных событий:', error);
+            }
+
+            // 5. Загружаем Проектные задачи - ОСНОВНОЕ ИЗМЕНЕНИЕ
+            try {
+                const projectsFlow = JSON.parse(localStorage.getItem('projectsFlow') || '[]');
+                const { todayTasks, overdueTasks } = getProjectTasksForDay(projectsFlow, today);
+                
+                dayData.projects = todayTasks;
+                dayData.overdue = dayData.overdue.concat(overdueTasks);
+                
+                console.log('Проектных задач на сегодня:', todayTasks.length);
+                console.log('Просроченных проектных задач:', overdueTasks.length);
+            } catch (error) {
+                console.error('Ошибка загрузки проектных задач:', error);
+            }
+
+            // Итоговая диагностика
+            console.log('=== ИТОГО ЗАГРУЖЕНО ===');
+            console.log('Urgent:', dayData.urgent.length);
+            console.log('Overdue:', dayData.overdue.length);
+            console.log('Repeat:', dayData.repeat.length);
+            console.log('Calendar:', dayData.calendar.length);
+            console.log('Projects:', dayData.projects.length);
+            console.log('Quick:', dayData.quick.length);
+        }
+
+        // Функция для получения проектных задач на дату - ИСПРАВЛЕННАЯ
+        function getProjectTasksForDay(projectsData, targetDateStr) {
+            const todayTasks = [];
+            const overdueTasks = [];
+            const today = new Date(targetDateStr);
+            
+            projectsData.forEach(project => {
+                if (!project.stages) return;
+                
+                project.stages.forEach(stage => {
+                    if (!stage.subtasks) return;
+                    
+                    stage.subtasks.forEach(subtask => {
+                        if (subtask.completed) return;
+                        
+                        // Обратная совместимость: старые задачи с type='fixed' работают как dateType='deadline'
+                        const dateType = subtask.dateType || (subtask.type === 'fixed' ? 'deadline' : null);
+                        
+                        if (!dateType) return;
+                        
+                        // 1. Задачи с deadline на сегодня
+                        if (dateType === 'deadline' && subtask.deadline === targetDateStr) {
+                            todayTasks.push({
+                                id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                                name: subtask.name,
+                                project: project.name,
+                                stage: stage.name,
+                                deadline: subtask.deadline,
+                                dateType: 'deadline',
+                                source: 'projects'
+                            });
+                        }
+                        // 2. Задачи с timeframe, где сегодня в периоде
+                        else if (dateType === 'timeframe' && subtask.startDate && subtask.endDate) {
+                            if (targetDateStr >= subtask.startDate && targetDateStr <= subtask.endDate) {
+                                todayTasks.push({
+                                    id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                                    name: subtask.name,
+                                    project: project.name,
+                                    stage: stage.name,
+                                    startDate: subtask.startDate,
+                                    endDate: subtask.endDate,
+                                    dateType: 'timeframe',
+                                    source: 'projects'
+                                });
+                            }
+                        }
+                        // 3. Просроченные задачи с deadline
+                        else if (dateType === 'deadline' && subtask.deadline && subtask.deadline < targetDateStr) {
+                            const overdueDays = Math.ceil((today - new Date(subtask.deadline)) / (1000 * 60 * 60 * 24));
+                            overdueTasks.push({
+                                id: `project_${project.id}_${stage.id}_${subtask.id}`,
+                                name: subtask.name,
+                                project: project.name,
+                                stage: stage.name,
+                                deadline: subtask.deadline,
+                                overdueDays: overdueDays,
+                                dateType: 'deadline',
+                                source: 'projects'
+                            });
+                        }
+                    });
+                });
+            });
+            
+            return { todayTasks, overdueTasks };
+        }
+
+        // Остальные функции остаются такими же как в предыдущем рабочем коде
+        function calculateOverdueDays(taskDate, todayDate) {
+            const task = new Date(taskDate);
+            const today = new Date(todayDate);
+            const diffTime = today - task;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        function getRecurringEventsForDate(recurringEvents, targetDateStr) {
+            const events = [];
+            const target = new Date(targetDateStr);
+            
+            recurringEvents.forEach(event => {
+                if (!event.active) return;
+                
+                const { recurrence } = event;
+                let matches = false;
+                
+                try {
+                    if (recurrence.type === 'monthly_date') {
+                        matches = target.getDate() === recurrence.date;
+                    } else if (recurrence.type === 'weekly') {
+                        matches = target.getDay() === recurrence.dayOfWeek;
+                    } else if (recurrence.type === 'interval_days') {
+                        const startDate = new Date(recurrence.startDate);
+                        const diffTime = target.getTime() - startDate.getTime();
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        matches = diffDays >= 0 && diffDays % recurrence.interval === 0;
+                    } else if (recurrence.type === 'yearly') {
+                        const recurDate = new Date(recurrence.date);
+                        matches = target.getDate() === recurDate.getDate() && 
+                                 target.getMonth() === recurDate.getMonth();
+                    }
+                    
+                    if (matches) {
+                        events.push({
+                            id: `recurring_${event.id}_${targetDateStr}`,
+                            name: event.name,
+                            date: targetDateStr,
+                            time: recurrence.time || null,
+                            project: event.project,
+                            description: event.description,
+                            source: 'recurring',
+                            originalId: event.id
+                        });
+                    }
+                } catch (error) {
+                    console.error('Ошибка проверки повторяющегося события:', error);
+                }
+            });
+            
+            return events;
+        }
+
+        function renderDateInfo() {
+            const today = new Date();
+            const dateOptions = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            const weekNumber = getWeekNumber(today);
+            
+            document.getElementById('dateTitle').textContent = 
+                today.toLocaleDateString('ru-RU', dateOptions);
+            document.getElementById('dateSubtitle').textContent = 
+                `Неделя ${weekNumber}`;
+        }
+
+        function renderAllSections() {
+            renderOverdueTasks();
+            renderCalendarTasks();
+            renderUrgentTasks();
+            renderRegularTasks();
+            renderProjectsTasks();
+            updateAllCounts();
+            updateProgress();
+        }
+
+        function renderOverdueTasks() {
+            const container = document.getElementById('overdueTasks');
+            const section = document.getElementById('overdueSection');
+            
+            if (dayData.overdue.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            const html = dayData.overdue.map(task => {
+                const priorityClass = task.priority ? `priority-${task.priority}-task` : '';
+                const priorityText = {
+                    high: '🔥 Высокий',
+                    medium: '🟡 Средний', 
+                    low: '🟢 Низкий'
+                }[task.priority] || '';
+
+                const overdueText = task.overdueDays === 1 ? '1 дн. назад' : `${task.overdueDays} дн. назад`;
+
+                return `
+                    <div class="task-item overdue">
+                        <div class="task-title">${task.name}</div>
+                        <div class="task-meta">
+                            ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
+                            ${priorityText ? `<span class="task-priority ${priorityClass}">${priorityText}</span>` : ''}
+                            <span class="task-overdue">⏰ ${overdueText}</span>
+                            <span class="task-source">${task.source === 'projects' ? '🎯 Проект' : '⚡ Urgent'}</span>
+                        </div>
+                        <div class="task-actions">
+                            <button onclick="completeTask('overdue', '${task.id}')" class="btn btn-primary">✅ Готово</button>
+                            ${task.source !== 'projects' ? `<button onclick="moveToToday('${task.id}')" class="btn btn-warning">📅 На сегодня</button>` : ''}
+                            ${task.source !== 'projects' ? `<button onclick="editTask('urgent', '${task.id}')" class="btn btn-edit">✏️ Редактировать</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        function renderCalendarTasks() {
+            const container = document.getElementById('calendarTasks');
+            
+            if (dayData.calendar.length === 0) {
+                container.innerHTML = '<div class="empty-state good">Календарных событий на сегодня нет</div>';
+                return;
+            }
+
+            const html = dayData.calendar.map(event => {
+                const timeDisplay = event.time ? ` в ${event.time}` : '';
+                const sourceIcon = event.source === 'recurring' ? '🔄' : '📅';
+                const sourceText = event.source === 'recurring' ? 'Регулярное' : 'Календарь';
+                
+                return `
+                    <div class="task-item">
+                        <div class="task-title">${event.name}${timeDisplay}</div>
+                        <div class="task-meta">
+                            ${event.project ? `<span class="task-project">📁 ${event.project}</span>` : ''}
+                            <span class="task-source">${sourceIcon} ${sourceText}</span>
+                        </div>
+                        ${event.description ? `<div style="color: #4a5568; font-size: 0.9em; margin-bottom: 10px;">${event.description}</div>` : ''}
+                        <div class="task-actions">
+                            <button onclick="completeCalendarEvent('${event.id}')" class="btn btn-primary">✅ Готово</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        function renderUrgentTasks() {
+            const container = document.getElementById('urgentTasks');
+            const allUrgent = [...dayData.urgent, ...dayData.quick];
+            
+            if (allUrgent.length === 0) {
+                container.innerHTML = '<div class="empty-state good">Срочных задач на сегодня нет</div>';
+                return;
+            }
+
+            const html = allUrgent.map(task => {
+                const isQuickTask = task.isQuick;
+                const priorityClass = task.priority ? `priority-${task.priority}-task` : '';
+                const priorityText = {
+                    high: '🔥 Высокий',
+                    medium: '🟡 Средний', 
+                    low: '🟢 Низкий'
+                }[task.priority] || '';
+
+                return `
+                    <div class="task-item">
+                        <div class="task-title">${task.name}</div>
+                        <div class="task-meta">
+                            ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
+                            ${priorityText ? `<span class="task-priority ${priorityClass}">${priorityText}</span>` : ''}
+                            <span class="task-source">${isQuickTask ? '⚡ Быстрая' : '⚡ Urgent'}</span>
+                        </div>
+                        <div class="task-actions">
+                            <button onclick="completeTask('${isQuickTask ? 'quick' : 'urgent'}', '${task.id}')" class="btn btn-primary">✅ Готово</button>
+                            ${!isQuickTask ? `<button onclick="editTask('urgent', '${task.id}')" class="btn btn-edit">✏️ Редактировать</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        function renderRegularTasks() {
+            const container = document.getElementById('regularTasks');
+            
+            if (dayData.repeat.length === 0) {
+                container.innerHTML = '<div class="empty-state good">Регулярных задач пока нет</div>';
+                return;
+            }
+
+            const html = dayData.repeat.map(task => {
+                const completed = task.completed || 0;
+                const target = task.targetPerWeek;
+                
+                return `
+                    <div class="task-item">
+                        <div class="task-title">${task.poolName}: ${task.name}</div>
+                        <div class="task-meta">
+                            ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
+                            <span class="task-progress">📊 ${completed}/${target} на неделю</span>
+                            <span class="task-source">🔄 Регулярная</span>
+                        </div>
+                        <div class="task-actions">
+                            <button onclick="completeRepeatTask(${task.poolIndex}, ${task.taskIndex})" class="btn btn-primary">✅ +1</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
         function renderProjectsTasks() {
+            const container = document.getElementById('projectsTasks');
+            
+            if (dayData.projects.length === 0) {
+                container.innerHTML = '<div class="empty-state good">Проектных задач на сегодня нет</div>';
+                return;
+            }
+
+            const html = dayData.projects.map(task => {
+                let dateInfo = '';
+                if (task.dateType === 'deadline' && task.deadline) {
+                    dateInfo = `<span class="task-overdue">⏰ Дедлайн: ${formatDate(task.deadline)}</span>`;
+                } else if (task.dateType === 'timeframe' && task.startDate
+                                   function renderProjectsTasks() {
             const container = document.getElementById('projectsTasks');
             
             if (dayData.projects.length === 0) {
