@@ -1146,14 +1146,14 @@ function renderProjectsTasks() {
         }
 
 
-        // Обновление счетчиков
-        function updateAllCounts() {
-            document.getElementById('calendarCount').textContent = '0';
-            document.getElementById('urgentCount').textContent = dayData.urgent.length + dayData.quick.length;
-            document.getElementById('regularCount').textContent = dayData.repeat.length;
-            document.getElementById('projectsCount').textContent = '0';
-            document.getElementById('overdueCount').textContent = dayData.overdue.length;
-        }
+// Обновление счетчиков
+function updateAllCounts() {
+    document.getElementById('calendarCount').textContent = dayData.calendar.length;
+    document.getElementById('urgentCount').textContent = dayData.urgent.length + dayData.quick.length;
+    document.getElementById('regularCount').textContent = dayData.repeat.length;
+    document.getElementById('projectsCount').textContent = dayData.projects.length;
+    document.getElementById('overdueCount').textContent = dayData.overdue.length;
+}
 
         // Обновление прогресса (включая просроченные!)
         function updateProgress() {
