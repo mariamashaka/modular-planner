@@ -1000,11 +1000,58 @@ function getProjectTasksForDay(projectsData, targetDateStr) {
         function renderCalendarTasks() {
             const container = document.getElementById('calendarTasks');
             
-            if (dayData.calendar.length === 0) {
-                container.innerHTML = '<div class="empty-state good">Календарных событий на сегодня нет</div>';
-                return;
-            }
+// Проектные задачи
+function renderProjectsTasks() {
+    const container = document.getElementById('projectsTasks');
+    
+    if (dayData.projects.length === 0) {
+        container.innerHTML = '<div class="empty-state good">Проектных задач на сегодня нет</div>';
+        return;
+    }
 
+    // Сортируем по приоритету: высокий вверху
+    const sortedProjects = [...dayData.projects].sort((a, b) => {
+        const priorityOrder = { high: 1, medium: 2, low: 3 };
+        const aPriority = priorityOrder[a.priority] || 999;
+        const bPriority = priorityOrder[b.priority] || 999;
+        return aPriority - bPriority;
+    });
+
+    const html = sortedProjects.map(task => {
+        const priorityClass = task.priority ? `priority-${task.priority}-task` : '';
+        const priorityText = {
+            high: '🔥 Высокий',
+            medium: '🟡 Средний', 
+            low: '🟢 Низкий'
+        }[task.priority] || '';
+
+        // Определяем тип даты для отображения
+        let dateInfo = '';
+        if (task.deadline) {
+            dateInfo = `<span class="task-source">📅 Дедлайн: ${task.deadline}</span>`;
+        } else if (task.startDate && task.endDate) {
+            dateInfo = `<span class="task-source">📅 ${task.startDate} - ${task.endDate}</span>`;
+        }
+
+        return `
+            <div class="task-item">
+                <div class="task-title">${task.name}</div>
+                <div class="task-meta">
+                    ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
+                    ${task.stage ? `<span class="task-project">📋 ${task.stage}</span>` : ''}
+                    ${priorityText ? `<span class="task-priority ${priorityClass}">${priorityText}</span>` : ''}
+                    ${dateInfo}
+                    <span class="task-source">🎯 Проект</span>
+                </div>
+                <div class="task-actions">
+                    <button onclick="completeProjectTask('${task.id}')" class="btn btn-primary">✅ Готово</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = html;
+}
             const html = dayData.calendar.map(event => {
                 const timeDisplay = event.time ? ` в ${event.time}` : '';
                 const sourceIcon = event.source === 'recurring' ? '🔄' : '📅';
