@@ -1394,6 +1394,79 @@ function updateAllCounts() {
             }
         }
 
+        // Выполнение проектной задачи
+        function completeProjectTask(taskId) {
+            console.log('Выполнение проектной задачи:', taskId);
+            
+            // Парсим ID: project_123_456_789
+            const parts = taskId.split('_');
+            if (parts.length !== 4) {
+                alert('Ошибка: неверный формат ID задачи');
+                return;
+            }
+            
+            const projectId = parseInt(parts[1]);
+            const stageId = parseInt(parts[2]);
+            const subtaskId = parseInt(parts[3]);
+            
+            // Загружаем проекты
+            const projectsFlow = JSON.parse(localStorage.getItem('projectsFlow') || '[]');
+            
+            // Находим проект, этап и задачу
+            const project = projectsFlow.find(p => p.id === projectId);
+            if (!project) {
+                alert('Проект не найден');
+                return;
+            }
+            
+            const stage = project.stages.find(s => s.id === stageId);
+            if (!stage) {
+                alert('Этап не найден');
+                return;
+            }
+            
+            const subtask = stage.subtasks.find(st => st.id === subtaskId);
+            if (!subtask) {
+                alert('Задача не найдена');
+                return;
+            }
+            
+            // Отмечаем как выполненную
+            subtask.completed = true;
+            subtask.completedDate = new Date().toISOString().split('T')[0];
+            
+            // Архивируем
+            try {
+                if (typeof window.ArchiveManager !== 'undefined') {
+                    const archiveData = {
+                        id: Date.now(),
+                        text: `${project.name} → ${stage.name} → ${subtask.name}`,
+                        moduleType: 'projects-flow',
+                        projectId: project.name,
+                        date: subtask.deadline || subtask.endDate || null,
+                        createdAt: new Date().toISOString()
+                    };
+                    window.ArchiveManager.archive(archiveData);
+                }
+            } catch (error) {
+                console.error('Ошибка архивирования:', error);
+            }
+            
+            // Сохраняем
+            localStorage.setItem('projectsFlow', JSON.stringify(projectsFlow));
+            
+            // Удаляем из dayData и обновляем
+            dayData.projects = dayData.projects.filter(t => t.id !== taskId);
+            completedToday++;
+            
+            renderProjectsTasks();
+            updateAllCounts();
+            updateProgress();
+            updateStats();
+            
+            alert('Проектная задача выполнена!');
+        }
+
         // Редактирование задачи
         function editTask(source, taskId) {
             let task;
