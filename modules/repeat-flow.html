@@ -765,6 +765,21 @@
                 notification.style.display = 'none';
             }, 3000);
         }
+        function manualReset() {
+    if (!confirm('Сбросить все задачи на новую неделю?')) return;
+    
+    repeatPools.forEach(pool => {
+        pool.tasks.forEach(task => {
+            task.completed = 0;
+        });
+    });
+    
+    saveData();
+    const weekKey = getWeekKey(new Date());
+    localStorage.setItem('lastResetWeek', weekKey);
+    
+    location.reload();
+}
     </script>
 </body>
 </html>
