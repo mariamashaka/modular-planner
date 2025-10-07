@@ -924,16 +924,16 @@ function getProjectTasksForDay(projectsData, targetDateStr) {
                 `Неделя ${weekNumber}`;
         }
 
-        // Отрисовка всех секций
-        function renderAllSections() {
-            renderOverdueTasks();
-            renderCalendarTasks();
-            renderUrgentTasks();
-            renderRegularTasks();
-            renderProjectsTasks();
-            updateAllCounts();
-            updateProgress();
-        }
+// Отрисовка всех секций
+function renderAllSections() {
+    renderOverdueTasks();
+    renderCalendarTasks();
+    renderUrgentTasks();
+    renderProjectsTasks();
+    renderRegularTasks();
+    updateAllCounts();
+    updateProgress();
+}
 
         // Просроченные задачи
         function renderOverdueTasks() {
