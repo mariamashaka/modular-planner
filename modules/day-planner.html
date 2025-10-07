@@ -1019,8 +1019,17 @@ function renderAllSections() {
                 container.innerHTML = '<div class="empty-state good">Срочных задач на сегодня нет</div>';
                 return;
             }
+            
+    // Сортируем по приоритету
+    const sortedUrgent = allUrgent.sort((a, b) => {
+        const priorityOrder = { high: 1, medium: 2, low: 3 };
+        const aPriority = priorityOrder[a.priority] || 999;
+        const bPriority = priorityOrder[b.priority] || 999;
+        return aPriority - bPriority;
+    });
 
-            const html = allUrgent.map(task => {
+    const html = sortedUrgent.map(task => {
+                
                 const isQuickTask = task.isQuick;
                 const priorityClass = task.priority ? `priority-${task.priority}-task` : '';
                 const priorityText = {
