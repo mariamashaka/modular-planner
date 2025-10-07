@@ -947,8 +947,21 @@ function renderAllSections() {
             }
 
             section.style.display = 'block';
+    // Сортируем: сначала по дням просрочки (больше = выше), потом по приоритету
+    const sortedOverdue = [...dayData.overdue].sort((a, b) => {
+        // Сначала по просрочке (больше дней = выше)
+        if (a.overdueDays !== b.overdueDays) {
+            return b.overdueDays - a.overdueDays;
+        }
+        // Потом по приоритету
+        const priorityOrder = { high: 1, medium: 2, low: 3 };
+        const aPriority = priorityOrder[a.priority] || 999;
+        const bPriority = priorityOrder[b.priority] || 999;
+        return aPriority - bPriority;
+    });
 
-            const html = dayData.overdue.map(task => {
+    const html = sortedOverdue.map(task => {
+        
                 const priorityClass = task.priority ? `priority-${task.priority}-task` : '';
                 const priorityText = {
                     high: '🔥 Высокий',
