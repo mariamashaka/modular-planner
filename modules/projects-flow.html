@@ -1171,18 +1171,20 @@ function formatDate(dateString) {
                                 let subtaskTypeClass = '';
                                 let subtaskTypeText = '';
                                 
-                                if (subtask.dateType) {
-                                    // Новый формат с dateType
-                                    subtaskTypeClass = subtask.dateType;
-                                    subtaskTypeText = subtask.dateType === 'deadline' ? 'Дедлайн' : 
-                                                     subtask.dateType === 'timeframe' ? 'Период' : 'Когда-нибудь';
-                                } else {
-                                    // Старый формат с type
-                                    subtaskTypeClass = subtask.type;
-                                    subtaskTypeText = subtask.type === 'flexible' ? 'Гибкая' : 'Жесткий дедлайн';
-                                }
+if (subtask.dateType) {
+    // Новый формат с dateType
+    subtaskTypeClass = subtask.dateType;
+    subtaskTypeText = subtask.dateType === 'deadline' ? 'Дедлайн' : 
+                     subtask.dateType === 'timeframe' ? 'Период' : 'Когда-нибудь';
+} else {
+    // Старый формат с type
+    subtaskTypeClass = subtask.type;
+    subtaskTypeText = subtask.type === 'flexible' ? 'Гибкая' : 'Жесткий дедлайн';
+}
 
-                                let dateInfo = '';
+const completedClass = subtask.completed ? 'completed' : '';
+
+let dateInfo = '';
                                 if (subtask.dateType === 'deadline' && subtask.deadline) {
                                     dateInfo = `<br><small>до ${formatDate(subtask.deadline)}</small>`;
                                 } else if (subtask.dateType === 'timeframe' && subtask.startDate && subtask.endDate) {
