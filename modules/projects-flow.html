@@ -1508,7 +1508,8 @@ function formatDate(dateString) {
                 return;
             }
 
-            const html = currentStage.subtasks.map((subtask, index) => {
+const html = currentStage.subtasks.map((subtask, index) => {
+    const completedClass = subtask.completed ? 'completed' : '';
                 // Определяем тип отображения для подзадачи (обратная совместимость)
                 let subtaskTypeClass = '';
                 let subtaskTypeText = '';
@@ -1535,16 +1536,20 @@ function formatDate(dateString) {
                     }
                 }
 
-                return `
-                    <div class="subtask-item ${subtaskTypeClass}">
+              return `
+                   <div class="subtask-item ${subtaskTypeClass} ${completedClass}">
                         <strong>${subtask.name}</strong>
                         <span class="subtask-type subtask-${subtaskTypeClass}">
                             ${subtaskTypeText}
                         </span>
                         ${dateInfo}
-                        <div style="margin-top: 8px;">
-                            <button onclick="deleteSubtask(${index})" class="btn btn-danger btn-sm">🗑️ Удалить</button>
-                        </div>
+<div style="margin-top: 8px;">
+    ${!subtask.completed ? `
+        <button onclick="completeSubtask(${index})" class="btn btn-success btn-sm">✅ Готово</button>
+        <button onclick="editSubtask(${index})" class="btn btn-warning btn-sm">✏️ Редактировать</button>
+    ` : ''}
+    <button onclick="deleteSubtask(${index})" class="btn btn-danger btn-sm">🗑️ Удалить</button>
+</div>
                     </div>
                 `;
             }).join('');
