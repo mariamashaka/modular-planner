@@ -1193,8 +1193,8 @@ let dateInfo = '';
                                     dateInfo = `<br><small>до ${formatDate(subtask.deadline)}</small>`;
                                 }
 
-                                return `
-                                    <div class="subtask-item ${subtaskTypeClass}">
+                               return `
+                                   <div class="subtask-item ${subtaskTypeClass} ${completedClass}">
                                         ${subtask.name}
                                         <span class="subtask-type subtask-${subtaskTypeClass}">
                                             ${subtaskTypeText}
