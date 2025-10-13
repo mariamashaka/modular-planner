@@ -1569,6 +1569,80 @@ const html = currentStage.subtasks.map((subtask, index) => {
             alert('Подзадача удалена');
         }
 
+        // Выполнить подзадачу
+function completeSubtask(subtaskIndex) {
+    if (!currentStage || !currentStage.subtasks[subtaskIndex]) return;
+    
+    const subtask = currentStage.subtasks[subtaskIndex];
+    
+    if (!confirm(`Отметить задачу "${subtask.name}" как выполненную?`)) return;
+    
+    subtask.completed = true;
+    subtask.completedAt = new Date().toISOString();
+    
+    // Архивируем
+    try {
+        if (typeof window.ArchiveManager !== 'undefined') {
+            const archiveData = {
+                id: subtask.id,
+                text: `${currentProject.name} → ${currentStage.name} → ${subtask.name}`,
+                moduleType: 'projects-flow',
+                projectId: currentProject.name,
+                date: subtask.deadline || subtask.endDate || null,
+                createdAt: subtask.completedAt
+            };
+            window.ArchiveManager.archive(archiveData);
+        }
+    } catch (error) {
+        console.error('Ошибка архивирования:', error);
+    }
+    
+    saveProjects();
+    renderSubtasks();
+    renderProjectDetails();
+    
+    alert('Задача выполнена!');
+}
+
+// Редактировать подзадачу
+function editSubtask(subtaskIndex) {
+    if (!currentStage || !currentStage.subtasks[subtaskIndex]) return;
+    
+    const subtask = currentStage.subtasks[subtaskIndex];
+    
+    const newName = prompt('Новое название задачи:', subtask.name);
+    if (newName === null || !newName.trim()) return;
+    
+    subtask.name = newName.trim();
+    
+    // Если у задачи есть дедлайн, предлагаем его изменить
+    if (subtask.dateType === 'deadline' || subtask.type === 'fixed') {
+        const newDeadline = prompt('Новый дедлайн (YYYY-MM-DD):', subtask.deadline || '');
+        if (newDeadline && /^\d{4}-\d{2}-\d{2}$/.test(newDeadline)) {
+            subtask.deadline = newDeadline;
+        }
+    }
+    
+    // Если у задачи период, предлагаем его изменить
+    if (subtask.dateType === 'timeframe') {
+        const newStartDate = prompt('Новая дата начала (YYYY-MM-DD):', subtask.startDate || '');
+        if (newStartDate && /^\d{4}-\d{2}-\d{2}$/.test(newStartDate)) {
+            subtask.startDate = newStartDate;
+        }
+        
+        const newEndDate = prompt('Новая дата окончания (YYYY-MM-DD):', subtask.endDate || '');
+        if (newEndDate && /^\d{4}-\d{2}-\d{2}$/.test(newEndDate)) {
+            subtask.endDate = newEndDate;
+        }
+    }
+    
+    saveProjects();
+    renderSubtasks();
+    renderProjectDetails();
+    
+    alert('Задача обновлена!');
+}
+
         // Редактировать проект
         function editProject() {
             if (!currentProject) return;
