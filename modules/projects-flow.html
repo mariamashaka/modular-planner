@@ -1172,19 +1172,23 @@ function formatDate(dateString) {
 
 let subtasksHtml = '';
 if (stage.subtasks && stage.subtasks.length > 0) {
-    // Сортируем подзадачи по датам
+    // СОРТИРОВКА ПОДЗАДАЧ ПО ДАТАМ - ИСПРАВЛЕННАЯ ВЕРСИЯ
     const sortedSubtasks = [...stage.subtasks].sort((a, b) => {
-        // Получаем дату для сравнения
-        const getDate = (task) => {
-            if (task.dateType === 'deadline' || task.type === 'fixed') {
-                return task.deadline || '9999-12-31';
-            } else if (task.dateType === 'timeframe') {
-                return task.startDate || '9999-12-31';
-            }
-            return '9999-12-31'; // someday в конец
+        // Функция для получения даты из подзадачи
+        const getDateValue = (task) => {
+            // Если есть дедлайн - используем его
+            if (task.deadline) return new Date(task.deadline);
+            // Если есть дата начала периода - используем ее
+            if (task.startDate) return new Date(task.startDate);
+            // Если нет дат - ставим в самый конец
+            return new Date('9999-12-31');
         };
         
-        return getDate(a).localeCompare(getDate(b));
+        const dateA = getDateValue(a);
+        const dateB = getDateValue(b);
+        
+        // Сортируем от ближайших к дальним
+        return dateA - dateB;
     });
     
     subtasksHtml = `
