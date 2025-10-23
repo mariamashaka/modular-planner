@@ -1170,11 +1170,26 @@ function formatDate(dateString) {
                 const statusClass = stage.completed ? 'completed' : (isOverdue ? 'overdue' : 'pending');
                 const statusText = stage.completed ? 'Завершен' : (isOverdue ? 'Просрочен' : 'В работе');
 
-                let subtasksHtml = '';
-                if (stage.subtasks && stage.subtasks.length > 0) {
-                    subtasksHtml = `
-                        <div class="subtasks-list">
-                            ${stage.subtasks.map(subtask => {
+let subtasksHtml = '';
+if (stage.subtasks && stage.subtasks.length > 0) {
+    // Сортируем подзадачи по датам
+    const sortedSubtasks = [...stage.subtasks].sort((a, b) => {
+        // Получаем дату для сравнения
+        const getDate = (task) => {
+            if (task.dateType === 'deadline' || task.type === 'fixed') {
+                return task.deadline || '9999-12-31';
+            } else if (task.dateType === 'timeframe') {
+                return task.startDate || '9999-12-31';
+            }
+            return '9999-12-31'; // someday в конец
+        };
+        
+        return getDate(a).localeCompare(getDate(b));
+    });
+    
+    subtasksHtml = `
+        <div class="subtasks-list">
+            ${sortedSubtasks.map(subtask => {
                                 // Определяем тип отображения для подзадачи (обратная совместимость)
                                 let subtaskTypeClass = '';
                                 let subtaskTypeText = '';
