@@ -495,15 +495,6 @@
             <button onclick="addQuickTask()" class="btn btn-primary">Добавить</button>
         </div>
 
-        <!-- ПРОСРОЧЕННЫЕ ЗАДАЧИ -->
-        <div class="section overdue-section" id="overdueSection" style="display: none;">
-            <div class="section-header">
-                <div class="section-title">🚨 ПРОСРОЧЕННЫЕ ЗАДАЧИ</div>
-                <div class="section-count" id="overdueCount">0</div>
-            </div>
-            <div id="overdueTasks"></div>
-        </div>
-
         <!-- Календарные события -->
         <div class="section calendar-section">
             <div class="section-header">
@@ -548,6 +539,15 @@
             <div id="regularTasks">
                 <div class="empty-state good">Регулярных задач пока нет</div>
             </div>
+        </div>
+
+            <!-- ПРОСРОЧЕННЫЕ ЗАДАЧИ -->
+        <div class="section overdue-section" id="overdueSection" style="display: none;">
+            <div class="section-header">
+                <div class="section-title">🚨 ПРОСРОЧЕННЫЕ ЗАДАЧИ</div>
+                <div class="section-count" id="overdueCount">0</div>
+            </div>
+            <div id="overdueTasks"></div>
         </div>
 
     <!-- Модальное окно редактирования -->
