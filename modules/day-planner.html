@@ -925,11 +925,11 @@ function getProjectTasksForDay(projectsData, targetDateStr) {
 
 // Отрисовка всех секций
 function renderAllSections() {
-    renderOverdueTasks();
     renderCalendarTasks();
     renderUrgentTasks();
     renderProjectsTasks();
     renderRegularTasks();
+    renderOverdueTasks();
     updateAllCounts();
     updateProgress();
 }
