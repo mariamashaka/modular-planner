@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бюджет проекта</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .back-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background: #5f4fcf;
+        }
+
+        .project-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .budget-summary {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .summary-label {
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .summary-value.positive {
+            color: #48bb78;
+        }
+
+        .summary-value.negative {
+            color: #e53e3e;
+        }
+
+        .progress-section {
+            margin-top: 15px;
+        }
+
+        .progress-label {
+            font-size: 0.9em;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            background: #e2e8f0;
+            height: 25px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .budget-items-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .add-item-btn {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-left: auto;
+        }
+
+        .add-item-btn:hover {
+            background: #38a169;
+        }
+
+        .budget-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid #6c5ce7;
+            transition: all 0.3s ease;
+        }
+
+        .budget-item:hover {
+            background: #f0f0ff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .budget-item.overspent {
+            border-left-color: #e53e3e;
+            background: #fef5f5;
+        }
+
+        .budget-item.completed {
+            border-left-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .item-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .item-amounts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .amount-box {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .amount-label {
+            font-size: 0.8em;
+            color: #718096;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .amount-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .amount-value.overspent {
+            color: #e53e3e;
+        }
+
+        .item-progress {
+            margin-top: 10px;
+        }
+
+        .item-progress-bar {
+            background: #e2e8f0;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .item-progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .item-progress-fill.completed {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+        }
+
+        .item-progress-fill.overspent {
+            background: linear-gradient(90deg, #e53e3e, #c53030);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8em;
+        }
+
+        .btn-primary {
+            background: #6c5ce7;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5f4fcf;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        /* МОДАЛЬНОЕ ОКНО */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #edf2f7;
+        }
+
+        .modal-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .close {
+            color: #718096;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #2d3748;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 60px 20px;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .item-amounts {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="projects-flow.html" class="back-btn">← Назад к проекту</a>
+            
+            <div class="project-title" id="projectTitle">Бюджет проекта</div>
+            
+            <div class="budget-summary">
+                <div class="summary-row">
+                    <span class="summary-label">💰 Планируемый бюджет:</span>
+                    <span class="summary-value" id="totalPlanned">0 ₽</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">🏦 Накоплено:</span>
+                    <span class="summary-value positive" id="totalSaved">0 ₽</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">💸 Потрачено:</span>
+                    <span class="summary-value" id="totalSpent">0 ₽</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">📊 Осталось накопить:</span>
+                    <span class="summary-value" id="totalRemaining">0 ₽</span>
+                </div>
+                
+                <div class="progress-section">
+                    <div class="progress-label">Прогресс накопления:</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="totalProgress">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="budget-items-section">
+            <div class="section-title">
+                📋 Статьи бюджета
+                <button class="add-item-btn" onclick="showAddItemModal()">➕ Добавить статью</button>
+            </div>
+            
+            <div id="budgetItemsList">
+                <div class="empty-state">
+                    Статей бюджета пока нет.<br>
+                    Добавьте первую статью расходов!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО - ДОБАВЛЕНИЕ СТАТЬИ -->
+    <div id="addItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">➕ Новая статья бюджета</span>
+                <span class="close" onclick="closeAddItemModal()">&times;</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Название статьи:</label>
+                <input type="text" id="itemName" class="form-input" placeholder="Например: Вентилятор">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Плановая сумма (₽):</label>
+                <input type="number" id="itemPlanned" class="form-input" placeholder="150000">
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="addBudgetItem()" class="btn btn-primary">Добавить</button>
+                <button onclick="closeAddItemModal()" class="btn btn-primary" style="background: #718096;">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО - РЕДАКТИРОВАНИЕ СУММ -->
+    <div id="editItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">✏️ Редактировать суммы</span>
+                <span class="close" onclick="closeEditItemModal()">&times;</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Название:</label>
+                <input type="text" id="editItemName" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Планируемая сумма (₽):</label>
+                <input type="number" id="editItemPlanned" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Накоплено (₽):</label>
+                <input type="number" id="editItemSaved" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Потрачено (₽):</label>
+                <input type="number" id="editItemSpent" class="form-input">
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="saveEditItem()" class="btn btn-primary">Сохранить</button>
+                <button onclick="closeEditItemModal()" class="btn btn-primary" style="background: #718096;">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentProjectId = null;
+        let projects = [];
+        let currentEditIndex = null;
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            // Получаем ID проекта из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            currentProjectId = parseInt(urlParams.get('projectId'));
+            
+            if (!currentProjectId) {
+                alert('Ошибка: не указан ID проекта');
+                window.location.href = 'projects-flow.html';
+                return;
+            }
+
+            loadProjects();
+            renderBudget();
+        });
+
+        // Загрузка проектов из localStorage
+        function loadProjects() {
+            try {
+                const stored = localStorage.getItem('projectsFlow');
+                projects = stored ? JSON.parse(stored) : [];
+            } catch (error) {
+                console.error('Ошибка загрузки проектов:', error);
+                projects = [];
+            }
+        }
+
+        // Сохранение проектов
+        function saveProjects() {
+            try {
+                localStorage.setItem('projectsFlow', JSON.stringify(projects));
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+            }
+        }
+
+        // Получить текущий проект
+        function getCurrentProject() {
+            return projects.find(p => p.id === currentProjectId);
+        }
+
+        // Отрисовка бюджета
+        function renderBudget() {
+            const project = getCurrentProject();
+            if (!project) {
+                alert('Проект не найден');
+                window.location.href = 'projects-flow.html';
+                return;
+            }
+
+            // Название проекта
+            document.getElementById('projectTitle').textContent = `💰 Бюджет: ${project.name}`;
+
+            // Инициализируем бюджет если его нет
+            if (!project.budget) {
+                project.budget = {
+                    items: []
+                };
+            }
+
+            // Подсчёт общих сумм
+            let totalPlanned = 0;
+            let totalSaved = 0;
+            let totalSpent = 0;
+
+            project.budget.items.forEach(item => {
+                totalPlanned += item.planned || 0;
+                totalSaved += item.saved || 0;
+                totalSpent += item.spent || 0;
+            });
+
+            const totalRemaining = totalPlanned - totalSaved;
+            const progress = totalPlanned > 0 ? Math.round((totalSaved / totalPlanned) * 100) : 0;
+
+            // Обновляем итоги
+            document.getElementById('totalPlanned').textContent = formatNumber(totalPlanned) + ' ₽';
+            document.getElementById('totalSaved').textContent = formatNumber(totalSaved) + ' ₽';
+            document.getElementById('totalSpent').textContent = formatNumber(totalSpent) + ' ₽';
+            document.getElementById('totalRemaining').textContent = formatNumber(totalRemaining) + ' ₽';
+            
+            const progressBar = document.getElementById('totalProgress');
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = progress + '%';
+
+            // Отрисовка статей
+            renderBudgetItems();
+        }
+
+        // Отрисовка статей бюджета
+        function renderBudgetItems() {
+            const project = getCurrentProject();
+            const container = document.getElementById('budgetItemsList');
+
+            if (!project.budget || !project.budget.items || project.budget.items.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        Статей бюджета пока нет.<br>
+                        Добавьте первую статью расходов!
+                    </div>
+                `;
+                return;
+            }
+
+            const html = project.budget.items.map((item, index) => {
+                const planned = item.planned || 0;
+                const saved = item.saved || 0;
+                const spent = item.spent || 0;
+                
+                const savingsProgress = planned > 0 ? Math.min(Math.round((saved / planned) * 100), 100) : 0;
+                const overspent = spent > planned;
+                const completed = saved >= planned;
+
+                let itemClass = 'budget-item';
+                if (overspent) itemClass += ' overspent';
+                if (completed && !overspent) itemClass += ' completed';
+
+                let progressClass = 'item-progress-fill';
+                if (completed) progressClass += ' completed';
+                if (overspent) progressClass += ' overspent';
+
+                return `
+                    <div class="${itemClass}">
+                        <div class="item-header">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-actions">
+                                <button onclick="editBudgetItem(${index})" class="btn btn-warning btn-sm">✏️ Изменить</button>
+                                <button onclick="deleteBudgetItem(${index})" class="btn btn-danger btn-sm">🗑️</button>
+                            </div>
+                        </div>
+                        
+                        <div class="item-amounts">
+                            <div class="amount-box">
+                                <div class="amount-label">Планируемо</div>
+                                <div class="amount-value">${formatNumber(planned)} ₽</div>
+                            </div>
+                            <div class="amount-box">
+                                <div class="amount-label">Накоплено</div>
+                                <div class="amount-value">${formatNumber(saved)} ₽</div>
+                            </div>
+                            <div class="amount-box">
+                                <div class="amount-label">Потрачено</div>
+                                <div class="amount-value ${overspent ? 'overspent' : ''}">${formatNumber(spent)} ₽</div>
+                            </div>
+                        </div>
+
+                        <div class="item-progress">
+                            <div class="item-progress-bar">
+                                <div class="${progressClass}" style="width: ${savingsProgress}%"></div>
+                            </div>
+                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">
+                                Накоплено: ${savingsProgress}%
+                                ${overspent ? ` | <span style="color: #e53e3e;">Перерасход: +${formatNumber(spent - planned)} ₽</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Форматирование чисел
+        function formatNumber(num) {
+            return new Intl.NumberFormat('ru-RU').format(num);
+        }
+
+        // Показать модальное окно добавления
+        function showAddItemModal() {
+            document.getElementById('addItemModal').style.display = 'block';
+        }
+
+        // Закрыть модальное окно добавления
+        function closeAddItemModal() {
+            document.getElementById('addItemModal').style.display = 'none';
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPlanned').value = '';
+        }
+
+        // Добавить статью бюджета
+        function addBudgetItem() {
+            const name = document.getElementById('itemName').value.trim();
+            const planned = parseFloat(document.getElementById('itemPlanned').value) || 0;
+
+            if (!name) {
+                alert('Введите название статьи!');
+                return;
+            }
+
+            if (planned <= 0) {
+                alert('Введите плановую сумму больше 0!');
+                return;
+            }
+
+            const project = getCurrentProject();
+            
+            if (!project.budget) {
+                project.budget = { items: [] };
+            }
+
+            project.budget.items.push({
+                id: Date.now(),
+                name: name,
+                planned: planned,
+                saved: 0,
+                spent: 0,
+                createdAt: new Date().toISOString()
+            });
+
+            saveProjects();
+            closeAddItemModal();
+            renderBudget();
+            
+            alert('Статья добавлена!');
+        }
+
+        // Редактировать статью
+        function editBudgetItem(index) {
+            const project = getCurrentProject();
+            const item = project.budget.items[index];
+            
+            currentEditIndex = index;
+            
+            document.getElementById('editItemName').value = item.name;
+            document.getElementById('editItemPlanned').value = item.planned;
+            document.getElementById('editItemSaved').value = item.saved || 0;
+            document.getElementById('editItemSpent').value = item.spent || 0;
+            
+            document.getElementById('editItemModal').style.display = 'block';
+        }
+
+        // Сохранить изменения
+        function saveEditItem() {
+            const project = getCurrentProject();
+            const item = project.budget.items[currentEditIndex];
+            
+            item.name = document.getElementById('editItemName').value.trim();
+            item.planned = parseFloat(document.getElementById('editItemPlanned').value) || 0;
+            item.saved = parseFloat(document.getElementById('editItemSaved').value) || 0;
+            item.spent = parseFloat(document.getElementById('editItemSpent').value) || 0;
+            
+            saveProjects();
+            closeEditItemModal();
+            renderBudget();
+            
+            alert('Изменения сохранены!');
+        }
+
+        // Закрыть модальное окно редактирования
+        function closeEditItemModal() {
+            document.getElementById('editItemModal').style.display = 'none';
+            currentEditIndex = null;
+        }
+
+        // Удалить статью
+        function deleteBudgetItem(index) {
+            const project = getCurrentProject();
+            const item = project.budget.items[index];
+            
+            if (!confirm(`Удалить статью "${item.name}"?`)) return;
+            
+            project.budget.items.splice(index, 1);
+            saveProjects();
+            renderBudget();
+            
+            alert('Статья удалена');
+        }
+
+        // Закрытие модальных окон по клику вне их
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
