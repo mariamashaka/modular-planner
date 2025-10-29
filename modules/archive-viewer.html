@@ -647,6 +647,176 @@ function getProjectInfo(projectId) {
         function goToUrgent() {
             window.location.href = 'urgent-flow.html';
         }
+        // ============================================
+// ПОЛНАЯ СТАТИСТИКА ДЛЯ АНАЛИЗА С КОУЧЕМ
+// ============================================
+
+function exportFullStatistics() {
+    // Спрашиваем период
+    const periodFrom = prompt('Период С (формат: 2025-09-01):');
+    const periodTo = prompt('Период ПО (формат: 2025-10-29):');
+    
+    if (!periodFrom || !periodTo) {
+        alert('Нужно указать оба периода!');
+        return;
+    }
+    
+    try {
+        // Собираем ВСЕ данные
+        const fullData = {
+            export_info: {
+                export_date: new Date().toISOString(),
+                period_from: periodFrom,
+                period_to: periodTo,
+                exported_by: 'Modular Planner Statistics v1.0'
+            },
+            
+            // 1. АРХИВ (выполненные задачи)
+            archive: getArchiveData(periodFrom, periodTo),
+            
+            // 2. СРОЧНЫЕ ЗАДАЧИ
+            urgent_tasks: getUrgentTasksData(periodFrom, periodTo),
+            
+            // 3. ЕЖЕНЕДЕЛЬНЫЕ ПУЛЫ
+            repeat_pools: getRepeatPoolsData(periodFrom, periodTo),
+            
+            // 4. ПРОЕКТЫ
+            projects: getProjectsData(periodFrom, periodTo),
+            
+            // 5. КАЛЕНДАРНЫЕ СОБЫТИЯ (если есть)
+            calendar_events: getCalendarData(periodFrom, periodTo)
+        };
+        
+        // Скачиваем JSON
+        const blob = new Blob([JSON.stringify(fullData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `full_statistics_${periodFrom}_to_${periodTo}.json`;
+        a.click();
+        
+        URL.revokeObjectURL(url);
+        
+        alert('✅ Статистика выгружена!\nТеперь можешь загрузить этот JSON в отдельный чат для анализа с коучем.');
+        
+    } catch (error) {
+        alert('❌ Ошибка: ' + error.message);
+        console.error(error);
+    }
+}
+
+// Получить данные архива за период
+function getArchiveData(from, to) {
+    const fromDate = new Date(from).toISOString();
+    const toDate = new Date(to + 'T23:59:59').toISOString();
+    
+    const tasks = ArchiveManager.getFiltered({
+        dateFrom: fromDate,
+        dateTo: toDate
+    });
+    
+    return {
+        total_completed: tasks.length,
+        tasks: tasks,
+        stats: ArchiveManager.getStats('all')
+    };
+}
+
+// Получить данные срочных задач
+function getUrgentTasksData(from, to) {
+    try {
+        const urgentTasks = JSON.parse(localStorage.getItem('urgentTasks') || '[]');
+        const fromDate = new Date(from);
+        const toDate = new Date(to);
+        
+        // Активные задачи
+        const active = urgentTasks.filter(t => !t.completed);
+        
+        // Задачи, которые были в этом периоде
+        const inPeriod = urgentTasks.filter(t => {
+            const taskDate = new Date(t.date);
+            return taskDate >= fromDate && taskDate <= toDate;
+        });
+        
+        return {
+            active_now: active,
+            tasks_in_period: inPeriod,
+            total_in_period: inPeriod.length
+        };
+    } catch (e) {
+        return { error: 'Нет данных по срочным задачам' };
+    }
+}
+
+// Получить данные еженедельных пулов
+function getRepeatPoolsData(from, to) {
+    try {
+        const repeatPools = JSON.parse(localStorage.getItem('repeatPools') || '[]');
+        
+        return {
+            pools: repeatPools,
+            total_pools: repeatPools.length,
+            note: 'История выполнения за период - нужно анализировать даты completed в задачах'
+        };
+    } catch (e) {
+        return { error: 'Нет данных по повторяющимся задачам' };
+    }
+}
+
+// Получить данные проектов
+function getProjectsData(from, to) {
+    try {
+        const projects = ProjectsManager.getActive();
+        
+        const projectsWithActivity = projects.map(project => {
+            // Находим задачи проекта в архиве за период
+            const fromDate = new Date(from).toISOString();
+            const toDate = new Date(to + 'T23:59:59').toISOString();
+            
+            const completedTasks = ArchiveManager.getFiltered({
+                projectId: project.id,
+                dateFrom: fromDate,
+                dateTo: toDate
+            });
+            
+            return {
+                ...project,
+                completed_in_period: completedTasks.length,
+                last_activity: completedTasks.length > 0 ? 
+                    completedTasks[0].completedAt : 'Нет активности'
+            };
+        });
+        
+        return {
+            projects: projectsWithActivity,
+            total_projects: projects.length
+        };
+    } catch (e) {
+        return { error: 'Нет данных по проектам' };
+    }
+}
+
+// Получить календарные данные
+function getCalendarData(from, to) {
+    try {
+        const calendarEvents = JSON.parse(localStorage.getItem('calendarEvents') || '[]');
+        const fromDate = new Date(from);
+        const toDate = new Date(to);
+        
+        const eventsInPeriod = calendarEvents.filter(e => {
+            const eventDate = new Date(e.date);
+            return eventDate >= fromDate && eventDate <= toDate;
+        });
+        
+        return {
+            events_in_period: eventsInPeriod,
+            total: eventsInPeriod.length
+        };
+    } catch (e) {
+        return { error: 'Нет календарных данных' };
+    }
+}
     </script>
 </body>
 </html>
