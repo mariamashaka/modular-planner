@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Календарные задачи</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .navigation {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover {
+            background: #5f4fcf;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #4a5568;
+            font-size: 0.9em;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #38a169;
+        }
+
+        .btn-secondary {
+            background: #6c5ce7;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5f4fcf;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .tasks-container {
+            display: grid;
+            gap: 20px;
+        }
+
+        .task-group {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .group-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #edf2f7;
+        }
+
+        .group-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .group-count {
+            background: #6c5ce7;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .overdue-group .group-title {
+            color: #e53e3e;
+        }
+
+        .overdue-group .group-count {
+            background: #e53e3e;
+        }
+
+        .today-group .group-title {
+            color: #38a169;
+        }
+
+        .today-group .group-count {
+            background: #38a169;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #6c5ce7;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            background: #f0f0ff;
+            border-left-color: #5f4fcf;
+        }
+
+        .task-item.overdue {
+            border-left-color: #e53e3e;
+            background: #fef5f5;
+        }
+
+        .task-item.overdue:hover {
+            background: #fed7d7;
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            border-left-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .task-item.skipped {
+            opacity: 0.5;
+            border-left-color: #a0aec0;
+            background: #f7fafc;
+        }
+
+        .task-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .task-title {
+            font-size: 1.1em;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .task-date {
+            background: #e6fffa;
+            color: #38a169;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .task-date.overdue {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .task-time {
+            background: #fef5e7;
+            color: #dd6b20;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .task-project {
+            background: #e0e6ff;
+            color: #6c5ce7;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .task-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background: #e6fffa;
+            color: #38a169;
+        }
+
+        .status-completed {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-skipped {
+            background: #edf2f7;
+            color: #718096;
+        }
+
+        .task-overdue-badge {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .task-description {
+            color: #4a5568;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .empty-state.good {
+            color: #38a169;
+        }
+
+        /* Модальное окно для переноса */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #48bb78;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 2000;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navigation">
+            <!-- СОЗДАНИЕ ЗАДАЧ -->
+            <div style="margin-bottom: 10px; font-weight: bold;">СОЗДАНИЕ ЗАДАЧ:</div>
+            <a href="urgent-flow.html" class="nav-btn">⚡ Срочные</a>
+            <a href="repeat-flow.html" class="nav-btn">🔄 Повторы</a>
+            <a href="calendar-recurring.html" class="nav-btn">📅 Календарные правила</a>
+            <a href="calendar-instances.html" class="nav-btn">📋 Календарные задачи</a>
+            <a href="projects-flow.html" class="nav-btn">🎯 Проекты</a>
+            
+            <!-- КОЛЛЕКТОРЫ -->
+            <div style="margin: 15px 0 5px 0; font-weight: bold;">КОЛЛЕКТОРЫ:</div>
+            <a href="day-planner.html" class="nav-btn">📱 План дня</a>
+            <a href="archive-viewer.html" class="nav-btn">📊 Архив</a>
+            
+            <!-- НАСТРОЙКИ -->
+            <div style="margin: 15px 0 5px 0; font-weight: bold;">НАСТРОЙКИ:</div>
+            <a href="category-manager.html" class="nav-btn">📂 Категории</a>
+        </div>
+
+        <div class="header">
+            <h1>📋 КАЛЕНДАРНЫЕ ЗАДАЧИ</h1>
+            <p>Все задачи из календарных правил</p>
+        </div>
+
+        <!-- Статистика -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Всего задач</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statPending">0</div>
+                    <div class="stat-label">Ожидают</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statCompleted">0</div>
+                    <div class="stat-label">Выполнено</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statOverdue">0</div>
+                    <div class="stat-label">Просрочено</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statToday">0</div>
+                    <div class="stat-label">На сегодня</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Управление -->
+        <div class="controls">
+            <button onclick="regenerateTasks()" class="btn btn-primary">🔄 Обновить календарь</button>
+            <button onclick="cleanupOld()" class="btn btn-secondary">🧹 Очистить старые</button>
+            <button onclick="showAllTasks()" class="btn btn-secondary">👁️ Показать все</button>
+            <button onclick="showPendingOnly()" class="btn btn-secondary">⏳ Только ожидающие</button>
+        </div>
+
+        <!-- Список задач -->
+        <div id="tasksContainer" class="tasks-container">
+            <div class="empty-state">Загружаем календарные задачи...</div>
+        </div>
+    </div>
+
+    <!-- Модальное окно переноса -->
+    <div id="rescheduleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">📅 Перенести задачу</div>
+            
+            <div class="form-group">
+                <label class="form-label">Текущая дата:</label>
+                <div id="currentDate" style="color: #4a5568; font-size: 1.1em; margin-bottom: 15px;"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Новая дата:</label>
+                <input type="date" id="newDate" class="form-input">
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="confirmReschedule()" class="btn btn-primary">Перенести</button>
+                <button onclick="closeRescheduleModal()" class="btn btn-secondary">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомление -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Подключаем системы -->
+    <script src="../shared/calendar.js"></script>
+    <script src="../shared/archive.js"></script>
+    <script>
+        let allTasks = [];
+        let currentFilter = 'pending'; // 'all' или 'pending'
+        let currentRescheduleTaskId = null;
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== КАЛЕНДАРНЫЕ ЗАДАЧИ ЗАГРУЖАЮТСЯ ===');
+            
+            // Проверяем наличие CalendarManager
+            if (typeof window.CalendarManager === 'undefined') {
+                alert('Ошибка: CalendarManager не загружен!');
+                return;
+            }
+
+            // Генерируем задачи при первом запуске
+            window.CalendarManager.generateInstances(60);
+            
+            loadTasks();
+            updateStats();
+        });
+
+        // Загрузка задач
+        function loadTasks() {
+            allTasks = window.CalendarManager.getAllTasks();
+            console.log('Загружено задач:', allTasks.length);
+            renderTasks();
+        }
+
+        // Отрисовка задач
+        function renderTasks() {
+            const container = document.getElementById('tasksContainer');
+            
+            // Фильтруем задачи
+            let tasksToShow = currentFilter === 'all' ? allTasks : allTasks.filter(t => t.status === 'pending');
+            
+            if (tasksToShow.length === 0) {
+                container.innerHTML = currentFilter === 'all' 
+                    ? '<div class="empty-state">Календарных задач нет</div>'
+                    : '<div class="empty-state good">Все календарные задачи выполнены! 🎉</div>';
+                return;
+            }
+
+            // Группируем по статусу и времени
+            const groups = groupTasks(tasksToShow);
+            let html = '';
+
+            // Просроченные
+            if (groups.overdue.length > 0) {
+                html += renderGroup('overdue', '🚨 ПРОСРОЧЕННЫЕ', groups.overdue, 'overdue-group');
+            }
+
+            // На сегодня
+            if (groups.today.length > 0) {
+                html += renderGroup('today', '📅 СЕГОДНЯ', groups.today, 'today-group');
+            }
+
+            // Эта неделя
+            if (groups.thisWeek.length > 0) {
+                html += renderGroup('thisWeek', '📆 НА ЭТОЙ НЕДЕЛЕ', groups.thisWeek);
+            }
+
+            // Следующая неделя
+            if (groups.nextWeek.length > 0) {
+                html += renderGroup('nextWeek', '📋 СЛЕДУЮЩАЯ НЕДЕЛЯ', groups.nextWeek);
+            }
+
+            // Этот месяц
+            if (groups.thisMonth.length > 0) {
+                html += renderGroup('thisMonth', '🗓️ В ЭТОМ МЕСЯЦЕ', groups.thisMonth);
+            }
+
+            // Дальше
+            if (groups.later.length > 0) {
+                html += renderGroup('later', '🔮 ПОЗЖЕ', groups.later);
+            }
+
+            // Выполненные (если показываем все)
+            if (currentFilter === 'all' && groups.completed.length > 0) {
+                html += renderGroup('completed', '✅ ВЫПОЛНЕННЫЕ', groups.completed);
+            }
+
+            // Пропущенные (если показываем все)
+            if (currentFilter === 'all' && groups.skipped.length > 0) {
+                html += renderGroup('skipped', '❌ ПРОПУЩЕННЫЕ', groups.skipped);
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Группировка задач
+        function groupTasks(tasks) {
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            
+            const weekFromNow = new Date(today);
+            weekFromNow.setDate(weekFromNow.getDate() + 7);
+            const weekFromNowStr = weekFromNow.toISOString().split('T')[0];
+            
+            const twoWeeksFromNow = new Date(today);
+            twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
+            const twoWeeksFromNowStr = twoWeeksFromNow.toISOString().split('T')[0];
+            
+            const monthFromNow = new Date(today);
+            monthFromNow.setDate(monthFromNow.getDate() + 30);
+            const monthFromNowStr = monthFromNow.toISOString().split('T')[0];
+
+            const groups = {
+                overdue: [],
+                today: [],
+                thisWeek: [],
+                nextWeek: [],
+                thisMonth: [],
+                later: [],
+                completed: [],
+                skipped: []
+            };
+
+            tasks.forEach(task => {
+                // Сначала по статусу
+                if (task.status === 'completed') {
+                    groups.completed.push(task);
+                } else if (task.status === 'skipped') {
+                    groups.skipped.push(task);
+                } else if (task.status === 'pending') {
+                    // Потом по времени
+                    if (task.date < todayStr) {
+                        groups.overdue.push(task);
+                    } else if (task.date === todayStr) {
+                        groups.today.push(task);
+                    } else if (task.date <= weekFromNowStr) {
+                        groups.thisWeek.push(task);
+                    } else if (task.date <= twoWeeksFromNowStr) {
+                        groups.nextWeek.push(task);
+                    } else if (task.date <= monthFromNowStr) {
+                        groups.thisMonth.push(task);
+                    } else {
+                        groups.later.push(task);
+                    }
+                }
+            });
+
+            return groups;
+        }
+
+        // Отрисовка группы
+        function renderGroup(groupKey, title, tasks, extraClass = '') {
+            if (tasks.length === 0) return '';
+
+            const html = tasks.map(task => renderTaskItem(task)).join('');
+
+            return `
+                <div class="task-group ${extraClass}">
+                    <div class="group-header">
+                        <div class="group-title">${title}</div>
+                        <div class="group-count">${tasks.length}</div>
+                    </div>
+                    ${html}
+                </div>
+            `;
+        }
+
+        // Отрисовка задачи
+        function renderTaskItem(task) {
+            const isOverdue = task.status === 'pending' && task.date < new Date().toISOString().split('T')[0];
+            const itemClass = task.status === 'completed' ? 'completed' : 
+                             task.status === 'skipped' ? 'skipped' : 
+                             isOverdue ? 'overdue' : '';
+
+            const statusText = {
+                pending: 'Ожидает',
+                completed: 'Выполнено',
+                skipped: 'Пропущено'
+            }[task.status] || task.status;
+
+            const statusClass = `status-${task.status}`;
+
+            const dateDisplay = window.CalendarManager.formatDate(task.date);
+            const dateClass = isOverdue ? 'overdue' : '';
+
+            let overdueBadge = '';
+            if (isOverdue && task.overdueDays) {
+                const daysText = task.overdueDays === 1 ? '1 день' : `${task.overdueDays} дн.`;
+                overdueBadge = `<span class="task-overdue-badge">⏰ Просрочено ${daysText}</span>`;
+            }
+
+            return `
+                <div class="task-item ${itemClass}">
+                    <div class="task-title">${task.name}</div>
+                    <div class="task-meta">
+                        <span class="task-date ${dateClass}">📅 ${dateDisplay}</span>
+                        ${task.time ? `<span class="task-time">🕐 ${task.time}</span>` : ''}
+                        ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
+                        <span class="task-status ${statusClass}">${statusText}</span>
+                        ${overdueBadge}
+                    </div>
+                    ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                    ${task.status === 'pending' ? `
+                        <div class="task-actions">
+                            <button onclick="completeTask('${task.id}')" class="btn btn-primary btn-small">✅ Готово</button>
+                            <button onclick="openRescheduleModal('${task.id}')" class="btn btn-warning btn-small">📅 Перенести</button>
+                            <button onclick="skipTask('${task.id}')" class="btn btn-danger btn-small">❌ Пропустить</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Выполнение задачи
+        function completeTask(taskId) {
+            const success = window.CalendarManager.completeTask(taskId);
+            
+            if (success) {
+                showNotification('Задача выполнена! ✅');
+                loadTasks();
+                updateStats();
+            } else {
+                alert('Ошибка выполнения задачи');
+            }
+        }
+
+        // Открытие модального окна переноса
+        function openRescheduleModal(taskId) {
+            const task = allTasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            currentRescheduleTaskId = taskId;
+            document.getElementById('currentDate').textContent = window.CalendarManager.formatDate(task.date) + ' (' + task.date + ')';
+            
+            // Устанавливаем минимальную дату = завтра
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('newDate').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('newDate').min = tomorrow.toISOString().split('T')[0];
+
+            document.getElementById('rescheduleModal').style.display = 'block';
+        }
+
+        // Подтверждение переноса
+        function confirmReschedule() {
+            const newDate = document.getElementById('newDate').value;
+            
+            if (!newDate) {
+                alert('Выберите новую дату!');
+                return;
+            }
+
+            const success = window.CalendarManager.rescheduleTask(currentRescheduleTaskId, newDate);
+            
+            if (success) {
+                showNotification('Задача перенесена! 📅');
+                closeRescheduleModal();
+                loadTasks();
+                updateStats();
+            } else {
+                alert('Ошибка переноса задачи');
+            }
+        }
+
+        // Закрытие модального окна
+        function closeRescheduleModal() {
+            document.getElementById('rescheduleModal').style.display = 'none';
+            currentRescheduleTaskId = null;
+        }
+
+        // Пропуск задачи
+        function skipTask(taskId) {
+            if (!confirm('Пропустить эту задачу? Она больше не будет показываться.')) return;
+
+            const success = window.CalendarManager.skipTask(taskId);
+            
+            if (success) {
+                showNotification('Задача пропущена ❌');
+                loadTasks();
+                updateStats();
+            } else {
+                alert('Ошибка пропуска задачи');
+            }
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            const stats = window.CalendarManager.getStats();
+            
+            document.getElementById('statTotal').textContent = stats.total;
+            document.getElementById('statPending').textContent = stats.pending;
+            document.getElementById('statCompleted').textContent = stats.completed;
+            document.getElementById('statOverdue').textContent = stats.overdue;
+            document.getElementById('statToday').textContent = stats.today;
+        }
+
+        // Регенерация задач
+        function regenerateTasks() {
+            if (!confirm('Обновить календарь? Это создаст задачи на 60 дней вперёд из активных правил.')) return;
+
+            window.CalendarManager.generateInstances(60);
+            loadTasks();
+            updateStats();
+            showNotification('Календарь обновлён! 🔄');
+        }
+
+        // Очистка старых задач
+        function cleanupOld() {
+            if (!confirm('Удалить выполненные и пропущенные задачи старше 90 дней?')) return;
+
+            const removed = window.CalendarManager.cleanupOldTasks(90);
+            
+            if (removed > 0) {
+                showNotification(`Удалено задач: ${removed} 🧹`);
+                loadTasks();
+                updateStats();
+            } else {
+                showNotification('Нет задач для удаления');
+            }
+        }
+
+        // Показать все задачи
+        function showAllTasks() {
+            currentFilter = 'all';
+            renderTasks();
+        }
+
+        // Показать только ожидающие
+        function showPendingOnly() {
+            currentFilter = 'pending';
+            renderTasks();
+        }
+
+        // Показ уведомления
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Закрытие модального окна по клику вне его
+        window.onclick = function(event) {
+            const modal = document.getElementById('rescheduleModal');
+            if (event.target === modal) {
+                closeRescheduleModal();
+            }
+        }
+    </script>
+</body>
+</html>
