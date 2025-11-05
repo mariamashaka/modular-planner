@@ -1603,6 +1603,74 @@ function updateAllCounts() {
                 closeEditModal();
             }
         }
+
+// =====================================================
+// ФУНКЦИИ ДЛЯ КАЛЕНДАРНЫХ ЗАДАЧ
+// =====================================================
+
+// Выполнение календарной задачи
+function completeCalendarTask(taskId) {
+    if (typeof window.CalendarManager === 'undefined') {
+        alert('Ошибка: CalendarManager не загружен');
+        return;
+    }
+    
+    const success = window.CalendarManager.completeTask(taskId);
+    
+    if (success) {
+        // Убираем из dayData
+        dayData.calendar = dayData.calendar.filter(t => t.id !== taskId);
+        
+        renderCalendarTasks();
+        updateAllCounts();
+        updateStats();
+        
+        alert('Календарная задача выполнена! ✅');
+    } else {
+        alert('Ошибка выполнения задачи');
+    }
+}
+
+// Перенос календарной задачи
+function rescheduleCalendarTask(taskId) {
+    if (typeof window.CalendarManager === 'undefined') {
+        alert('Ошибка: CalendarManager не загружен');
+        return;
+    }
+    
+    const task = dayData.calendar.find(t => t.id === taskId);
+    if (!task) return;
+    
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const minDate = tomorrow.toISOString().split('T')[0];
+    
+    const newDate = prompt(`Перенести задачу "${task.name}"\nВведите новую дату (ГГГГ-ММ-ДД):`, minDate);
+    
+    if (!newDate) return;
+    
+    // Проверяем формат даты
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+        alert('Неверный формат даты! Используйте ГГГГ-ММ-ДД');
+        return;
+    }
+    
+    const success = window.CalendarManager.rescheduleTask(taskId, newDate);
+    
+    if (success) {
+        // Убираем из dayData
+        dayData.calendar = dayData.calendar.filter(t => t.id !== taskId);
+        
+        renderCalendarTasks();
+        updateAllCounts();
+        updateStats();
+        
+        alert(`Задача перенесена на ${newDate}! 📅`);
+    } else {
+        alert('Ошибка переноса задачи');
+    }
+}
+        
     </script>
 </body>
 </html>
