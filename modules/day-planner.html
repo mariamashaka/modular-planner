@@ -978,36 +978,44 @@ function renderAllSections() {
             container.innerHTML = html;
         }
 
-        // Календарные задачи
-        function renderCalendarTasks() {
-            const container = document.getElementById('calendarTasks');
-            
-
-            const html = dayData.calendar.map(event => {
-                const timeDisplay = event.time ? ` в ${event.time}` : '';
-                const sourceIcon = event.source === 'recurring' ? '🔄' : '📅';
-                const sourceText = event.source === 'recurring' ? 'Регулярное' : 'Календарь';
-                
-                return `
-                    <div class="task-item">
-                        <div class="task-title">${event.name}${timeDisplay}</div>
-                        <div class="task-meta">
-                            ${event.project ? `<span class="task-project">📁 ${event.project}</span>` : ''}
-                            <span class="task-source">${sourceIcon} ${sourceText}</span>
-                        </div>
-                        ${event.description ? `<div style="color: #4a5568; font-size: 0.9em; margin-bottom: 10px;">${event.description}</div>` : ''}
-                        <div class="task-actions">
-                            ${event.source === 'recurring' ? 
-                                `<button onclick="completeRecurringEvent('${event.id}', ${event.originalId})" class="btn btn-primary">✅ Готово</button>` :
-                                `<button onclick="completeCalendarEvent(${event.id})" class="btn btn-primary">✅ Готово</button>`
-                            }
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            container.innerHTML = html;
+// Календарные задачи
+function renderCalendarTasks() {
+    const container = document.getElementById('calendarTasks');
+    
+    if (dayData.calendar.length === 0) {
+        container.innerHTML = '<div class="empty-state good">Календарных событий на сегодня нет</div>';
+        return;
+    }
+    
+    const html = dayData.calendar.map(task => {
+        const timeDisplay = task.time ? ` в ${task.time}` : '';
+        const isOverdue = task.overdueDays > 0;
+        
+        let overdueBadge = '';
+        if (isOverdue) {
+            const daysText = task.overdueDays === 1 ? '1 день' : `${task.overdueDays} дн.`;
+            overdueBadge = `<span class="task-overdue">⏰ Просрочено ${daysText}</span>`;
         }
+        
+        return `
+            <div class="task-item ${isOverdue ? 'overdue' : ''}">
+                <div class="task-title">${task.name}${timeDisplay}</div>
+                <div class="task-meta">
+                    ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
+                    <span class="task-source">📅 Календарь</span>
+                    ${overdueBadge}
+                </div>
+                ${task.description ? `<div style="color: #4a5568; font-size: 0.9em; margin-bottom: 10px;">${task.description}</div>` : ''}
+                <div class="task-actions">
+                    <button onclick="completeCalendarTask('${task.id}')" class="btn btn-primary">✅ Готово</button>
+                    <button onclick="rescheduleCalendarTask('${task.id}')" class="btn btn-warning">📅 Перенести</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = html;
+}
 
         // Срочные задачи
         function renderUrgentTasks() {
