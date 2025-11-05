@@ -716,45 +716,32 @@
                 dayData.quick = [];
             }
 
-            // Календарные события на сегодня
-            try {
-                const allEvents = JSON.parse(localStorage.getItem('calendarEvents') || '[]');
-                console.log('Все календарные события:', allEvents);
-                
-                dayData.calendar = allEvents.filter(event => {
-                    console.log('Проверяем событие:', event.name, 'дата:', event.date, 'сегодня:', today);
-                    return event.date === today && !event.completed;
-                });
-                console.log('Календарных событий на сегодня:', dayData.calendar.length);
-                
-                // Добавляем повторяющиеся события на сегодня
-                try {
-                    if (typeof window.CalendarRecurring !== 'undefined') {
-                        const recurringToday = window.CalendarRecurring.getEventsForDate(today);
-                        console.log('Повторяющихся событий на сегодня:', recurringToday.length);
-                        
-                        // Добавляем к календарным событиям
-                        dayData.calendar = dayData.calendar.concat(recurringToday);
-                    } else {
-                        console.log('CalendarRecurring не загружен, пробуем напрямую');
-                        
-                        // Фолбэк - загружаем напрямую из localStorage
-                        const recurringEvents = JSON.parse(localStorage.getItem('recurringEvents') || '[]');
-                        const recurringToday = getRecurringEventsForDate(recurringEvents, today);
-                        console.log('Повторяющихся событий на сегодня (фолбэк):', recurringToday.length);
-                        
-                        dayData.calendar = dayData.calendar.concat(recurringToday);
-                    }
-                } catch (recurringError) {
-                    console.error('Ошибка загрузки повторяющихся событий:', recurringError);
-                }
-                
-                console.log('Итого календарных событий (с повторяющимися):', dayData.calendar.length);
-            } catch (error) {
-                console.error('Ошибка загрузки календарных событий:', error);
-                dayData.calendar = [];
-            }
-
+// Календарные события на сегодня
+try {
+    console.log('Загружаем календарные задачи через CalendarManager');
+    
+    if (typeof window.CalendarManager !== 'undefined') {
+        // Получаем задачи на сегодня
+        const todayTasks = window.CalendarManager.getTasksForDate(today);
+        console.log('Календарных задач на сегодня:', todayTasks.length);
+        
+        // Получаем просроченные календарные задачи
+        const overdueTasks = window.CalendarManager.getOverdueTasks(today);
+        console.log('Просроченных календарных задач:', overdueTasks.length);
+        
+        // Объединяем
+        dayData.calendar = [...todayTasks, ...overdueTasks];
+        
+        console.log('Итого календарных задач:', dayData.calendar.length);
+    } else {
+        console.error('CalendarManager не загружен!');
+        dayData.calendar = [];
+    }
+} catch (error) {
+    console.error('Ошибка загрузки календарных событий:', error);
+    dayData.calendar = [];
+}
+            
 // Проектные задачи на сегодня
 try {
     if (typeof window.ProjectsFlow !== 'undefined') {
