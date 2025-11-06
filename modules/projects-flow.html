@@ -2016,6 +2016,88 @@ window.onclick = function(event) {
     });
 }
 
+// Переместить проект выше по приоритету
+function movePriorityUp(projectId) {
+    const activeProjects = projects.filter(p => p.status !== 'paused');
+    activeProjects.sort((a, b) => (a.priority || 999) - (b.priority || 999));
+    
+    const currentIndex = activeProjects.findIndex(p => p.id === projectId);
+    if (currentIndex <= 0) return; // Уже первый
+    
+    // Меняем местами priority с предыдущим
+    const temp = activeProjects[currentIndex].priority;
+    activeProjects[currentIndex].priority = activeProjects[currentIndex - 1].priority;
+    activeProjects[currentIndex - 1].priority = temp;
+    
+    saveProjects();
+    renderProjectsGrid();
+}
+
+// Переместить проект ниже по приоритету
+function movePriorityDown(projectId) {
+    const activeProjects = projects.filter(p => p.status !== 'paused');
+    activeProjects.sort((a, b) => (a.priority || 999) - (b.priority || 999));
+    
+    const currentIndex = activeProjects.findIndex(p => p.id === projectId);
+    if (currentIndex === -1 || currentIndex >= activeProjects.length - 1) return; // Уже последний
+    
+    // Меняем местами priority со следующим
+    const temp = activeProjects[currentIndex].priority;
+    activeProjects[currentIndex].priority = activeProjects[currentIndex + 1].priority;
+    activeProjects[currentIndex + 1].priority = temp;
+    
+    saveProjects();
+    renderProjectsGrid();
+}
+
+// Поставить проект на паузу
+function pauseProject() {
+    if (!currentProject) return;
+    if (!confirm(`Поставить проект "${currentProject.name}" на паузу?`)) return;
+    
+    currentProject.status = 'paused';
+    
+    saveProjects();
+    showProjectsList();
+    renderProjectsGrid();
+    
+    alert('Проект поставлен на паузу ⏸️');
+}
+
+// Активировать проект (с карточки)
+function activateProject(projectId) {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    project.status = 'active';
+    
+    // Даём ему последний приоритет среди активных
+    const activeProjects = projects.filter(p => p.status === 'active');
+    project.priority = activeProjects.length;
+    
+    saveProjects();
+    renderProjectsGrid();
+    
+    alert(`Проект "${project.name}" активирован! ▶️`);
+}
+
+// Активировать проект (из деталей)
+function activateCurrentProject() {
+    if (!currentProject) return;
+    if (!confirm(`Активировать проект "${currentProject.name}"?`)) return;
+    
+    currentProject.status = 'active';
+    
+    // Даём ему последний приоритет среди активных
+    const activeProjects = projects.filter(p => p.status === 'active');
+    currentProject.priority = activeProjects.length;
+    
+    saveProjects();
+    renderProjectDetails();
+    
+    alert('Проект активирован! ▶️');
+}
+        
         // Функции для интеграции с другими модулями
         window.ProjectsFlow = {
             // Получить задачи на конкретную дату
