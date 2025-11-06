@@ -848,6 +848,59 @@
         </div>
     </div>
 
+    <!-- МОДАЛЬНОЕ ОКНО - РЕДАКТИРОВАНИЕ ПОДЗАДАЧИ -->
+    <div id="editSubtaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">✏️ Редактировать подзадачу</span>
+                <span class="close" onclick="closeEditSubtaskModal()">&times;</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Название задачи:</label>
+                <input type="text" id="editSubtaskName" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Тип задачи:</label>
+                <select id="editSubtaskDateType" class="form-select" onchange="updateEditSubtaskFields()">
+                    <option value="deadline">⏰ Дедлайн - конкретная дата</option>
+                    <option value="timeframe">🗓️ Период - с даты по дату</option>
+                    <option value="someday">♾️ Когда-нибудь - без дат</option>
+                </select>
+            </div>
+
+            <!-- Быстрые кнопки недель -->
+            <div id="quickWeeksSection" class="form-group">
+                <label class="form-label">Быстрый выбор недели:</label>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
+                    <button onclick="setWeek(0)" class="btn btn-primary btn-sm" id="thisWeekBtn">📅 Эта неделя</button>
+                    <button onclick="setWeek(1)" class="btn btn-primary btn-sm" id="nextWeekBtn">➡️ Следующая</button>
+                    <button onclick="setWeek(2)" class="btn btn-primary btn-sm" id="week2Btn">⏭️ Через 2 недели</button>
+                    <button onclick="setSomeday()" class="btn btn-secondary btn-sm">♾️ На потом</button>
+                </div>
+            </div>
+
+            <!-- Поля дат -->
+            <div id="editSubtaskDateFields">
+                <div id="editDeadlineField" class="form-group" style="display: none;">
+                    <label class="form-label">Дедлайн:</label>
+                    <input type="date" id="editSubtaskDeadline" class="form-input">
+                </div>
+                <div id="editTimeframeFields" class="form-group" style="display: none;">
+                    <label class="form-label">Период:</label>
+                    <input type="date" id="editSubtaskStartDate" class="form-input" placeholder="Начало" style="margin-bottom: 10px;">
+                    <input type="date" id="editSubtaskEndDate" class="form-input" placeholder="Конец">
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="saveEditSubtask()" class="btn btn-primary">💾 Сохранить</button>
+                <button onclick="closeEditSubtaskModal()" class="btn btn-secondary">Отмена</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Подключаем системы -->
     <script src="../shared/projects.js"></script>
     <script src="../shared/archive.js"></script>
