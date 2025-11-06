@@ -1686,43 +1686,206 @@ function completeSubtask(subtaskIndex) {
     alert('Задача выполнена!');
 }
 
-// Редактировать подзадачу
+// Глобальная переменная для редактируемой подзадачи
+let currentEditSubtaskIndex = null;
+
+// Редактировать подзадачу - открываем модальное окно
 function editSubtask(subtaskIndex) {
     if (!currentStage || !currentStage.subtasks[subtaskIndex]) return;
     
+    currentEditSubtaskIndex = subtaskIndex;
     const subtask = currentStage.subtasks[subtaskIndex];
     
-    const newName = prompt('Новое название задачи:', subtask.name);
-    if (newName === null || !newName.trim()) return;
+    // Заполняем форму
+    document.getElementById('editSubtaskName').value = subtask.name;
     
-    subtask.name = newName.trim();
-    
-    // Если у задачи есть дедлайн, предлагаем его изменить
-    if (subtask.dateType === 'deadline' || subtask.type === 'fixed') {
-        const newDeadline = prompt('Новый дедлайн (YYYY-MM-DD):', subtask.deadline || '');
-        if (newDeadline && /^\d{4}-\d{2}-\d{2}$/.test(newDeadline)) {
-            subtask.deadline = newDeadline;
-        }
+    // Определяем тип даты (с обратной совместимостью)
+    let dateType = subtask.dateType || 'someday';
+    if (!subtask.dateType && subtask.type === 'fixed') {
+        dateType = 'deadline';
     }
     
-    // Если у задачи период, предлагаем его изменить
-    if (subtask.dateType === 'timeframe') {
-        const newStartDate = prompt('Новая дата начала (YYYY-MM-DD):', subtask.startDate || '');
-        if (newStartDate && /^\d{4}-\d{2}-\d{2}$/.test(newStartDate)) {
-            subtask.startDate = newStartDate;
+    document.getElementById('editSubtaskDateType').value = dateType;
+    
+    // Заполняем даты
+    if (dateType === 'deadline' && subtask.deadline) {
+        document.getElementById('editSubtaskDeadline').value = subtask.deadline;
+    } else if (dateType === 'timeframe') {
+        document.getElementById('editSubtaskStartDate').value = subtask.startDate || '';
+        document.getElementById('editSubtaskEndDate').value = subtask.endDate || '';
+    }
+    
+    // Обновляем отображение кнопок и подсказок
+    updateEditSubtaskFields();
+    updateWeekButtonLabels();
+    
+    // Показываем модальное окно
+    document.getElementById('editSubtaskModal').style.display = 'block';
+}
+
+// Закрыть модальное окно редактирования
+function closeEditSubtaskModal() {
+    document.getElementById('editSubtaskModal').style.display = 'none';
+    currentEditSubtaskIndex = null;
+}
+
+// Обновить видимость полей в зависимости от типа даты
+function updateEditSubtaskFields() {
+    const dateType = document.getElementById('editSubtaskDateType').value;
+    const quickWeeks = document.getElementById('quickWeeksSection');
+    const deadlineField = document.getElementById('editDeadlineField');
+    const timeframeFields = document.getElementById('editTimeframeFields');
+    
+    if (dateType === 'deadline') {
+        quickWeeks.style.display = 'block';
+        deadlineField.style.display = 'block';
+        timeframeFields.style.display = 'none';
+    } else if (dateType === 'timeframe') {
+        quickWeeks.style.display = 'block';
+        deadlineField.style.display = 'none';
+        timeframeFields.style.display = 'block';
+    } else {
+        quickWeeks.style.display = 'none';
+        deadlineField.style.display = 'none';
+        timeframeFields.style.display = 'none';
+    }
+}
+
+// Получить понедельник текущей недели
+function getMonday(date) {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Корректируем для понедельника
+    return new Date(d.setDate(diff));
+}
+
+// Получить воскресенье недели
+function getSunday(monday) {
+    const d = new Date(monday);
+    d.setDate(d.getDate() + 6);
+    return d;
+}
+
+// Форматировать дату для input[type="date"]
+function formatDateForInput(date) {
+    return date.toISOString().split('T')[0];
+}
+
+// Форматировать дату для отображения (кратко)
+function formatDateShort(date) {
+    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+}
+
+// Обновить подписи на кнопках недель
+function updateWeekButtonLabels() {
+    const today = new Date();
+    
+    // Эта неделя
+    const thisMonday = getMonday(today);
+    const thisSunday = getSunday(thisMonday);
+    document.getElementById('thisWeekBtn').innerHTML = 
+        `📅 Эта неделя<br><small>${formatDateShort(thisMonday)}-${formatDateShort(thisSunday)}</small>`;
+    
+    // Следующая неделя
+    const nextMonday = new Date(thisMonday);
+    nextMonday.setDate(nextMonday.getDate() + 7);
+    const nextSunday = getSunday(nextMonday);
+    document.getElementById('nextWeekBtn').innerHTML = 
+        `➡️ Следующая<br><small>${formatDateShort(nextMonday)}-${formatDateShort(nextSunday)}</small>`;
+    
+    // Через 2 недели
+    const week2Monday = new Date(thisMonday);
+    week2Monday.setDate(week2Monday.getDate() + 14);
+    const week2Sunday = getSunday(week2Monday);
+    document.getElementById('week2Btn').innerHTML = 
+        `⏭️ Через 2 недели<br><small>${formatDateShort(week2Monday)}-${formatDateShort(week2Sunday)}</small>`;
+}
+
+// Установить неделю (0 = эта, 1 = следующая, 2 = через 2)
+function setWeek(weekOffset) {
+    const today = new Date();
+    const thisMonday = getMonday(today);
+    
+    const targetMonday = new Date(thisMonday);
+    targetMonday.setDate(targetMonday.getDate() + (weekOffset * 7));
+    
+    const targetSunday = getSunday(targetMonday);
+    
+    const dateType = document.getElementById('editSubtaskDateType').value;
+    
+    if (dateType === 'deadline') {
+        // Для дедлайна ставим воскресенье (конец недели)
+        document.getElementById('editSubtaskDeadline').value = formatDateForInput(targetSunday);
+    } else if (dateType === 'timeframe') {
+        // Для периода ставим понедельник-воскресенье
+        document.getElementById('editSubtaskStartDate').value = formatDateForInput(targetMonday);
+        document.getElementById('editSubtaskEndDate').value = formatDateForInput(targetSunday);
+    }
+    
+    alert(`Установлена неделя: ${formatDateShort(targetMonday)} - ${formatDateShort(targetSunday)}`);
+}
+
+// Установить "на потом" (без дат)
+function setSomeday() {
+    document.getElementById('editSubtaskDateType').value = 'someday';
+    updateEditSubtaskFields();
+    alert('Задача перенесена "на потом" (без конкретных дат)');
+}
+
+// Сохранить изменения подзадачи
+function saveEditSubtask() {
+    if (currentEditSubtaskIndex === null || !currentStage) return;
+    
+    const subtask = currentStage.subtasks[currentEditSubtaskIndex];
+    const newName = document.getElementById('editSubtaskName').value.trim();
+    
+    if (!newName) {
+        alert('Введите название задачи!');
+        return;
+    }
+    
+    // Обновляем название
+    subtask.name = newName;
+    
+    // Обновляем тип даты
+    const dateType = document.getElementById('editSubtaskDateType').value;
+    subtask.dateType = dateType;
+    
+    // Очищаем старые даты
+    delete subtask.deadline;
+    delete subtask.startDate;
+    delete subtask.endDate;
+    
+    // Устанавливаем новые даты
+    if (dateType === 'deadline') {
+        const deadline = document.getElementById('editSubtaskDeadline').value;
+        if (!deadline) {
+            alert('Выберите дедлайн или измените тип задачи!');
+            return;
         }
-        
-        const newEndDate = prompt('Новая дата окончания (YYYY-MM-DD):', subtask.endDate || '');
-        if (newEndDate && /^\d{4}-\d{2}-\d{2}$/.test(newEndDate)) {
-            subtask.endDate = newEndDate;
+        subtask.deadline = deadline;
+        subtask.type = 'fixed'; // Для обратной совместимости
+    } else if (dateType === 'timeframe') {
+        const startDate = document.getElementById('editSubtaskStartDate').value;
+        const endDate = document.getElementById('editSubtaskEndDate').value;
+        if (!startDate || !endDate) {
+            alert('Выберите период или измените тип задачи!');
+            return;
         }
+        subtask.startDate = startDate;
+        subtask.endDate = endDate;
+        subtask.type = 'flexible'; // Для обратной совместимости
+    } else {
+        // someday - без дат
+        subtask.type = 'flexible'; // Для обратной совместимости
     }
     
     saveProjects();
     renderSubtasks();
     renderProjectDetails();
+    closeEditSubtaskModal();
     
-    alert('Задача обновлена!');
+    alert('Задача обновлена! ✅');
 }
 
         // Редактировать проект
