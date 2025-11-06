@@ -667,10 +667,14 @@
                 <div id="detailProjectDescription" style="color: #4a5568; line-height: 1.5;">
                     Описание проекта
                 </div>
-                <div class="project-actions" style="margin-top: 15px;">
-                    <button class="btn btn-primary" onclick="editProject()">✏️ Редактировать проект</button>
-                    <button class="btn btn-danger" onclick="deleteProject()">🗑️ Удалить проект</button>
-                </div>
+<div class="project-actions" style="margin-top: 15px;">
+    <button class="btn btn-primary" onclick="editProject()">✏️ Редактировать проект</button>
+    ${currentProject.status !== 'paused' ? 
+        `<button class="btn btn-warning" onclick="pauseProject()">⏸️ На паузу</button>` :
+        `<button class="btn btn-success" onclick="activateCurrentProject()">▶️ Активировать</button>`
+    }
+    <button class="btn btn-danger" onclick="deleteProject()">🗑️ Удалить проект</button>
+</div>
             </div>
 
             <div class="stages-section">
