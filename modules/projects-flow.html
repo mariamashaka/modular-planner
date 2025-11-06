@@ -925,17 +925,24 @@
             document.getElementById('newStageDateType').addEventListener('change', updateStageDateFields);
         });
 
-        // Загрузка проектов
-        function loadProjects() {
-            try {
-                const stored = localStorage.getItem('projectsFlow');
-                projects = stored ? JSON.parse(stored) : [];
-                console.log('Загружено проектов:', projects.length);
-            } catch (error) {
-                console.error('Ошибка загрузки проектов:', error);
-                projects = [];
-            }
-        }
+ // Загрузка проектов
+function loadProjects() {
+    try {
+        const stored = localStorage.getItem('projectsFlow');
+        projects = stored ? JSON.parse(stored) : [];
+        
+        // Инициализация для старых проектов
+        projects.forEach((project, index) => {
+            if (!project.status) project.status = 'active';
+            if (project.priority === undefined) project.priority = index + 1;
+        });
+        
+        console.log('Загружено проектов:', projects.length);
+    } catch (error) {
+        console.error('Ошибка загрузки проектов:', error);
+        projects = [];
+    }
+}
 
         // Сохранение проектов
         function saveProjects() {
