@@ -953,24 +953,65 @@
             document.getElementById('subtaskDeadline').value = futureDate.toISOString().split('T')[0];
         }
 
-        // Отрисовка сетки проектов
-        function renderProjectsGrid() {
-            const grid = document.getElementById('projectsGrid');
-            const newProjectCard = grid.querySelector('.new-project-card');
-            
-            // Очищаем кроме кнопки создания
-            grid.innerHTML = '';
-            grid.appendChild(newProjectCard);
-
-            if (projects.length === 0) {
-                return;
-            }
-
-            projects.forEach(project => {
-                const card = createProjectCard(project);
-                grid.appendChild(card);
-            });
-        }
+// Отрисовка сетки проектов
+function renderProjectsGrid() {
+    const container = document.getElementById('projectsList');
+    
+    // Разделяем проекты на активные и на паузе
+    const activeProjects = projects.filter(p => p.status !== 'paused');
+    const pausedProjects = projects.filter(p => p.status === 'paused');
+    
+    // Сортируем активные по приоритету
+    activeProjects.sort((a, b) => (a.priority || 999) - (b.priority || 999));
+    
+    let html = '';
+    
+    // Активные проекты
+    if (activeProjects.length > 0) {
+        html += `
+            <div style="background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <h2 style="color: #2d3748; margin-bottom: 20px;">🎯 АКТИВНЫЕ ПРОЕКТЫ (${activeProjects.length})</h2>
+                <div class="projects-grid">
+                    <div class="project-card new-project-card" onclick="showCreateModal()">
+                        ➕ Новый проект
+                    </div>
+        `;
+        
+        activeProjects.forEach((project, index) => {
+            html += createProjectCardHTML(project, index, 'active');
+        });
+        
+        html += `</div></div>`;
+    } else {
+        html += `
+            <div style="background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <h2 style="color: #2d3748; margin-bottom: 20px;">🎯 АКТИВНЫЕ ПРОЕКТЫ (0)</h2>
+                <div class="projects-grid">
+                    <div class="project-card new-project-card" onclick="showCreateModal()">
+                        ➕ Новый проект
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Проекты на паузе
+    if (pausedProjects.length > 0) {
+        html += `
+            <div style="background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <h2 style="color: #718096; margin-bottom: 20px;">⏸️ ПРОЕКТЫ НА ПАУЗЕ (${pausedProjects.length})</h2>
+                <div class="projects-grid">
+        `;
+        
+        pausedProjects.forEach((project, index) => {
+            html += createProjectCardHTML(project, index, 'paused');
+        });
+        
+        html += `</div></div>`;
+    }
+    
+    container.innerHTML = html;
+}
 
         // Создание карточки проекта
         function createProjectCard(project) {
