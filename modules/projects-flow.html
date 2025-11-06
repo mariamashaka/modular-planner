@@ -1079,14 +1079,16 @@ function formatDate(dateString) {
                 return;
             }
 
-            const newProject = {
-                id: Date.now(),
-                name: name,
-                description: description,
-                dateType: dateType,
-                stages: [],
-                createdAt: new Date().toISOString()
-            };
+const newProject = {
+    id: Date.now(),
+    name: name,
+    description: description,
+    dateType: dateType,
+    status: 'active', // active или paused
+    priority: projects.filter(p => p.status === 'active').length + 1, // Приоритет = последний
+    stages: [],
+    createdAt: new Date().toISOString()
+};
 
             // Добавляем даты в зависимости от типа
             if (dateType === 'deadline') {
