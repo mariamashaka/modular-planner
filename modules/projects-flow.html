@@ -1013,6 +1013,75 @@ function renderProjectsGrid() {
     container.innerHTML = html;
 }
 
+        // Генерация HTML для карточки проекта
+function createProjectCardHTML(project, index, type) {
+    // Определяем текст и класс для даты
+    let dateText = '';
+    let dateClass = '';
+
+    if (project.dateType === 'someday') {
+        dateText = 'Когда-нибудь';
+        dateClass = 'someday';
+    } else if (project.dateType === 'timeframe') {
+        dateText = formatDate(project.startDate) + ' - ' + formatDate(project.endDate);
+        dateClass = 'timeframe';
+    } else {
+        const deadline = project.deadline ? new Date(project.deadline) : null;
+        if (deadline && deadline < new Date()) {
+            dateText = 'Просрочен';
+            dateClass = 'overdue';
+        } else if (deadline) {
+            dateText = 'до ' + formatDate(project.deadline);
+            dateClass = 'deadline';
+        } else {
+            dateText = 'Когда-нибудь';
+            dateClass = 'someday';
+        }
+    }
+
+    const overdueClass = (project.dateType === 'deadline' || !project.dateType) && 
+                         project.deadline && 
+                         new Date(project.deadline) < new Date() ? 'overdue' : '';
+
+    const completedStages = project.stages ? project.stages.filter(s => s.completed).length : 0;
+    const totalStages = project.stages ? project.stages.length : 0;
+    const progress = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
+
+    // Кнопки управления приоритетом для активных проектов
+    let controlButtons = '';
+    if (type === 'active') {
+        const activeProjects = projects.filter(p => p.status !== 'paused');
+        const isFirst = index === 0;
+        const isLast = index === activeProjects.length - 1;
+        
+        controlButtons = `
+            <div style="display: flex; gap: 5px; justify-content: center; margin-top: 10px;">
+                ${!isFirst ? `<button onclick="event.stopPropagation(); movePriorityUp(${project.id})" class="btn btn-sm" style="background: #48bb78; color: white;">⬆️ Выше</button>` : ''}
+                ${!isLast ? `<button onclick="event.stopPropagation(); movePriorityDown(${project.id})" class="btn btn-sm" style="background: #ed8936; color: white;">⬇️ Ниже</button>` : ''}
+            </div>
+        `;
+    } else {
+        controlButtons = `
+            <div style="text-align: center; margin-top: 10px;">
+                <button onclick="event.stopPropagation(); activateProject(${project.id})" class="btn btn-sm" style="background: #48bb78; color: white;">▶️ Активировать</button>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="project-card ${overdueClass}" onclick="showProjectDetails(${project.id})">
+            <div class="project-title">${project.name}</div>
+            <div class="project-meta">
+                <span class="project-deadline ${dateClass}">${dateText}</span>
+                <span class="project-progress">${completedStages}/${totalStages} этапов</span>
+            </div>
+            <div class="project-description">${project.description || 'Без описания'}</div>
+            <div style="text-align: center; color: #6c5ce7; font-weight: bold;">${progress}% завершено</div>
+            ${controlButtons}
+        </div>
+    `;
+}
+
         // Создание карточки проекта
         function createProjectCard(project) {
             const card = document.createElement('div');
