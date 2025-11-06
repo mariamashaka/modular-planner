@@ -647,8 +647,8 @@ function getProjectInfo(projectId) {
         function goToUrgent() {
             window.location.href = 'urgent-flow.html';
         }
-        // ============================================
-// ПОЛНАЯ СТАТИСТИКА ДЛЯ АНАЛИЗА С КОУЧЕМ
+// ============================================
+// ПОЛНАЯ СТАТИСТИКА ДЛЯ АНАЛИЗА С КОУЧЕМ v2.0
 // ============================================
 
 function exportFullStatistics() {
@@ -668,22 +668,22 @@ function exportFullStatistics() {
                 export_date: new Date().toISOString(),
                 period_from: periodFrom,
                 period_to: periodTo,
-                exported_by: 'Modular Planner Statistics v1.0'
+                exported_by: 'Modular Planner Statistics v2.0 - IMPROVED'
             },
             
-            // 1. АРХИВ (выполненные задачи)
-            archive: getArchiveData(periodFrom, periodTo),
+            // 1. АРХИВ (выполненные задачи) - С ПРИОРИТЕТАМИ
+            archive: getArchiveDataImproved(periodFrom, periodTo),
             
-            // 2. СРОЧНЫЕ ЗАДАЧИ
-            urgent_tasks: getUrgentTasksData(periodFrom, periodTo),
+            // 2. СРОЧНЫЕ ЗАДАЧИ - АКТИВНЫЕ И ЗАВЕРШЕННЫЕ
+            urgent_tasks: getUrgentTasksDataImproved(periodFrom, periodTo),
             
-            // 3. ЕЖЕНЕДЕЛЬНЫЕ ПУЛЫ
-            repeat_pools: getRepeatPoolsData(periodFrom, periodTo),
+            // 3. ЕЖЕНЕДЕЛЬНЫЕ ПУЛЫ - С % ВЫПОЛНЕНИЯ
+            repeat_pools: getRepeatPoolsDataImproved(periodFrom, periodTo),
             
-            // 4. ПРОЕКТЫ
-            projects: getProjectsData(periodFrom, periodTo),
+            // 4. ПРОЕКТЫ - ИСПРАВЛЕННАЯ ВЕРСИЯ
+            projects: getProjectsDataImproved(periodFrom, periodTo),
             
-            // 5. КАЛЕНДАРНЫЕ СОБЫТИЯ (если есть)
+            // 5. КАЛЕНДАРНЫЕ СОБЫТИЯ
             calendar_events: getCalendarData(periodFrom, periodTo)
         };
         
@@ -693,12 +693,12 @@ function exportFullStatistics() {
         
         const a = document.createElement('a');
         a.href = url;
-        a.download = `full_statistics_${periodFrom}_to_${periodTo}.json`;
+        a.download = `full_statistics_v2_${periodFrom}_to_${periodTo}.json`;
         a.click();
         
         URL.revokeObjectURL(url);
         
-        alert('✅ Статистика выгружена!\nТеперь можешь загрузить этот JSON в отдельный чат для анализа с коучем.');
+        alert('✅ УЛУЧШЕННАЯ статистика выгружена!\n\n📊 Что добавлено:\n• Приоритеты задач\n• Активные задачи (что висит сейчас)\n• Просроченные с деталями\n• % выполнения пулов\n• Исправлен подсчёт проектов');
         
     } catch (error) {
         alert('❌ Ошибка: ' + error.message);
@@ -706,8 +706,12 @@ function exportFullStatistics() {
     }
 }
 
-// Получить данные архива за период
-function getArchiveData(from, to) {
+// ============================================
+// УЛУЧШЕННЫЕ ФУНКЦИИ СБОРА ДАННЫХ
+// ============================================
+
+// 1. АРХИВ - с приоритетами и анализом просрочек
+function getArchiveDataImproved(from, to) {
     const fromDate = new Date(from).toISOString();
     const toDate = new Date(to + 'T23:59:59').toISOString();
     
@@ -716,88 +720,229 @@ function getArchiveData(from, to) {
         dateTo: toDate
     });
     
+    // Анализ просрочек
+    const overdueAnalysis = tasks
+        .filter(t => t.originalDate && t.moduleType === 'urgent-flow')
+        .map(t => {
+            const originalDate = new Date(t.originalDate);
+            const completedDate = new Date(t.completedAt);
+            const daysOverdue = Math.floor((completedDate - originalDate) / (1000 * 60 * 60 * 24));
+            
+            return {
+                task: t.text,
+                originalDate: t.originalDate,
+                completedDate: t.completedAt.split('T')[0],
+                daysOverdue: daysOverdue,
+                priority: t.priority || 'не указан',
+                project: t.projectId || 'БЕЗ ПРОЕКТА'
+            };
+        })
+        .filter(t => t.daysOverdue > 0)
+        .sort((a, b) => b.daysOverdue - a.daysOverdue);
+    
+    // Статистика по приоритетам
+    const priorityStats = {
+        'высокий': 0,
+        'средний': 0,
+        'низкий': 0,
+        'не указан': 0
+    };
+    
+    tasks.forEach(t => {
+        const priority = t.priority || 'не указан';
+        if (priorityStats.hasOwnProperty(priority)) {
+            priorityStats[priority]++;
+        }
+    });
+    
     return {
         total_completed: tasks.length,
         tasks: tasks,
+        priority_stats: priorityStats,
+        overdue_analysis: {
+            total_overdue: overdueAnalysis.length,
+            tasks: overdueAnalysis
+        },
         stats: ArchiveManager.getStats('all')
     };
 }
 
-// Получить данные срочных задач
-function getUrgentTasksData(from, to) {
+// 2. СРОЧНЫЕ ЗАДАЧИ - активные + завершенные + просроченные
+function getUrgentTasksDataImproved(from, to) {
     try {
         const urgentTasks = JSON.parse(localStorage.getItem('urgentTasks') || '[]');
         const fromDate = new Date(from);
         const toDate = new Date(to);
         
-        // Активные задачи
+        // Активные задачи (НЕ выполнены)
         const active = urgentTasks.filter(t => !t.completed);
         
-        // Задачи, которые были в этом периоде
+        // Просроченные активные (дедлайн прошёл, но не выполнено)
+        const today = new Date();
+        const overdueActive = active.filter(t => {
+            if (!t.date) return false;
+            const taskDate = new Date(t.date);
+            return taskDate < today;
+        }).map(t => {
+            const taskDate = new Date(t.date);
+            const daysOverdue = Math.floor((today - taskDate) / (1000 * 60 * 60 * 24));
+            return {
+                ...t,
+                daysOverdue: daysOverdue
+            };
+        }).sort((a, b) => b.daysOverdue - a.daysOverdue);
+        
+        // Задачи в периоде
         const inPeriod = urgentTasks.filter(t => {
+            if (!t.date) return false;
             const taskDate = new Date(t.date);
             return taskDate >= fromDate && taskDate <= toDate;
         });
         
+        // Статистика по приоритетам активных задач
+        const activePriorityStats = {
+            'высокий': 0,
+            'средний': 0,
+            'низкий': 0,
+            'не указан': 0
+        };
+        
+        active.forEach(t => {
+            const priority = t.priority || 'не указан';
+            if (activePriorityStats.hasOwnProperty(priority)) {
+                activePriorityStats[priority]++;
+            }
+        });
+        
         return {
             active_now: active,
+            active_count: active.length,
+            active_priority_stats: activePriorityStats,
+            overdue_active: overdueActive,
+            overdue_active_count: overdueActive.length,
             tasks_in_period: inPeriod,
-            total_in_period: inPeriod.length
+            total_in_period: inPeriod.length,
+            note: 'Активные = невыполненные сейчас, Просроченные = дедлайн прошёл но не выполнено'
         };
     } catch (e) {
         return { error: 'Нет данных по срочным задачам' };
     }
 }
 
-// Получить данные еженедельных пулов
-function getRepeatPoolsData(from, to) {
+// 3. ЕЖЕНЕДЕЛЬНЫЕ ПУЛЫ - с % выполнения и деталями
+function getRepeatPoolsDataImproved(from, to) {
     try {
         const repeatPools = JSON.parse(localStorage.getItem('repeatPools') || '[]');
         
+        // Для каждого пула анализируем выполнение
+        const poolsAnalysis = repeatPools.map(pool => {
+            const tasks = pool.tasks || [];
+            
+            // Считаем для каждой задачи в пуле
+            const tasksAnalysis = tasks.map(task => {
+                const target = task.targetPerWeek || task.target || 0;
+                const completed = task.completed || 0;
+                const percentage = target > 0 ? Math.round((completed / target) * 100) : 0;
+                
+                return {
+                    name: task.name,
+                    target: target,
+                    completed: completed,
+                    percentage: percentage,
+                    status: completed >= target ? '✅ Выполнено' : 
+                           completed > 0 ? '⚠️ Частично' : '❌ Не начато'
+                };
+            });
+            
+            // Общий процент по пулу
+            const totalTarget = tasks.reduce((sum, t) => sum + (t.targetPerWeek || t.target || 0), 0);
+            const totalCompleted = tasks.reduce((sum, t) => sum + (t.completed || 0), 0);
+            const poolPercentage = totalTarget > 0 ? Math.round((totalCompleted / totalTarget) * 100) : 0;
+            
+            return {
+                pool_name: pool.name,
+                project: pool.project,
+                color: pool.color,
+                total_target: totalTarget,
+                total_completed: totalCompleted,
+                percentage: poolPercentage,
+                tasks: tasksAnalysis,
+                weekKey: tasks[0]?.weekKey || 'unknown'
+            };
+        });
+        
         return {
             pools: repeatPools,
+            pools_analysis: poolsAnalysis,
             total_pools: repeatPools.length,
-            note: 'История выполнения за период - нужно анализировать даты completed в задачах'
+            note: 'percentage = % выполнения цели за текущую неделю'
         };
     } catch (e) {
         return { error: 'Нет данных по повторяющимся задачам' };
     }
 }
 
-// Получить данные проектов
-function getProjectsData(from, to) {
+// 4. ПРОЕКТЫ - ИСПРАВЛЕННЫЙ подсчёт активности
+function getProjectsDataImproved(from, to) {
     try {
         const projects = ProjectsManager.getActive();
+        const fromDate = new Date(from).toISOString();
+        const toDate = new Date(to + 'T23:59:59').toISOString();
         
         const projectsWithActivity = projects.map(project => {
             // Находим задачи проекта в архиве за период
-            const fromDate = new Date(from).toISOString();
-            const toDate = new Date(to + 'T23:59:59').toISOString();
-            
             const completedTasks = ArchiveManager.getFiltered({
                 projectId: project.id,
                 dateFrom: fromDate,
                 dateTo: toDate
             });
             
+            // Также ищем по имени проекта (для старых задач)
+            const completedTasksByName = ArchiveManager.getFiltered({
+                projectId: project.name,
+                dateFrom: fromDate,
+                dateTo: toDate
+            });
+            
+            const allCompleted = [...completedTasks, ...completedTasksByName];
+            const uniqueCompleted = Array.from(new Set(allCompleted.map(t => t.id)))
+                .map(id => allCompleted.find(t => t.id === id));
+            
+            // Находим последнюю дату активности
+            let lastActivity = 'Нет активности';
+            if (uniqueCompleted.length > 0) {
+                const dates = uniqueCompleted.map(t => new Date(t.completedAt));
+                const lastDate = new Date(Math.max(...dates));
+                lastActivity = lastDate.toISOString().split('T')[0];
+            }
+            
             return {
                 ...project,
-                completed_in_period: completedTasks.length,
-                last_activity: completedTasks.length > 0 ? 
-                    completedTasks[0].completedAt : 'Нет активности'
+                completed_in_period: uniqueCompleted.length,
+                last_activity: lastActivity,
+                completed_tasks_details: uniqueCompleted.map(t => ({
+                    text: t.text,
+                    completedAt: t.completedAt.split('T')[0],
+                    moduleType: t.moduleType
+                }))
             };
         });
         
+        // Сортируем по активности (самые активные первые)
+        projectsWithActivity.sort((a, b) => b.completed_in_period - a.completed_in_period);
+        
         return {
             projects: projectsWithActivity,
-            total_projects: projects.length
+            total_projects: projects.length,
+            active_projects: projectsWithActivity.filter(p => p.completed_in_period > 0).length,
+            inactive_projects: projectsWithActivity.filter(p => p.completed_in_period === 0).length
         };
     } catch (e) {
         return { error: 'Нет данных по проектам' };
     }
 }
 
-// Получить календарные данные
+// 5. КАЛЕНДАРНЫЕ ДАННЫЕ
 function getCalendarData(from, to) {
     try {
         const calendarEvents = JSON.parse(localStorage.getItem('calendarEvents') || '[]');
