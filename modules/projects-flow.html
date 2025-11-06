@@ -1071,13 +1071,13 @@ controlButtons = `
         ${!isLast ? `<button onclick="movePriorityDown(${project.id}); return false;" ontouchstart="movePriorityDown(${project.id}); return false;" class="btn btn-sm" style="background: #ed8936; color: white;">⬇️ Ниже</button>` : ''}
     </div>
 `;
-    } else {
-        controlButtons = `
-            <div style="text-align: center; margin-top: 10px;">
-                <button onclick="event.stopPropagation(); activateProject(${project.id})" class="btn btn-sm" style="background: #48bb78; color: white;">▶️ Активировать</button>
-            </div>
-        `;
-    }
+} else {
+    controlButtons = `
+        <div style="text-align: center; margin-top: 10px;" ontouchstart="event.stopPropagation();" onclick="event.stopPropagation();">
+            <button onclick="activateProject(${project.id}); return false;" ontouchstart="activateProject(${project.id}); return false;" class="btn btn-sm" style="background: #48bb78; color: white;">▶️ Активировать</button>
+        </div>
+    `;
+}
 
     return `
         <div class="project-card ${overdueClass}" onclick="showProjectDetails(${project.id})">
