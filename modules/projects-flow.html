@@ -1082,62 +1082,6 @@ function createProjectCardHTML(project, index, type) {
     `;
 }
 
-        // Создание карточки проекта
-        function createProjectCard(project) {
-            const card = document.createElement('div');
-            card.className = 'project-card';
-            card.onclick = () => showProjectDetails(project.id);
-
-            // Определяем текст и класс для даты
-            let dateText = '';
-            let dateClass = '';
-
-            if (project.dateType === 'someday') {
-                dateText = 'Когда-нибудь';
-                dateClass = 'someday';
-            } else if (project.dateType === 'timeframe') {
-                dateText = formatDate(project.startDate) + ' - ' + formatDate(project.endDate);
-                dateClass = 'timeframe';
-            } else {
-                // Для старых проектов без dateType или с deadline
-                const deadline = project.deadline ? new Date(project.deadline) : null;
-                if (deadline && deadline < new Date()) {
-                    dateText = 'Просрочен';
-                    dateClass = 'overdue';
-                } else if (deadline) {
-                    dateText = 'до ' + formatDate(project.deadline);
-                    dateClass = 'deadline';
-                } else {
-                    dateText = 'Когда-нибудь';
-                    dateClass = 'someday';
-                }
-            }
-
-            // Проверяем просроченность только для deadline проектов
-            if (project.dateType === 'deadline' || !project.dateType) {
-                const deadline = project.deadline ? new Date(project.deadline) : null;
-                if (deadline && deadline < new Date()) {
-                    card.classList.add('overdue');
-                }
-            }
-
-            const completedStages = project.stages ? project.stages.filter(s => s.completed).length : 0;
-            const totalStages = project.stages ? project.stages.length : 0;
-            const progress = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
-
-            card.innerHTML = `
-                <div class="project-title">${project.name}</div>
-                <div class="project-meta">
-                    <span class="project-deadline ${dateClass}">${dateText}</span>
-                    <span class="project-progress">${completedStages}/${totalStages} этапов</span>
-                </div>
-                <div class="project-description">${project.description || 'Без описания'}</div>
-                <div style="text-align: center; color: #6c5ce7; font-weight: bold;">${progress}% завершено</div>
-            `;
-
-            return card;
-        }
-
 // Форматирование даты 
 function formatDate(dateString) {
     if (!dateString) return '';
