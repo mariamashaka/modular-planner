@@ -1949,16 +1949,16 @@ function saveEditSubtask() {
             }
         }
 
-        // Закрытие модальных окон по клику вне их
-        window.onclick = function(event) {
-            const modals = ['createProjectModal', 'addStageModal', 'detailStageModal'];
-            modals.forEach(modalId => {
-                const modal = document.getElementById(modalId);
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
+// Закрытие модальных окон по клику вне их
+window.onclick = function(event) {
+    const modals = ['createProjectModal', 'addStageModal', 'detailStageModal', 'editSubtaskModal'];
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (event.target === modal) {
+            modal.style.display = 'none';
         }
+    });
+}
 
         // Функции для интеграции с другими модулями
         window.ProjectsFlow = {
