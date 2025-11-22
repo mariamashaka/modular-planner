@@ -1108,6 +1108,189 @@ function getCalendarData(from, to) {
         return { error: 'Нет календарных данных' };
     }
 }
+        // ============================================
+// БЭКАП И ВОССТАНОВЛЕНИЕ ВСЕХ ДАННЫХ
+// ============================================
+
+// Создание полного бэкапа
+function createBackup() {
+    try {
+        const backupData = {
+            backupDate: new Date().toISOString(),
+            version: '1.0',
+            appVersion: 'Modular Planner v1.0',
+            
+            data: {
+                // Проекты (projectsFlow)
+                projectsFlow: JSON.parse(localStorage.getItem('projectsFlow') || '[]'),
+                
+                // Срочные задачи
+                urgentTasks: JSON.parse(localStorage.getItem('urgentTasks') || '[]'),
+                
+                // Еженедельные пулы
+                repeatPools: JSON.parse(localStorage.getItem('repeatPools') || '[]'),
+                
+                // Календарные правила повторения
+                recurringEvents: JSON.parse(localStorage.getItem('recurringEvents') || '[]'),
+                
+                // Календарные задачи (экземпляры)
+                calendarInstances: JSON.parse(localStorage.getItem('calendarInstances') || '[]'),
+                
+                // Календарные события
+                calendarEvents: JSON.parse(localStorage.getItem('calendarEvents') || '[]'),
+                
+                // Архив выполненных задач
+                taskArchive: JSON.parse(localStorage.getItem('taskArchive') || '[]'),
+                
+                // Быстрые задачи
+                quickTasks: JSON.parse(localStorage.getItem('quickTasks') || '[]'),
+                
+                // Категории (старая система projects)
+                projects: JSON.parse(localStorage.getItem('projects') || '[]')
+            },
+            
+            statistics: {
+                totalProjects: JSON.parse(localStorage.getItem('projectsFlow') || '[]').length,
+                totalUrgentTasks: JSON.parse(localStorage.getItem('urgentTasks') || '[]').length,
+                totalRepeatPools: JSON.parse(localStorage.getItem('repeatPools') || '[]').length,
+                totalArchived: JSON.parse(localStorage.getItem('taskArchive') || '[]').length,
+                totalCalendarRules: JSON.parse(localStorage.getItem('recurringEvents') || '[]').length,
+                totalCalendarInstances: JSON.parse(localStorage.getItem('calendarInstances') || '[]').length
+            }
+        };
+        
+        // Создаём JSON blob
+        const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        // Создаём ссылку для скачивания
+        const a = document.createElement('a');
+        a.href = url;
+        
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0];
+        a.download = `modular-planner-backup-${dateStr}.json`;
+        
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        alert(`✅ БЭКАП СОЗДАН!\n\n📊 Статистика:\n` +
+              `• Проектов: ${backupData.statistics.totalProjects}\n` +
+              `• Срочных задач: ${backupData.statistics.totalUrgentTasks}\n` +
+              `• Недельных пулов: ${backupData.statistics.totalRepeatPools}\n` +
+              `• Календарных правил: ${backupData.statistics.totalCalendarRules}\n` +
+              `• Календарных задач: ${backupData.statistics.totalCalendarInstances}\n` +
+              `• В архиве: ${backupData.statistics.totalArchived}\n\n` +
+              `💾 Файл: modular-planner-backup-${dateStr}.json`);
+        
+    } catch (error) {
+        alert('❌ Ошибка создания бэкапа: ' + error.message);
+        console.error('Backup error:', error);
+    }
+}
+
+// Восстановление из бэкапа
+function restoreFromBackup() {
+    // Создаём input для выбора файла
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    
+    input.onchange = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            try {
+                const backupData = JSON.parse(e.target.result);
+                
+                // Проверяем структуру
+                if (!backupData.data || !backupData.backupDate) {
+                    alert('❌ Неверный формат файла бэкапа!');
+                    return;
+                }
+                
+                // Показываем информацию о бэкапе
+                const backupDate = new Date(backupData.backupDate).toLocaleString('ru-RU');
+                const stats = backupData.statistics || {};
+                
+                const confirmMessage = 
+                    `⚠️ ВНИМАНИЕ! ВОССТАНОВЛЕНИЕ ИЗ БЭКАПА\n\n` +
+                    `📅 Дата бэкапа: ${backupDate}\n` +
+                    `📊 Содержимое:\n` +
+                    `• Проектов: ${stats.totalProjects || 0}\n` +
+                    `• Срочных задач: ${stats.totalUrgentTasks || 0}\n` +
+                    `• Недельных пулов: ${stats.totalRepeatPools || 0}\n` +
+                    `• Календарных правил: ${stats.totalCalendarRules || 0}\n` +
+                    `• Календарных задач: ${stats.totalCalendarInstances || 0}\n` +
+                    `• В архиве: ${stats.totalArchived || 0}\n\n` +
+                    `⚠️ ЭТО УДАЛИТ ВСЕ ТЕКУЩИЕ ДАННЫЕ!\n\n` +
+                    `Вы АБСОЛЮТНО УВЕРЕНЫ?`;
+                
+                if (!confirm(confirmMessage)) {
+                    alert('Восстановление отменено.');
+                    return;
+                }
+                
+                // Двойная проверка
+                if (!confirm('Последнее предупреждение! Восстановить данные из бэкапа?')) {
+                    alert('Восстановление отменено.');
+                    return;
+                }
+                
+                // Восстанавливаем данные
+                const data = backupData.data;
+                
+                if (data.projectsFlow) {
+                    localStorage.setItem('projectsFlow', JSON.stringify(data.projectsFlow));
+                }
+                if (data.urgentTasks) {
+                    localStorage.setItem('urgentTasks', JSON.stringify(data.urgentTasks));
+                }
+                if (data.repeatPools) {
+                    localStorage.setItem('repeatPools', JSON.stringify(data.repeatPools));
+                }
+                if (data.recurringEvents) {
+                    localStorage.setItem('recurringEvents', JSON.stringify(data.recurringEvents));
+                }
+                if (data.calendarInstances) {
+                    localStorage.setItem('calendarInstances', JSON.stringify(data.calendarInstances));
+                }
+                if (data.calendarEvents) {
+                    localStorage.setItem('calendarEvents', JSON.stringify(data.calendarEvents));
+                }
+                if (data.taskArchive) {
+                    localStorage.setItem('taskArchive', JSON.stringify(data.taskArchive));
+                }
+                if (data.quickTasks) {
+                    localStorage.setItem('quickTasks', JSON.stringify(data.quickTasks));
+                }
+                if (data.projects) {
+                    localStorage.setItem('projects', JSON.stringify(data.projects));
+                }
+                
+                alert(`✅ ДАННЫЕ ВОССТАНОВЛЕНЫ!\n\n` +
+                      `📅 Из бэкапа: ${backupDate}\n\n` +
+                      `🔄 Страница будет перезагружена для применения изменений.`);
+                
+                // Перезагружаем страницу
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+                
+            } catch (error) {
+                alert('❌ Ошибка восстановления: ' + error.message);
+                console.error('Restore error:', error);
+            }
+        };
+        
+        reader.readAsText(file);
+    };
+    
+    input.click();
+}
     </script>
 </body>
 </html>
