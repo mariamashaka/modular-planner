@@ -1064,36 +1064,63 @@ function renderCalendarTasks() {
             container.innerHTML = html;
         }
 
-        // Регулярные задачи
-        function renderRegularTasks() {
-            const container = document.getElementById('regularTasks');
-            
-            if (dayData.repeat.length === 0) {
-                container.innerHTML = '<div class="empty-state good">Регулярных задач пока нет</div>';
-                return;
-            }
-
-            const html = dayData.repeat.map(task => {
-                const completed = task.completed || 0;
-                const target = task.targetPerWeek;
-                
-                return `
-                    <div class="task-item">
-                        <div class="task-title">${task.poolName}: ${task.name}</div>
-                        <div class="task-meta">
-                            ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
-                            <span class="task-progress">📊 ${completed}/${target} на неделю</span>
-                            <span class="task-source">🔄 Регулярная</span>
-                        </div>
-                        <div class="task-actions">
-                            <button onclick="completeRepeatTask(${task.poolIndex}, ${task.taskIndex})" class="btn btn-primary">✅ +1</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            container.innerHTML = html;
+// Регулярные задачи
+function renderRegularTasks() {
+    const container = document.getElementById('regularTasks');
+    
+    // ВАЖНО: Теперь показываем ВСЕ задачи из всех пулов, не только незавершённые!
+    const repeatPools = JSON.parse(localStorage.getItem('repeatPools') || '[]');
+    const allRepeatTasks = [];
+    
+    repeatPools.forEach((pool, poolIndex) => {
+        if (pool.tasks && Array.isArray(pool.tasks)) {
+            pool.tasks.forEach((task, taskIndex) => {
+                allRepeatTasks.push({
+                    name: task.name,
+                    completed: task.completed || 0,
+                    targetPerWeek: task.targetPerWeek || task.target || 1,
+                    poolName: pool.name,
+                    poolIndex: poolIndex,
+                    taskIndex: taskIndex,
+                    project: pool.project
+                });
+            });
         }
+    });
+    
+    if (allRepeatTasks.length === 0) {
+        container.innerHTML = '<div class="empty-state good">Регулярных задач пока нет</div>';
+        return;
+    }
+
+    const html = allRepeatTasks.map(task => {
+        const completed = task.completed || 0;
+        const target = task.targetPerWeek;
+        const isCompleted = completed >= target;
+        
+        // Цвет фона: красный если не выполнен минимум, зелёный если выполнен
+        const backgroundColor = isCompleted ? '#f0fff4' : '#fff5f5';
+        const borderColor = isCompleted ? '#48bb78' : '#fc8181';
+        
+        return `
+            <div class="task-item" style="background: ${backgroundColor}; border-left-color: ${borderColor};">
+                <div class="task-title">${task.poolName}: ${task.name}</div>
+                <div class="task-meta">
+                    ${task.project ? `<span class="task-project">📁 ${task.project}</span>` : ''}
+                    <span class="task-progress" style="background: ${isCompleted ? '#c6f6d5' : '#fed7d7'}; color: ${isCompleted ? '#22543d' : '#742a2a'};">
+                        📊 ${completed}/${target} на неделю ${isCompleted ? '✅' : ''}
+                    </span>
+                    <span class="task-source">🔄 Регулярная</span>
+                </div>
+                <div class="task-actions">
+                    <button onclick="completeRepeatTask(${task.poolIndex}, ${task.taskIndex})" class="btn btn-primary">✅ +1</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = html;
+}
 
         // Проектные задачи
         function renderProjectsTasks() {
