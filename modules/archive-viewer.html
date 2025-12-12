@@ -845,7 +845,7 @@ function getUrgentTasksDataImproved(from, to) {
     }
 }
 
-// 3. ЕЖЕНЕДЕЛЬНЫЕ ПУЛЫ
+// 3. ЕЖЕНЕДЕЛЬНЫЕ ПУЛЫ - УЛУЧШЕННАЯ ВЕРСИЯ С ПЕРЕВЫПОЛНЕНИЕМ
 function getRepeatPoolsDataImproved(from, to) {
     try {
         const repeatPools = JSON.parse(localStorage.getItem('repeatPools') || '[]');
@@ -858,13 +858,33 @@ function getRepeatPoolsDataImproved(from, to) {
                 const completed = task.completed || 0;
                 const percentage = target > 0 ? Math.round((completed / target) * 100) : 0;
                 
+                // Статус с учётом перевыполнения
+                let status = '';
+                let achievement = '';
+                
+                if (completed === 0) {
+                    status = '❌ Не начато';
+                    achievement = 'not_started';
+                } else if (completed < target) {
+                    status = '⚠️ Частично выполнено';
+                    achievement = 'partial';
+                } else if (completed === target) {
+                    status = '✅ Выполнено точно';
+                    achievement = 'completed';
+                } else {
+                    const overBy = completed - target;
+                    status = `🔥 ПЕРЕВЫПОЛНЕНО на ${overBy}!`;
+                    achievement = 'over_achieved';
+                }
+                
                 return {
                     name: task.name,
                     target: target,
                     completed: completed,
+                    over_by: completed > target ? completed - target : 0,
                     percentage: percentage,
-                    status: completed >= target ? '✅ Выполнено' : 
-                           completed > 0 ? '⚠️ Частично' : '❌ Не начато'
+                    status: status,
+                    achievement: achievement
                 };
             });
             
@@ -872,23 +892,61 @@ function getRepeatPoolsDataImproved(from, to) {
             const totalCompleted = tasks.reduce((sum, t) => sum + (t.completed || 0), 0);
             const poolPercentage = totalTarget > 0 ? Math.round((totalCompleted / totalTarget) * 100) : 0;
             
+            // Считаем сколько задач перевыполнено
+            const overAchievedCount = tasks.filter(t => (t.completed || 0) > (t.targetPerWeek || t.target || 0)).length;
+            const completedExactlyCount = tasks.filter(t => (t.completed || 0) === (t.targetPerWeek || t.target || 0) && (t.completed || 0) > 0).length;
+            const partialCount = tasks.filter(t => {
+                const completed = t.completed || 0;
+                const target = t.targetPerWeek || t.target || 0;
+                return completed > 0 && completed < target;
+            }).length;
+            const notStartedCount = tasks.filter(t => (t.completed || 0) === 0).length;
+            
             return {
                 pool_name: pool.name,
                 project: pool.project,
                 color: pool.color,
                 total_target: totalTarget,
                 total_completed: totalCompleted,
+                total_over: totalCompleted > totalTarget ? totalCompleted - totalTarget : 0,
                 percentage: poolPercentage,
                 tasks: tasksAnalysis,
-                weekKey: tasks[0]?.weekKey || 'unknown'
+                weekKey: tasks[0]?.weekKey || 'current_week',
+                
+                // Детальная статистика
+                achievement_breakdown: {
+                    over_achieved: overAchievedCount,
+                    completed_exactly: completedExactlyCount,
+                    partial: partialCount,
+                    not_started: notStartedCount,
+                    total_tasks: tasks.length
+                }
             };
         });
+        
+        // Общая статистика по всем пулам
+        const totalTasksAcrossAllPools = poolsAnalysis.reduce((sum, p) => sum + (p.tasks?.length || 0), 0);
+        const overAchievedTasksTotal = poolsAnalysis.reduce((sum, p) => sum + (p.achievement_breakdown?.over_achieved || 0), 0);
+        const totalTargetAll = poolsAnalysis.reduce((sum, p) => sum + p.total_target, 0);
+        const totalCompletedAll = poolsAnalysis.reduce((sum, p) => sum + p.total_completed, 0);
+        const totalOverAll = totalCompletedAll > totalTargetAll ? totalCompletedAll - totalTargetAll : 0;
         
         return {
             pools: repeatPools,
             pools_analysis: poolsAnalysis,
             total_pools: repeatPools.length,
-            note: 'percentage = % выполнения цели за текущую неделю'
+            
+            // Общая статистика
+            summary: {
+                total_tasks: totalTasksAcrossAllPools,
+                total_target: totalTargetAll,
+                total_completed: totalCompletedAll,
+                total_over: totalOverAll,
+                over_achieved_tasks: overAchievedTasksTotal,
+                overall_percentage: totalTargetAll > 0 ? Math.round((totalCompletedAll / totalTargetAll) * 100) : 0
+            },
+            
+            note: 'ВАЖНО: completed = реально сделано (может быть больше target!), over_by = на сколько перевыполнено, percentage = % от цели (может быть >100%)'
         };
     } catch (e) {
         return { error: 'Нет данных по повторяющимся задачам' };
