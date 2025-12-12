@@ -1348,67 +1348,56 @@ function updateAllCounts() {
             }
         }
 
-        // Выполнение регулярной задачи
-        function completeRepeatTask(poolIndex, taskIndex) {
-            const repeatPools = JSON.parse(localStorage.getItem('repeatPools') || '[]');
-            
-            if (repeatPools[poolIndex] && repeatPools[poolIndex].tasks[taskIndex]) {
-                const pool = repeatPools[poolIndex];
-                const task = pool.tasks[taskIndex];
-                
-                // Увеличиваем счетчик
-                task.completed = (task.completed || 0) + 1;
-                
-                // Архивируем
-                try {
-                    if (typeof window.ArchiveManager !== 'undefined') {
-                        const archiveData = {
-                            id: Date.now(),
-                            text: `${pool.name}: ${task.name}`,
-                            moduleType: 'repeat-flow',
-                            projectId: pool.project,
-                            date: null,
-                            createdAt: new Date().toISOString()
-                        };
-                        window.ArchiveManager.archive(archiveData);
-                    }
-                } catch (error) {
-                    console.error('Ошибка архивирования:', error);
-                }
-                
-                // Сохраняем
-                localStorage.setItem('repeatPools', JSON.stringify(repeatPools));
-                
-                // Обновляем dayData
-                const taskInDay = dayData.repeat.find(t => 
-                    t.poolIndex === poolIndex && t.taskIndex === taskIndex
-                );
-                if (taskInDay) {
-                    taskInDay.completed = task.completed;
-                    
-                    // Если задача выполнена, убираем из списка
-                    if (task.completed >= task.targetPerWeek) {
-                        dayData.repeat = dayData.repeat.filter(t => 
-                            !(t.poolIndex === poolIndex && t.taskIndex === taskIndex)
-                        );
-                        completedToday++;
-                    }
-                }
-                
-                renderRegularTasks();
-                updateAllCounts();
-                updateProgress();
-                updateStats();
-                
-                const remaining = task.targetPerWeek - task.completed;
-                if (remaining <= 0) {
-                    alert(`${task.name} выполнен на неделю! 🎉`);
-                } else {
-                    alert(`${task.name}: ${task.completed}/${task.targetPerWeek} (осталось ${remaining})`);
-                }
+// Выполнение регулярной задачи
+function completeRepeatTask(poolIndex, taskIndex) {
+    const repeatPools = JSON.parse(localStorage.getItem('repeatPools') || '[]');
+    
+    if (repeatPools[poolIndex] && repeatPools[poolIndex].tasks[taskIndex]) {
+        const pool = repeatPools[poolIndex];
+        const task = pool.tasks[taskIndex];
+        
+        // Увеличиваем счетчик (БЕЗ ОГРАНИЧЕНИЙ!)
+        task.completed = (task.completed || 0) + 1;
+        
+        // Архивируем
+        try {
+            if (typeof window.ArchiveManager !== 'undefined') {
+                const archiveData = {
+                    id: Date.now(),
+                    text: `${pool.name}: ${task.name}`,
+                    moduleType: 'repeat-flow',
+                    projectId: pool.project,
+                    date: null,
+                    createdAt: new Date().toISOString()
+                };
+                window.ArchiveManager.archive(archiveData);
             }
+        } catch (error) {
+            console.error('Ошибка архивирования:', error);
         }
-
+        
+        // Сохраняем
+        localStorage.setItem('repeatPools', JSON.stringify(repeatPools));
+        
+        // ПЕРЕРИСОВЫВАЕМ (задача НЕ исчезает, только меняется цвет!)
+        renderRegularTasks();
+        updateAllCounts();
+        updateProgress();
+        updateStats();
+        
+        // Сообщение с учётом перевыполнения
+        const target = task.targetPerWeek || task.target || 1;
+        if (task.completed > target) {
+            const overBy = task.completed - target;
+            alert(`${task.name}: ${task.completed}/${target} 💪\nПеревыполнено на ${overBy}!`);
+        } else if (task.completed === target) {
+            alert(`${task.name}: ${task.completed}/${target} ✅\nМинимум выполнен!`);
+        } else {
+            const remaining = target - task.completed;
+            alert(`${task.name}: ${task.completed}/${target}\nОсталось ${remaining}`);
+        }
+    }
+}
         // Выполнение проектной задачи
         function completeProjectTask(taskId) {
             console.log('Выполнение проектной задачи:', taskId);
